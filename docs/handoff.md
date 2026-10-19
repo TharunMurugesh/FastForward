@@ -67,10 +67,13 @@ scratchpad). Worker B released (window PayPal 4 can be closed; worktree and bran
   transmission id; duplicate copies' retries interleave (rows.ts follows retry chains).
 - DONE (main 0ae095f, 322 tests): Task 14 HTML report (self-contained report.html next to report.json).
   Worker C is STANDING BY (session long: give new jobs to fresh sessions).
-- **Worker A**: Task 14 fidelity suite CODE ONLY (`npm run fidelity`, FF_FIDELITY=1 + sandbox keys, writes
+- DONE (main 856a3d6, 353 tests), Worker A STANDING BY: Task 14 fidelity suite CODE ONLY (`npm run fidelity`, FF_FIDELITY=1 + sandbox keys, writes
   `fidelity/latest.json` in the dashboard's FidelityFile format, values stripped) + STATE_MATCHES findings carry
   event ids. Wording bug FIXED and verified on a real run (main 8a426c2 + re-recorded
-  sample 025871f, 330 tests): STATE_MATCHES orders notices by `status_update_time`. **Running it against the real sandbox needs Vinay's yes**; Sara runs it, then commits latest.json.
+  sample 025871f, 330 tests): STATE_MATCHES orders notices by `status_update_time`. **Running it against the real sandbox needs Vinay's yes** (`FF_FIDELITY=1 npm run fidelity`;
+  creates 1 product, 1 plan, 1 subscription in his sandbox, cancels the subscription; ALLOWED_DIFFS starts empty,
+  so expect to resolve real differences, e.g. cancel of APPROVAL_PENDING, verify with a bad body). Then commit
+  fidelity/latest.json.
 - Remaining after that: Task 16 MCP (fresh worker session), Task 17 (railway.json, start-hosted, README,
   devpost.md, video script; root `npm run demo`), Vinay's outward items below.
 - Dashboard: `npm run dev -w @fastforward/web` → http://localhost:5173; CLI run with `--keep-twin` to view live.
