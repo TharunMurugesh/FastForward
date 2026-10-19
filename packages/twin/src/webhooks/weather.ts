@@ -1,3 +1,13 @@
+/**
+ * Known limits of the bad-weather simulation (quotable in the README):
+ * 1. Reordering and bursting act within one virtual instant. Customers who start together renew together,
+ *    which is where they matter; an event that is alone at its instant (a lone payment retry, say) cannot
+ *    be swapped with a neighbour.
+ * 2. Events that the weather delays past the end of the run are never delivered, and neither is a
+ *    duplicate copy sent after the end.
+ * 3. Event and subscription ids are random, not seeded. A seed fixes which events are delayed, duplicated,
+ *    swapped or forged, and when, so a rerun has the same shape and timing, but not the same ids.
+ */
 import type { Weather, WebhookEvent } from '@fastforward/contracts';
 
 const MINUTE = 60_000;

@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { TraceEntry } from '@fastforward/contracts';
+import { buildReport } from './checks/index.js';
 import type { RunRegistry } from './run/registry.js';
 import type { Run } from './run/run.js';
 
@@ -29,10 +30,24 @@ export function registerControlRoutes(app: FastifyInstance, registry: RunRegistr
     }
   });
 
+  // The run the dashboard should open: the active one, else the latest finished one (still readable).
+  app.get('/_ff/runs/current', async (_req, reply) => {
+    const run = registry.active() ?? registry.latest();
+    if (!run) return reply.code(404).send({ error: 'no run has been started' });
+    return { runId: run.id, finished: run.finished };
+  });
+
   app.get<{ Params: { id: string } }>('/_ff/runs/:id', async (req, reply) => {
     const run = runOr404(req.params.id, reply);
     if (!run) return reply;
-    return { runId: run.id, now: run.now().toISOString(), end: run.end.toISOString(), finished: run.finished, subscriptions: run.subscriptions() };
+    return {
+      runId: run.id,
+      start: run.scenario.start,
+      now: run.now().toISOString(),
+      end: run.end.toISOString(),
+      finished: run.finished,
+      subscriptions: run.subscriptions(),
+    };
   });
 
   app.post<{ Params: { id: string } }>('/_ff/runs/:id/advance', async (req, reply) => {
@@ -53,6 +68,15 @@ export function registerControlRoutes(app: FastifyInstance, registry: RunRegistr
     }
     await run.advance(target);
     return { runId: run.id, now: run.now().toISOString() };
+  });
+
+  // The checks judge a whole run (a dispute whose deadline is still ahead is not "unanswered" yet), so
+  // there is no report until the run has finished.
+  app.get<{ Params: { id: string } }>('/_ff/runs/:id/report', async (req, reply) => {
+    const run = runOr404(req.params.id, reply);
+    if (!run) return reply;
+    if (!run.finished) return reply.code(404).send({ error: 'the run has not finished; the report needs the whole run' });
+    return buildReport({ runId: run.id, scenario: run.scenario, start: run.scenario.start, end: run.end.toISOString(), trace: run.trace });
   });
 
   app.get<{ Params: { id: string } }>('/_ff/runs/:id/trace', async (req, reply) => {
