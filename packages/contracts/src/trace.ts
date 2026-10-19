@@ -10,4 +10,8 @@ export type TraceEntry =
   | { at: string; kind: 'probe'; subscriptionId: string; access: boolean | null; fulfilments: number | null; expectedAccess: boolean; completedPayments: number }
   | { at: string; kind: 'dispute_action'; disputeId: string; action: DisputeAction }
   | { at: string; kind: 'live_call_blocked'; url: string }
+  /** The app asked the twin to verify a delivery's signature (POST /v1/notifications/verify-webhook-signature). */
+  | { at: string; kind: 'verify_call'; transmissionId: string; result: 'SUCCESS' | 'FAILURE' }
+  /** The app downloaded the signing certificate, so it can verify offline (and may cache it). */
+  | { at: string; kind: 'cert_fetch' }
   | { at: string; kind: 'customer_decision'; customer: string; decision: CustomerDecision };
