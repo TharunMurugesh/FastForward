@@ -25,7 +25,11 @@ export function stateMatches(ctx: CheckContext): CheckResult {
   const bad = stretches(ctx.probes, (p) => (p.access === p.expectedAccess && p.access !== null ? null : `${p.access}|${p.expectedAccess}`));
   const findings: Finding[] = bad.map(({ first: p, last, count }): Finding => {
     const who = ctx.customerOf(p.subscriptionId);
-    const state = ctx.statusAt(p.subscriptionId, p.at);
+    // The notices only name the true status if they agree with the verdict the probe was judged by. If they
+    // do not (the notice that changed the status never reached the trace), say nothing about the status
+    // rather than something that contradicts the finding.
+    const known = ctx.statusAt(p.subscriptionId, p.at);
+    const state = known && ctx.scenario.expect.accessWhile.includes(known.status as never) === p.expectedAccess ? known : null;
     const why = state ? (WHY[state.status] ?? `the subscription was ${state.status}`) : p.expectedAccess ? 'the subscription was in good standing' : 'the subscription did not allow access';
     const n = checksNote(count);
     let summary: string;
