@@ -1,26 +1,26 @@
 {
- "recordedAt": "2026-10-19T09:02:22.466Z",
+ "recordedAt": "2026-10-19T09:18:46.880Z",
  "recipe": {
   "scenario": "examples/coffee-club/scenarios/bad-month.yaml",
   "coffeeBugs": "no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order",
   "ai": "off"
  },
- "runId": "run-c67d2ee3",
+ "runId": "run-52c8cd2f",
  "scenario": "bad-month",
  "start": "2026-11-01T00:00:00.000Z",
  "end": "2027-01-15T00:00:00.000Z",
  "subscriptions": [
   {
    "customer": "Maya",
-   "subscriptionId": "I-B28T9RBAROB5"
+   "subscriptionId": "I-03HVRD379E6T"
   },
   {
    "customer": "Leo",
-   "subscriptionId": "I-W4JF2AELMDP6"
+   "subscriptionId": "I-WB90L1CQFF8R"
   },
   {
    "customer": "Ana",
-   "subscriptionId": "I-310O9R5F0BHY"
+   "subscriptionId": "I-0MM7NGYJKBIT"
   }
  ],
  "trace": [
@@ -56,14 +56,14 @@
    "at": "2026-11-01T00:04:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-0TS60HELUDPCDSIIW-8EPR66KLOLIADPLHI",
+    "id": "WH-S7ACO2ASBYMD1T6BP-2KM9T49HQCR6YGFQT",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.CREATED",
     "summary": "Subscription created",
     "resource": {
-     "id": "I-B28T9RBAROB5",
+     "id": "I-03HVRD379E6T",
      "plan_id": "P-COFFEE",
      "status": "APPROVAL_PENDING",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -96,7 +96,7 @@
      "custom_id": "maya@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -125,17 +125,17 @@
      },
      "links": [
       {
-       "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-3QKNNGXBAYGKWD5X8",
+       "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-0EMAMN0PWJBZF8X3J",
        "rel": "approve",
        "method": "GET"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-B28T9RBAROB5",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-03HVRD379E6T",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-B28T9RBAROB5",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-03HVRD379E6T",
        "rel": "self",
        "method": "GET"
       }
@@ -143,12 +143,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0TS60HELUDPCDSIIW-8EPR66KLOLIADPLHI",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-S7ACO2ASBYMD1T6BP-2KM9T49HQCR6YGFQT",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0TS60HELUDPCDSIIW-8EPR66KLOLIADPLHI/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-S7ACO2ASBYMD1T6BP-2KM9T49HQCR6YGFQT/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -159,25 +159,25 @@
   {
    "at": "2026-11-01T00:04:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-0TS60HELUDPCDSIIW-8EPR66KLOLIADPLHI",
+   "eventId": "WH-S7ACO2ASBYMD1T6BP-2KM9T49HQCR6YGFQT",
    "attempt": 1,
    "status": 200,
    "ms": 10,
    "verifyCalled": false,
-   "transmissionId": "d0f2d68e-7e39-4d92-8f36-940b9ee52f8d"
+   "transmissionId": "433fd905-691e-4a1a-a57c-22205df49858"
   },
   {
    "at": "2026-11-01T00:08:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP",
+    "id": "WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "sale",
     "event_type": "PAYMENT.SALE.COMPLETED",
     "summary": "Payment completed for $ 12.00 USD",
     "resource": {
-     "id": "4JKG5ZWEOKQR7PTLQ",
+     "id": "PTM3PX0KFHK2Z2613",
      "state": "completed",
      "amount": {
       "total": "12.00",
@@ -186,17 +186,17 @@
        "subtotal": "12.00"
       }
      },
-     "billing_agreement_id": "I-B28T9RBAROB5",
+     "billing_agreement_id": "I-03HVRD379E6T",
      "create_time": "2026-11-01T00:00:00.000Z"
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -207,35 +207,35 @@
   {
    "at": "2026-11-01T00:08:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP",
+   "eventId": "WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1",
    "attempt": 1,
    "status": 200,
    "ms": 3,
    "verifyCalled": false,
-   "transmissionId": "5ca746e5-1503-48b8-aa89-220f13587610"
+   "transmissionId": "7ccbf043-e7d9-4f3c-8c1c-35986c0fde03"
   },
   {
    "at": "2026-11-01T00:09:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP",
+   "eventId": "WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1",
    "attempt": 1,
    "status": 200,
    "ms": 3,
    "verifyCalled": false,
-   "transmissionId": "a9fe783c-a691-407e-86f4-b539f5a7d6ff"
+   "transmissionId": "6a665689-3918-4c35-ab33-cd0eae9cfd3c"
   },
   {
    "at": "2026-11-01T00:19:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-0E4DB3268POX33KN1-NAQEKABONLBY34CZN",
+    "id": "WH-VSNBR6LHUVM6UA3XO-IJVT1UMSK4J7M78VP",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.ACTIVATED",
     "summary": "Subscription activated",
     "resource": {
-     "id": "I-310O9R5F0BHY",
+     "id": "I-0MM7NGYJKBIT",
      "plan_id": "P-COFFEE",
      "status": "ACTIVE",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -268,7 +268,7 @@
      "custom_id": "ana@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -297,12 +297,12 @@
      },
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-310O9R5F0BHY",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-0MM7NGYJKBIT",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-310O9R5F0BHY",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-0MM7NGYJKBIT",
        "rel": "self",
        "method": "GET"
       }
@@ -310,12 +310,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0E4DB3268POX33KN1-NAQEKABONLBY34CZN",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-VSNBR6LHUVM6UA3XO-IJVT1UMSK4J7M78VP",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0E4DB3268POX33KN1-NAQEKABONLBY34CZN/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-VSNBR6LHUVM6UA3XO-IJVT1UMSK4J7M78VP/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -326,25 +326,25 @@
   {
    "at": "2026-11-01T00:19:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-0E4DB3268POX33KN1-NAQEKABONLBY34CZN",
+   "eventId": "WH-VSNBR6LHUVM6UA3XO-IJVT1UMSK4J7M78VP",
    "attempt": 1,
    "status": 200,
    "ms": 3,
    "verifyCalled": false,
-   "transmissionId": "05dd4b23-983d-48bb-a94e-aa2818298bb7"
+   "transmissionId": "6523b4ca-8b86-42d4-827b-76b23af94692"
   },
   {
    "at": "2026-11-01T00:22:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-HEYJ4IJ8WAW7D138W-T46YKQD9K3HXGKJ3F",
+    "id": "WH-105A7NYVQHH0DM8EQ-50T4VMTGMG09EXVVK",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.ACTIVATED",
     "summary": "Subscription activated",
     "resource": {
-     "id": "I-B28T9RBAROB5",
+     "id": "I-03HVRD379E6T",
      "plan_id": "P-COFFEE",
      "status": "ACTIVE",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -377,7 +377,7 @@
      "custom_id": "maya@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -406,12 +406,12 @@
      },
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-B28T9RBAROB5",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-03HVRD379E6T",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-B28T9RBAROB5",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-03HVRD379E6T",
        "rel": "self",
        "method": "GET"
       }
@@ -419,12 +419,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-HEYJ4IJ8WAW7D138W-T46YKQD9K3HXGKJ3F",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-105A7NYVQHH0DM8EQ-50T4VMTGMG09EXVVK",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-HEYJ4IJ8WAW7D138W-T46YKQD9K3HXGKJ3F/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-105A7NYVQHH0DM8EQ-50T4VMTGMG09EXVVK/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -435,35 +435,35 @@
   {
    "at": "2026-11-01T00:22:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-HEYJ4IJ8WAW7D138W-T46YKQD9K3HXGKJ3F",
+   "eventId": "WH-105A7NYVQHH0DM8EQ-50T4VMTGMG09EXVVK",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "20189f5a-d7e4-4c7e-a392-1a25da5a46ca"
+   "transmissionId": "a6e0687c-11be-4415-895b-14afcc5c9be4"
   },
   {
    "at": "2026-11-01T00:29:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-HEYJ4IJ8WAW7D138W-T46YKQD9K3HXGKJ3F",
+   "eventId": "WH-105A7NYVQHH0DM8EQ-50T4VMTGMG09EXVVK",
    "attempt": 1,
    "status": 200,
    "ms": 3,
    "verifyCalled": false,
-   "transmissionId": "4f7bed0f-849c-474b-8222-5d676e869339"
+   "transmissionId": "7dd37fb7-db4b-4554-b261-0d60b1cb7c52"
   },
   {
    "at": "2026-11-01T00:39:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-J60BZ0ZV6OAMU41D4-VAJO6H5LV1TC6GUFI",
+    "id": "WH-QV2AQ1YDXF8D1S6J6-RZSGRIKCIE9KL8LI6",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "sale",
     "event_type": "PAYMENT.SALE.COMPLETED",
     "summary": "Payment completed for $ 12.00 USD",
     "resource": {
-     "id": "MPDFK1XYZP5QIERL7",
+     "id": "5I6KJQ1UHC35B6ZQ7",
      "state": "completed",
      "amount": {
       "total": "12.00",
@@ -472,17 +472,17 @@
        "subtotal": "12.00"
       }
      },
-     "billing_agreement_id": "I-310O9R5F0BHY",
+     "billing_agreement_id": "I-0MM7NGYJKBIT",
      "create_time": "2026-11-01T00:00:00.000Z"
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-J60BZ0ZV6OAMU41D4-VAJO6H5LV1TC6GUFI",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-QV2AQ1YDXF8D1S6J6-RZSGRIKCIE9KL8LI6",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-J60BZ0ZV6OAMU41D4-VAJO6H5LV1TC6GUFI/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-QV2AQ1YDXF8D1S6J6-RZSGRIKCIE9KL8LI6/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -493,25 +493,25 @@
   {
    "at": "2026-11-01T00:39:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-J60BZ0ZV6OAMU41D4-VAJO6H5LV1TC6GUFI",
+   "eventId": "WH-QV2AQ1YDXF8D1S6J6-RZSGRIKCIE9KL8LI6",
    "attempt": 1,
    "status": 200,
-   "ms": 2,
+   "ms": 3,
    "verifyCalled": false,
-   "transmissionId": "4df47e0c-31c0-4829-93aa-f672ec50ae22"
+   "transmissionId": "5a5862fa-7635-4b74-aec4-ab1bd485a173"
   },
   {
    "at": "2026-11-01T00:50:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-604IJZJKYAZROU341-RAVAO6BDUACGMA4AW",
+    "id": "WH-77LY1R27P3598PX50-W5GH1EGFGI5Z8FS93",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.CREATED",
     "summary": "Subscription created",
     "resource": {
-     "id": "I-W4JF2AELMDP6",
+     "id": "I-WB90L1CQFF8R",
      "plan_id": "P-COFFEE",
      "status": "APPROVAL_PENDING",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -544,7 +544,7 @@
      "custom_id": "leo@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -573,17 +573,17 @@
      },
      "links": [
       {
-       "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-7T15JG2BPXEVMAFC1",
+       "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-VAUHXUVJLBN6LEKDF",
        "rel": "approve",
        "method": "GET"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "self",
        "method": "GET"
       }
@@ -591,12 +591,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-604IJZJKYAZROU341-RAVAO6BDUACGMA4AW",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-77LY1R27P3598PX50-W5GH1EGFGI5Z8FS93",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-604IJZJKYAZROU341-RAVAO6BDUACGMA4AW/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-77LY1R27P3598PX50-W5GH1EGFGI5Z8FS93/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -607,25 +607,25 @@
   {
    "at": "2026-11-01T00:50:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-604IJZJKYAZROU341-RAVAO6BDUACGMA4AW",
+   "eventId": "WH-77LY1R27P3598PX50-W5GH1EGFGI5Z8FS93",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "5b25060a-95de-47be-8373-b6c23434e43e"
+   "transmissionId": "3b607f6b-6c7e-437a-8409-18c142db71d0"
   },
   {
    "at": "2026-11-01T00:54:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-ZUDO08QFNXSXYEMJW-7248DNH0R1Q60S6SR",
+    "id": "WH-SBTH60WK7PXGZ2T6X-4EOI26BDY5XH4O0J4",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.CREATED",
     "summary": "Subscription created",
     "resource": {
-     "id": "I-310O9R5F0BHY",
+     "id": "I-0MM7NGYJKBIT",
      "plan_id": "P-COFFEE",
      "status": "APPROVAL_PENDING",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -658,7 +658,7 @@
      "custom_id": "ana@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -687,17 +687,17 @@
      },
      "links": [
       {
-       "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-SGS2V2SI2EXKR3NQW",
+       "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-FJ40199H9V0WWZEPG",
        "rel": "approve",
        "method": "GET"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-310O9R5F0BHY",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-0MM7NGYJKBIT",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-310O9R5F0BHY",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-0MM7NGYJKBIT",
        "rel": "self",
        "method": "GET"
       }
@@ -705,12 +705,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-ZUDO08QFNXSXYEMJW-7248DNH0R1Q60S6SR",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-SBTH60WK7PXGZ2T6X-4EOI26BDY5XH4O0J4",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-ZUDO08QFNXSXYEMJW-7248DNH0R1Q60S6SR/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-SBTH60WK7PXGZ2T6X-4EOI26BDY5XH4O0J4/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -721,25 +721,25 @@
   {
    "at": "2026-11-01T00:54:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-ZUDO08QFNXSXYEMJW-7248DNH0R1Q60S6SR",
+   "eventId": "WH-SBTH60WK7PXGZ2T6X-4EOI26BDY5XH4O0J4",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "1907b13c-6312-41ec-88f2-d64799a2b228"
+   "transmissionId": "f33e3bb7-b18a-4099-ba69-00a86060de49"
   },
   {
    "at": "2026-11-01T00:58:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-E0QJD0VGP6QR4C3DY-MHHJA0JZIT8LKIVFP",
+    "id": "WH-IK25FB75GH62WWCTU-SLN84267IU2GG6KXY",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.ACTIVATED",
     "summary": "Subscription activated",
     "resource": {
-     "id": "I-W4JF2AELMDP6",
+     "id": "I-WB90L1CQFF8R",
      "plan_id": "P-COFFEE",
      "status": "ACTIVE",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -772,7 +772,7 @@
      "custom_id": "leo@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -801,12 +801,12 @@
      },
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "self",
        "method": "GET"
       }
@@ -814,12 +814,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-E0QJD0VGP6QR4C3DY-MHHJA0JZIT8LKIVFP",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-IK25FB75GH62WWCTU-SLN84267IU2GG6KXY",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-E0QJD0VGP6QR4C3DY-MHHJA0JZIT8LKIVFP/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-IK25FB75GH62WWCTU-SLN84267IU2GG6KXY/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -830,25 +830,25 @@
   {
    "at": "2026-11-01T00:58:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-E0QJD0VGP6QR4C3DY-MHHJA0JZIT8LKIVFP",
+   "eventId": "WH-IK25FB75GH62WWCTU-SLN84267IU2GG6KXY",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "b3b11b42-3b99-42d3-a465-fd290c14293e"
+   "transmissionId": "ed151dc6-74bb-46dc-82a3-eec1483a5146"
   },
   {
    "at": "2026-11-01T01:25:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-GG7IF6D5GJA1346NL-L2G5NTKXNVYZF4IRX",
+    "id": "WH-BHI2CGDKZVWZ9FOAA-31DKQ2Z5KL85VSN1L",
     "event_version": "1.0",
     "create_time": "2026-11-01T00:00:00.000Z",
     "resource_type": "sale",
     "event_type": "PAYMENT.SALE.COMPLETED",
     "summary": "Payment completed for $ 12.00 USD",
     "resource": {
-     "id": "MT2DKLKS4Q481XTW0",
+     "id": "YPJWBJDSYLCQAIGCK",
      "state": "completed",
      "amount": {
       "total": "12.00",
@@ -857,17 +857,17 @@
        "subtotal": "12.00"
       }
      },
-     "billing_agreement_id": "I-W4JF2AELMDP6",
+     "billing_agreement_id": "I-WB90L1CQFF8R",
      "create_time": "2026-11-01T00:00:00.000Z"
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-GG7IF6D5GJA1346NL-L2G5NTKXNVYZF4IRX",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-BHI2CGDKZVWZ9FOAA-31DKQ2Z5KL85VSN1L",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-GG7IF6D5GJA1346NL-L2G5NTKXNVYZF4IRX/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-BHI2CGDKZVWZ9FOAA-31DKQ2Z5KL85VSN1L/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -878,17 +878,17 @@
   {
    "at": "2026-11-01T01:25:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-GG7IF6D5GJA1346NL-L2G5NTKXNVYZF4IRX",
+   "eventId": "WH-BHI2CGDKZVWZ9FOAA-31DKQ2Z5KL85VSN1L",
    "attempt": 1,
    "status": 200,
-   "ms": 2,
+   "ms": 3,
    "verifyCalled": false,
-   "transmissionId": "05bc5310-0a6b-44e3-8833-f70e4864f31d"
+   "transmissionId": "213e89af-5351-4b96-8843-8b4fc926929e"
   },
   {
    "at": "2026-11-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 2,
    "expectedAccess": true,
@@ -897,7 +897,7 @@
   {
    "at": "2026-11-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -906,7 +906,7 @@
   {
    "at": "2026-11-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -916,25 +916,25 @@
    "at": "2026-11-20T00:55:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-6W2Q5HVUIVXX9QGSS-K29DTTRCNEEYUBAVC",
+    "id": "WH-S0NF8UBUION4UG0FA-FEDYH3NZVLI6I99MK",
     "event_version": "1.0",
     "create_time": "2026-11-20T00:00:00.000Z",
     "resource_type": "dispute",
     "event_type": "CUSTOMER.DISPUTE.CREATED",
-    "summary": "A new dispute opened with Case # PP-D-70706",
+    "summary": "A new dispute opened with Case # PP-D-39784",
     "resource": {
-     "dispute_id": "PP-D-70706",
+     "dispute_id": "PP-D-39784",
      "create_time": "2026-11-20T00:00:00.000Z",
      "update_time": "2026-11-20T00:00:00.000Z",
      "disputed_transactions": [
       {
-       "seller_transaction_id": "MPDFK1XYZP5QIERL7",
+       "seller_transaction_id": "5I6KJQ1UHC35B6ZQ7",
        "transaction_status": "COMPLETED",
        "gross_amount": {
         "currency_code": "USD",
         "value": "12.00"
        },
-       "custom": "I-310O9R5F0BHY"
+       "custom": "I-0MM7NGYJKBIT"
       }
      ],
      "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
@@ -955,7 +955,7 @@
      "seller_response_due_date": "2026-12-10T00:00:00.000Z",
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/customer/disputes/PP-D-70706",
+       "href": "https://api.sandbox.paypal.com/v1/customer/disputes/PP-D-39784",
        "rel": "self",
        "method": "GET"
       }
@@ -963,12 +963,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-6W2Q5HVUIVXX9QGSS-K29DTTRCNEEYUBAVC",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-S0NF8UBUION4UG0FA-FEDYH3NZVLI6I99MK",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-6W2Q5HVUIVXX9QGSS-K29DTTRCNEEYUBAVC/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-S0NF8UBUION4UG0FA-FEDYH3NZVLI6I99MK/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -979,17 +979,17 @@
   {
    "at": "2026-11-20T00:55:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-6W2Q5HVUIVXX9QGSS-K29DTTRCNEEYUBAVC",
+   "eventId": "WH-S0NF8UBUION4UG0FA-FEDYH3NZVLI6I99MK",
    "attempt": 1,
    "status": 200,
-   "ms": 1,
+   "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "c91395ce-8afb-4353-9d23-1e9cce5d7fc6"
+   "transmissionId": "ed455d85-be96-400c-a045-663a2d368d7e"
   },
   {
    "at": "2026-11-20T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 2,
    "expectedAccess": true,
@@ -998,7 +998,7 @@
   {
    "at": "2026-11-20T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -1007,7 +1007,7 @@
   {
    "at": "2026-11-20T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -1025,14 +1025,14 @@
    "at": "2026-12-01T00:07:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I",
+    "id": "WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U",
     "event_version": "1.0",
     "create_time": "2026-12-01T00:00:00.000Z",
     "resource_type": "sale",
     "event_type": "PAYMENT.SALE.COMPLETED",
     "summary": "Payment completed for $ 12.00 USD",
     "resource": {
-     "id": "2HTH1UE99COPSXPYE",
+     "id": "NG9DXP8A5II4MQG2Q",
      "state": "completed",
      "amount": {
       "total": "12.00",
@@ -1041,17 +1041,17 @@
        "subtotal": "12.00"
       }
      },
-     "billing_agreement_id": "I-B28T9RBAROB5",
+     "billing_agreement_id": "I-03HVRD379E6T",
      "create_time": "2026-12-01T00:00:00.000Z"
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -1062,35 +1062,35 @@
   {
    "at": "2026-12-01T00:07:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I",
-   "attempt": 1,
-   "status": 200,
-   "ms": 3,
-   "verifyCalled": false,
-   "transmissionId": "cff957f7-dc8b-407f-ba7d-6df0c4f58f3a"
-  },
-  {
-   "at": "2026-12-01T00:13:00.000Z",
-   "kind": "delivery",
-   "eventId": "WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I",
+   "eventId": "WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "910b97c7-b1be-4a93-8a8c-0145cd0ba594"
+   "transmissionId": "27868c21-613c-40f1-a914-704a1a82e1d9"
+  },
+  {
+   "at": "2026-12-01T00:13:00.000Z",
+   "kind": "delivery",
+   "eventId": "WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U",
+   "attempt": 1,
+   "status": 200,
+   "ms": 3,
+   "verifyCalled": false,
+   "transmissionId": "22a54d27-eb06-48c1-ade1-0cefaf589c6f"
   },
   {
    "at": "2026-12-01T01:05:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-4U0IA0BG0DCCJRQMC-RZZ786O2AXJIZWRDM",
+    "id": "WH-R9HEHPPDV175XMVHB-K3QLG3FLOTFZWF0RP",
     "event_version": "1.0",
     "create_time": "2026-12-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.PAYMENT.FAILED",
     "summary": "Subscription payment failed",
     "resource": {
-     "id": "I-W4JF2AELMDP6",
+     "id": "I-WB90L1CQFF8R",
      "plan_id": "P-COFFEE",
      "status": "ACTIVE",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -1140,7 +1140,7 @@
      "custom_id": "leo@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -1169,12 +1169,12 @@
      },
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "self",
        "method": "GET"
       }
@@ -1182,12 +1182,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-4U0IA0BG0DCCJRQMC-RZZ786O2AXJIZWRDM",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-R9HEHPPDV175XMVHB-K3QLG3FLOTFZWF0RP",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-4U0IA0BG0DCCJRQMC-RZZ786O2AXJIZWRDM/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-R9HEHPPDV175XMVHB-K3QLG3FLOTFZWF0RP/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -1198,25 +1198,25 @@
   {
    "at": "2026-12-01T01:05:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-4U0IA0BG0DCCJRQMC-RZZ786O2AXJIZWRDM",
+   "eventId": "WH-R9HEHPPDV175XMVHB-K3QLG3FLOTFZWF0RP",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "0c940606-8c7e-4b88-9b4d-ba70fc01a0de"
+   "transmissionId": "aea796dc-2f86-43b7-8635-3a8b78f62f5b"
   },
   {
    "at": "2026-12-01T01:25:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47",
+    "id": "WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5",
     "event_version": "1.0",
     "create_time": "2026-12-01T00:00:00.000Z",
     "resource_type": "sale",
     "event_type": "PAYMENT.SALE.COMPLETED",
     "summary": "Payment completed for $ 12.00 USD",
     "resource": {
-     "id": "L389LS2TU303L3N6A",
+     "id": "CIBJB799E40REIONR",
      "state": "completed",
      "amount": {
       "total": "12.00",
@@ -1225,17 +1225,17 @@
        "subtotal": "12.00"
       }
      },
-     "billing_agreement_id": "I-310O9R5F0BHY",
+     "billing_agreement_id": "I-0MM7NGYJKBIT",
      "create_time": "2026-12-01T00:00:00.000Z"
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -1246,27 +1246,27 @@
   {
    "at": "2026-12-01T01:25:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47",
+   "eventId": "WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "4959bcb8-0a7e-4381-8b28-6cc8249bc17a"
+   "transmissionId": "c4214467-ed87-441c-a7e9-a0dfdcceb8be"
   },
   {
    "at": "2026-12-01T01:35:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47",
+   "eventId": "WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "0072fe0e-71eb-4aa4-8c4c-c989c121f9a3"
+   "transmissionId": "cfd74fcf-67d9-47a5-9ce3-338e96319881"
   },
   {
    "at": "2026-12-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 4,
    "expectedAccess": true,
@@ -1275,7 +1275,7 @@
   {
    "at": "2026-12-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -1284,7 +1284,7 @@
   {
    "at": "2026-12-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 3,
    "expectedAccess": true,
@@ -1302,14 +1302,14 @@
    "at": "2026-12-06T00:51:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-FR89DOQTCR4RLVTNT-Z9O0WUDD35MC93A47",
+    "id": "WH-LUTUDOVX2UA8YFFER-DVYVERWE52J51891K",
     "event_version": "1.0",
     "create_time": "2026-12-06T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.PAYMENT.FAILED",
     "summary": "Subscription payment failed",
     "resource": {
-     "id": "I-W4JF2AELMDP6",
+     "id": "I-WB90L1CQFF8R",
      "plan_id": "P-COFFEE",
      "status": "ACTIVE",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -1359,7 +1359,7 @@
      "custom_id": "leo@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -1388,12 +1388,12 @@
      },
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "self",
        "method": "GET"
       }
@@ -1401,12 +1401,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-FR89DOQTCR4RLVTNT-Z9O0WUDD35MC93A47",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-LUTUDOVX2UA8YFFER-DVYVERWE52J51891K",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-FR89DOQTCR4RLVTNT-Z9O0WUDD35MC93A47/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-LUTUDOVX2UA8YFFER-DVYVERWE52J51891K/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -1417,17 +1417,17 @@
   {
    "at": "2026-12-06T00:51:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-FR89DOQTCR4RLVTNT-Z9O0WUDD35MC93A47",
+   "eventId": "WH-LUTUDOVX2UA8YFFER-DVYVERWE52J51891K",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "1076c4b1-d640-47b2-ac9c-0265ebdb2a91"
+   "transmissionId": "f817becc-cb77-4652-9aed-1326015eb1b4"
   },
   {
    "at": "2026-12-06T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 4,
    "expectedAccess": true,
@@ -1436,7 +1436,7 @@
   {
    "at": "2026-12-06T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -1445,7 +1445,7 @@
   {
    "at": "2026-12-06T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 3,
    "expectedAccess": true,
@@ -1455,25 +1455,25 @@
    "at": "2026-12-10T00:39:00.001Z",
    "kind": "event",
    "event": {
-    "id": "WH-3JV1VF2ASEKJ7TCTM-MBHSZCTKW153IUAY5",
+    "id": "WH-XYH245LN7HGQUUJKA-56IEP7XC9QJN1ZBW4",
     "event_version": "1.0",
     "create_time": "2026-12-10T00:00:00.001Z",
     "resource_type": "dispute",
     "event_type": "CUSTOMER.DISPUTE.RESOLVED",
-    "summary": "A dispute was resolved with Case # PP-D-70706",
+    "summary": "A dispute was resolved with Case # PP-D-39784",
     "resource": {
-     "dispute_id": "PP-D-70706",
+     "dispute_id": "PP-D-39784",
      "create_time": "2026-11-20T00:00:00.000Z",
      "update_time": "2026-12-10T00:00:00.001Z",
      "disputed_transactions": [
       {
-       "seller_transaction_id": "MPDFK1XYZP5QIERL7",
+       "seller_transaction_id": "5I6KJQ1UHC35B6ZQ7",
        "transaction_status": "COMPLETED",
        "gross_amount": {
         "currency_code": "USD",
         "value": "12.00"
        },
-       "custom": "I-310O9R5F0BHY"
+       "custom": "I-0MM7NGYJKBIT"
       }
      ],
      "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
@@ -1501,7 +1501,7 @@
      "seller_response_due_date": "2026-12-10T00:00:00.000Z",
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/customer/disputes/PP-D-70706",
+       "href": "https://api.sandbox.paypal.com/v1/customer/disputes/PP-D-39784",
        "rel": "self",
        "method": "GET"
       }
@@ -1509,12 +1509,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-3JV1VF2ASEKJ7TCTM-MBHSZCTKW153IUAY5",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-XYH245LN7HGQUUJKA-56IEP7XC9QJN1ZBW4",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-3JV1VF2ASEKJ7TCTM-MBHSZCTKW153IUAY5/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-XYH245LN7HGQUUJKA-56IEP7XC9QJN1ZBW4/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -1525,17 +1525,17 @@
   {
    "at": "2026-12-10T00:39:00.001Z",
    "kind": "delivery",
-   "eventId": "WH-3JV1VF2ASEKJ7TCTM-MBHSZCTKW153IUAY5",
+   "eventId": "WH-XYH245LN7HGQUUJKA-56IEP7XC9QJN1ZBW4",
    "attempt": 1,
    "status": 200,
    "ms": 3,
    "verifyCalled": false,
-   "transmissionId": "cc371980-f17b-4493-87a8-d06dc455115f"
+   "transmissionId": "91582308-5b88-4dee-b661-ea7903a16600"
   },
   {
    "at": "2026-12-10T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 4,
    "expectedAccess": true,
@@ -1544,7 +1544,7 @@
   {
    "at": "2026-12-10T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -1553,7 +1553,7 @@
   {
    "at": "2026-12-10T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 3,
    "expectedAccess": true,
@@ -1571,14 +1571,14 @@
    "at": "2026-12-11T00:30:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-6CT7R6YZ48WPPBWQ6-17YIIKK1VR4UEZ3T7",
+    "id": "WH-XNMDSL5NL3T7Y2V2F-6RQ6KOB7UNM93EYX2",
     "event_version": "1.0",
     "create_time": "2026-12-11T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.PAYMENT.FAILED",
     "summary": "Subscription payment failed",
     "resource": {
-     "id": "I-W4JF2AELMDP6",
+     "id": "I-WB90L1CQFF8R",
      "plan_id": "P-COFFEE",
      "status": "ACTIVE",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -1627,7 +1627,7 @@
      "custom_id": "leo@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -1656,12 +1656,12 @@
      },
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "self",
        "method": "GET"
       }
@@ -1669,12 +1669,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-6CT7R6YZ48WPPBWQ6-17YIIKK1VR4UEZ3T7",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-XNMDSL5NL3T7Y2V2F-6RQ6KOB7UNM93EYX2",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-6CT7R6YZ48WPPBWQ6-17YIIKK1VR4UEZ3T7/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-XNMDSL5NL3T7Y2V2F-6RQ6KOB7UNM93EYX2/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -1685,17 +1685,17 @@
   {
    "at": "2026-12-11T00:30:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-6CT7R6YZ48WPPBWQ6-17YIIKK1VR4UEZ3T7",
+   "eventId": "WH-XNMDSL5NL3T7Y2V2F-6RQ6KOB7UNM93EYX2",
    "attempt": 1,
    "status": 200,
-   "ms": 3,
+   "ms": 6,
    "verifyCalled": false,
-   "transmissionId": "80b320ea-305a-4d96-b98a-20efa0010e44"
+   "transmissionId": "846c5681-feca-408a-9694-98c16ffe3889"
   },
   {
    "at": "2026-12-11T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 4,
    "expectedAccess": true,
@@ -1704,7 +1704,7 @@
   {
    "at": "2026-12-11T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -1713,7 +1713,7 @@
   {
    "at": "2026-12-11T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 3,
    "expectedAccess": true,
@@ -1730,7 +1730,7 @@
     "event_type": "BILLING.SUBSCRIPTION.PAYMENT.FAILED",
     "summary": "Payment failed on subscription",
     "resource": {
-     "id": "I-W4JF2AELMDP6",
+     "id": "I-WB90L1CQFF8R",
      "plan_id": "P-FORGED",
      "status": "ACTIVE",
      "billing_info": {
@@ -1753,12 +1753,12 @@
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "22de4e39-d402-4a6d-b483-4aa97f78e413"
+   "transmissionId": "5ea7388d-2d1f-4ea7-b583-385ae37dcc70"
   },
   {
    "at": "2026-12-16T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 4,
    "expectedAccess": true,
@@ -1767,7 +1767,7 @@
   {
    "at": "2026-12-16T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": true,
@@ -1776,7 +1776,7 @@
   {
    "at": "2026-12-16T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 3,
    "expectedAccess": true,
@@ -1794,14 +1794,14 @@
    "at": "2027-01-01T00:26:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-SY7UHOD2X3LSDS1MB-946ZL9NTTNSRUU5YR",
+    "id": "WH-0WES8N74LW6PG7907-BB7JSYH5T4U75SECF",
     "event_version": "1.0",
     "create_time": "2027-01-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.SUSPENDED",
     "summary": "Subscription suspended",
     "resource": {
-     "id": "I-W4JF2AELMDP6",
+     "id": "I-WB90L1CQFF8R",
      "plan_id": "P-COFFEE",
      "status": "SUSPENDED",
      "status_change_note": "Reached maximum payment failure threshold",
@@ -1850,7 +1850,7 @@
      "custom_id": "leo@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -1879,12 +1879,12 @@
      },
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "self",
        "method": "GET"
       }
@@ -1892,12 +1892,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-SY7UHOD2X3LSDS1MB-946ZL9NTTNSRUU5YR",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0WES8N74LW6PG7907-BB7JSYH5T4U75SECF",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-SY7UHOD2X3LSDS1MB-946ZL9NTTNSRUU5YR/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0WES8N74LW6PG7907-BB7JSYH5T4U75SECF/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -1908,25 +1908,25 @@
   {
    "at": "2027-01-01T00:26:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-SY7UHOD2X3LSDS1MB-946ZL9NTTNSRUU5YR",
+   "eventId": "WH-0WES8N74LW6PG7907-BB7JSYH5T4U75SECF",
    "attempt": 1,
    "status": 200,
-   "ms": 2,
+   "ms": 3,
    "verifyCalled": false,
-   "transmissionId": "7da1f966-c1c0-4e31-b29b-952d88d03648"
+   "transmissionId": "7f0746e2-e6e3-4b37-b4b9-4c33fb153ba1"
   },
   {
    "at": "2027-01-01T00:29:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-WJMUKLGFERQV7DXJ8-LBEMDHLIEO7WPQ41X",
+    "id": "WH-WCQTBYTP4N0OUWB7U-SQ2HDPI9N3AVOQ0CF",
     "event_version": "1.0",
     "create_time": "2027-01-01T00:00:00.000Z",
     "resource_type": "sale",
     "event_type": "PAYMENT.SALE.COMPLETED",
     "summary": "Payment completed for $ 12.00 USD",
     "resource": {
-     "id": "845VPP1UCC9LWE023",
+     "id": "9ZE2VF3DGQQPS6XU9",
      "state": "completed",
      "amount": {
       "total": "12.00",
@@ -1935,17 +1935,17 @@
        "subtotal": "12.00"
       }
      },
-     "billing_agreement_id": "I-B28T9RBAROB5",
+     "billing_agreement_id": "I-03HVRD379E6T",
      "create_time": "2027-01-01T00:00:00.000Z"
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-WJMUKLGFERQV7DXJ8-LBEMDHLIEO7WPQ41X",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-WCQTBYTP4N0OUWB7U-SQ2HDPI9N3AVOQ0CF",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-WJMUKLGFERQV7DXJ8-LBEMDHLIEO7WPQ41X/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-WCQTBYTP4N0OUWB7U-SQ2HDPI9N3AVOQ0CF/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -1956,25 +1956,25 @@
   {
    "at": "2027-01-01T00:29:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-WJMUKLGFERQV7DXJ8-LBEMDHLIEO7WPQ41X",
+   "eventId": "WH-WCQTBYTP4N0OUWB7U-SQ2HDPI9N3AVOQ0CF",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "f70d13b9-2a9b-4cde-a54f-e15411632f04"
+   "transmissionId": "bd563dfa-4762-4d9b-b97b-dcb78a06dcdd"
   },
   {
    "at": "2027-01-01T00:40:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-KWF93SVIXKDLNC1PD-F1ULNEJ9NOH05CZ21",
+    "id": "WH-DZ2TEVBBOD51OTNU1-D7H9VM63ISE28WM9O",
     "event_version": "1.0",
     "create_time": "2027-01-01T00:00:00.000Z",
     "resource_type": "sale",
     "event_type": "PAYMENT.SALE.COMPLETED",
     "summary": "Payment completed for $ 12.00 USD",
     "resource": {
-     "id": "9EC60GSJ4B4LZ6I7W",
+     "id": "BRUV541NFWPE1JDD6",
      "state": "completed",
      "amount": {
       "total": "12.00",
@@ -1983,17 +1983,17 @@
        "subtotal": "12.00"
       }
      },
-     "billing_agreement_id": "I-310O9R5F0BHY",
+     "billing_agreement_id": "I-0MM7NGYJKBIT",
      "create_time": "2027-01-01T00:00:00.000Z"
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-KWF93SVIXKDLNC1PD-F1ULNEJ9NOH05CZ21",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-DZ2TEVBBOD51OTNU1-D7H9VM63ISE28WM9O",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-KWF93SVIXKDLNC1PD-F1ULNEJ9NOH05CZ21/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-DZ2TEVBBOD51OTNU1-D7H9VM63ISE28WM9O/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -2004,25 +2004,25 @@
   {
    "at": "2027-01-01T00:40:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-KWF93SVIXKDLNC1PD-F1ULNEJ9NOH05CZ21",
+   "eventId": "WH-DZ2TEVBBOD51OTNU1-D7H9VM63ISE28WM9O",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "fda91830-7315-430c-b363-da44a3846efc"
+   "transmissionId": "b216f3b8-665a-44b3-86a4-e6b351e8fc22"
   },
   {
    "at": "2027-01-01T01:06:00.000Z",
    "kind": "event",
    "event": {
-    "id": "WH-TDDSP9P96KC9PL5R6-C9DP4RRWYSSO4Y702",
+    "id": "WH-P0ZT3GJOD5AJRY3LE-MS8876UVKKPDG9IM2",
     "event_version": "1.0",
     "create_time": "2027-01-01T00:00:00.000Z",
     "resource_type": "subscription",
     "event_type": "BILLING.SUBSCRIPTION.PAYMENT.FAILED",
     "summary": "Subscription payment failed",
     "resource": {
-     "id": "I-W4JF2AELMDP6",
+     "id": "I-WB90L1CQFF8R",
      "plan_id": "P-COFFEE",
      "status": "ACTIVE",
      "status_update_time": "2026-11-01T00:00:00.000Z",
@@ -2071,7 +2071,7 @@
      "custom_id": "leo@example.test",
      "plan_overridden": false,
      "plan": {
-      "product_id": "PROD-MGEHFZY5P0EW1IG1D",
+      "product_id": "PROD-JQIZCHPKBGD29MKY6",
       "name": "Coffee Club Monthly",
       "billing_cycles": [
        {
@@ -2100,12 +2100,12 @@
      },
      "links": [
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "edit",
        "method": "PATCH"
       },
       {
-       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W4JF2AELMDP6",
+       "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WB90L1CQFF8R",
        "rel": "self",
        "method": "GET"
       }
@@ -2113,12 +2113,12 @@
     },
     "links": [
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-TDDSP9P96KC9PL5R6-C9DP4RRWYSSO4Y702",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-P0ZT3GJOD5AJRY3LE-MS8876UVKKPDG9IM2",
       "rel": "self",
       "method": "GET"
      },
      {
-      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-TDDSP9P96KC9PL5R6-C9DP4RRWYSSO4Y702/resend",
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-P0ZT3GJOD5AJRY3LE-MS8876UVKKPDG9IM2/resend",
       "rel": "resend",
       "method": "POST"
      }
@@ -2129,17 +2129,17 @@
   {
    "at": "2027-01-01T01:06:00.000Z",
    "kind": "delivery",
-   "eventId": "WH-TDDSP9P96KC9PL5R6-C9DP4RRWYSSO4Y702",
+   "eventId": "WH-P0ZT3GJOD5AJRY3LE-MS8876UVKKPDG9IM2",
    "attempt": 1,
    "status": 200,
    "ms": 2,
    "verifyCalled": false,
-   "transmissionId": "bfd0d62e-67b8-472d-a79e-e40df48a1690"
+   "transmissionId": "95b1bd17-9b45-42f4-aaeb-02df5d83dd24"
   },
   {
    "at": "2027-01-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 5,
    "expectedAccess": true,
@@ -2148,7 +2148,7 @@
   {
    "at": "2027-01-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": false,
@@ -2157,7 +2157,7 @@
   {
    "at": "2027-01-01T23:59:59.999Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 4,
    "expectedAccess": true,
@@ -2166,7 +2166,7 @@
   {
    "at": "2027-01-15T00:00:00.000Z",
    "kind": "probe",
-   "subscriptionId": "I-B28T9RBAROB5",
+   "subscriptionId": "I-03HVRD379E6T",
    "access": true,
    "fulfilments": 5,
    "expectedAccess": true,
@@ -2175,7 +2175,7 @@
   {
    "at": "2027-01-15T00:00:00.000Z",
    "kind": "probe",
-   "subscriptionId": "I-W4JF2AELMDP6",
+   "subscriptionId": "I-WB90L1CQFF8R",
    "access": true,
    "fulfilments": 1,
    "expectedAccess": false,
@@ -2184,7 +2184,7 @@
   {
    "at": "2027-01-15T00:00:00.000Z",
    "kind": "probe",
-   "subscriptionId": "I-310O9R5F0BHY",
+   "subscriptionId": "I-0MM7NGYJKBIT",
    "access": true,
    "fulfilments": 4,
    "expectedAccess": true,
@@ -2192,7 +2192,7 @@
   }
  ],
  "report": {
-  "runId": "run-c67d2ee3",
+  "runId": "run-52c8cd2f",
   "scenario": "bad-month",
   "start": "2026-11-01T00:00:00.000Z",
   "end": "2027-01-15T00:00:00.000Z",
@@ -2208,148 +2208,148 @@
     "findings": [
      {
       "at": "2026-11-01T00:04:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.CREATED notice WH-0TS60HELUDPCDSIIW-8EPR66KLOLIADPLHI was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.CREATED notice WH-S7ACO2ASBYMD1T6BP-2KM9T49HQCR6YGFQT was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-0TS60HELUDPCDSIIW-8EPR66KLOLIADPLHI"
+       "WH-S7ACO2ASBYMD1T6BP-2KM9T49HQCR6YGFQT"
       ],
       "explanation": "Your app acted on a notice without checking that PayPal really sent it. Anyone who finds your webhook address could send a fake \"payment completed\" or \"cancelled\" and your app would believe it.",
       "fix": "Call PayPal's verify-webhook-signature endpoint before trusting a notice, and reject it unless the answer is SUCCESS."
      },
      {
       "at": "2026-11-01T00:08:00.000Z",
-      "summary": "The PAYMENT.SALE.COMPLETED notice WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The PAYMENT.SALE.COMPLETED notice WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1 was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP"
+       "WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1"
       ],
       "explanation": "Your app acted on a notice without checking that PayPal really sent it. Anyone who finds your webhook address could send a fake \"payment completed\" or \"cancelled\" and your app would believe it.",
       "fix": "Call PayPal's verify-webhook-signature endpoint before trusting a notice, and reject it unless the answer is SUCCESS."
      },
      {
       "at": "2026-11-01T00:19:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.ACTIVATED notice WH-0E4DB3268POX33KN1-NAQEKABONLBY34CZN was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.ACTIVATED notice WH-VSNBR6LHUVM6UA3XO-IJVT1UMSK4J7M78VP was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-0E4DB3268POX33KN1-NAQEKABONLBY34CZN"
+       "WH-VSNBR6LHUVM6UA3XO-IJVT1UMSK4J7M78VP"
       ],
       "explanation": "Your app acted on a notice without checking that PayPal really sent it. Anyone who finds your webhook address could send a fake \"payment completed\" or \"cancelled\" and your app would believe it.",
       "fix": "Call PayPal's verify-webhook-signature endpoint before trusting a notice, and reject it unless the answer is SUCCESS."
      },
      {
       "at": "2026-11-01T00:22:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.ACTIVATED notice WH-HEYJ4IJ8WAW7D138W-T46YKQD9K3HXGKJ3F was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.ACTIVATED notice WH-105A7NYVQHH0DM8EQ-50T4VMTGMG09EXVVK was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-HEYJ4IJ8WAW7D138W-T46YKQD9K3HXGKJ3F"
+       "WH-105A7NYVQHH0DM8EQ-50T4VMTGMG09EXVVK"
       ]
      },
      {
       "at": "2026-11-01T00:39:00.000Z",
-      "summary": "The PAYMENT.SALE.COMPLETED notice WH-J60BZ0ZV6OAMU41D4-VAJO6H5LV1TC6GUFI was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The PAYMENT.SALE.COMPLETED notice WH-QV2AQ1YDXF8D1S6J6-RZSGRIKCIE9KL8LI6 was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-J60BZ0ZV6OAMU41D4-VAJO6H5LV1TC6GUFI"
+       "WH-QV2AQ1YDXF8D1S6J6-RZSGRIKCIE9KL8LI6"
       ]
      },
      {
       "at": "2026-11-01T00:50:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.CREATED notice WH-604IJZJKYAZROU341-RAVAO6BDUACGMA4AW was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.CREATED notice WH-77LY1R27P3598PX50-W5GH1EGFGI5Z8FS93 was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-604IJZJKYAZROU341-RAVAO6BDUACGMA4AW"
+       "WH-77LY1R27P3598PX50-W5GH1EGFGI5Z8FS93"
       ]
      },
      {
       "at": "2026-11-01T00:54:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.CREATED notice WH-ZUDO08QFNXSXYEMJW-7248DNH0R1Q60S6SR was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.CREATED notice WH-SBTH60WK7PXGZ2T6X-4EOI26BDY5XH4O0J4 was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-ZUDO08QFNXSXYEMJW-7248DNH0R1Q60S6SR"
+       "WH-SBTH60WK7PXGZ2T6X-4EOI26BDY5XH4O0J4"
       ]
      },
      {
       "at": "2026-11-01T00:58:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.ACTIVATED notice WH-E0QJD0VGP6QR4C3DY-MHHJA0JZIT8LKIVFP was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.ACTIVATED notice WH-IK25FB75GH62WWCTU-SLN84267IU2GG6KXY was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-E0QJD0VGP6QR4C3DY-MHHJA0JZIT8LKIVFP"
+       "WH-IK25FB75GH62WWCTU-SLN84267IU2GG6KXY"
       ]
      },
      {
       "at": "2026-11-01T01:25:00.000Z",
-      "summary": "The PAYMENT.SALE.COMPLETED notice WH-GG7IF6D5GJA1346NL-L2G5NTKXNVYZF4IRX was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The PAYMENT.SALE.COMPLETED notice WH-BHI2CGDKZVWZ9FOAA-31DKQ2Z5KL85VSN1L was accepted without checking its signature (on 2026-11-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-GG7IF6D5GJA1346NL-L2G5NTKXNVYZF4IRX"
+       "WH-BHI2CGDKZVWZ9FOAA-31DKQ2Z5KL85VSN1L"
       ]
      },
      {
       "at": "2026-11-20T00:55:00.000Z",
-      "summary": "The CUSTOMER.DISPUTE.CREATED notice WH-6W2Q5HVUIVXX9QGSS-K29DTTRCNEEYUBAVC was accepted without checking its signature (on 2026-11-20). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The CUSTOMER.DISPUTE.CREATED notice WH-S0NF8UBUION4UG0FA-FEDYH3NZVLI6I99MK was accepted without checking its signature (on 2026-11-20). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-6W2Q5HVUIVXX9QGSS-K29DTTRCNEEYUBAVC"
+       "WH-S0NF8UBUION4UG0FA-FEDYH3NZVLI6I99MK"
       ]
      },
      {
       "at": "2026-12-01T00:07:00.000Z",
-      "summary": "The PAYMENT.SALE.COMPLETED notice WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I was accepted without checking its signature (on 2026-12-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The PAYMENT.SALE.COMPLETED notice WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U was accepted without checking its signature (on 2026-12-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I"
+       "WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U"
       ]
      },
      {
       "at": "2026-12-01T01:05:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.PAYMENT.FAILED notice WH-4U0IA0BG0DCCJRQMC-RZZ786O2AXJIZWRDM was accepted without checking its signature (on 2026-12-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.PAYMENT.FAILED notice WH-R9HEHPPDV175XMVHB-K3QLG3FLOTFZWF0RP was accepted without checking its signature (on 2026-12-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-4U0IA0BG0DCCJRQMC-RZZ786O2AXJIZWRDM"
+       "WH-R9HEHPPDV175XMVHB-K3QLG3FLOTFZWF0RP"
       ]
      },
      {
       "at": "2026-12-01T01:25:00.000Z",
-      "summary": "The PAYMENT.SALE.COMPLETED notice WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47 was accepted without checking its signature (on 2026-12-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The PAYMENT.SALE.COMPLETED notice WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5 was accepted without checking its signature (on 2026-12-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47"
+       "WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5"
       ]
      },
      {
       "at": "2026-12-06T00:51:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.PAYMENT.FAILED notice WH-FR89DOQTCR4RLVTNT-Z9O0WUDD35MC93A47 was accepted without checking its signature (on 2026-12-06). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.PAYMENT.FAILED notice WH-LUTUDOVX2UA8YFFER-DVYVERWE52J51891K was accepted without checking its signature (on 2026-12-06). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-FR89DOQTCR4RLVTNT-Z9O0WUDD35MC93A47"
+       "WH-LUTUDOVX2UA8YFFER-DVYVERWE52J51891K"
       ]
      },
      {
       "at": "2026-12-10T00:39:00.001Z",
-      "summary": "The CUSTOMER.DISPUTE.RESOLVED notice WH-3JV1VF2ASEKJ7TCTM-MBHSZCTKW153IUAY5 was accepted without checking its signature (on 2026-12-10). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The CUSTOMER.DISPUTE.RESOLVED notice WH-XYH245LN7HGQUUJKA-56IEP7XC9QJN1ZBW4 was accepted without checking its signature (on 2026-12-10). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-3JV1VF2ASEKJ7TCTM-MBHSZCTKW153IUAY5"
+       "WH-XYH245LN7HGQUUJKA-56IEP7XC9QJN1ZBW4"
       ]
      },
      {
       "at": "2026-12-11T00:30:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.PAYMENT.FAILED notice WH-6CT7R6YZ48WPPBWQ6-17YIIKK1VR4UEZ3T7 was accepted without checking its signature (on 2026-12-11). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.PAYMENT.FAILED notice WH-XNMDSL5NL3T7Y2V2F-6RQ6KOB7UNM93EYX2 was accepted without checking its signature (on 2026-12-11). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-6CT7R6YZ48WPPBWQ6-17YIIKK1VR4UEZ3T7"
+       "WH-XNMDSL5NL3T7Y2V2F-6RQ6KOB7UNM93EYX2"
       ]
      },
      {
       "at": "2027-01-01T00:26:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.SUSPENDED notice WH-SY7UHOD2X3LSDS1MB-946ZL9NTTNSRUU5YR was accepted without checking its signature (on 2027-01-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.SUSPENDED notice WH-0WES8N74LW6PG7907-BB7JSYH5T4U75SECF was accepted without checking its signature (on 2027-01-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-SY7UHOD2X3LSDS1MB-946ZL9NTTNSRUU5YR"
+       "WH-0WES8N74LW6PG7907-BB7JSYH5T4U75SECF"
       ]
      },
      {
       "at": "2027-01-01T00:29:00.000Z",
-      "summary": "The PAYMENT.SALE.COMPLETED notice WH-WJMUKLGFERQV7DXJ8-LBEMDHLIEO7WPQ41X was accepted without checking its signature (on 2027-01-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The PAYMENT.SALE.COMPLETED notice WH-WCQTBYTP4N0OUWB7U-SQ2HDPI9N3AVOQ0CF was accepted without checking its signature (on 2027-01-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-WJMUKLGFERQV7DXJ8-LBEMDHLIEO7WPQ41X"
+       "WH-WCQTBYTP4N0OUWB7U-SQ2HDPI9N3AVOQ0CF"
       ]
      },
      {
       "at": "2027-01-01T00:40:00.000Z",
-      "summary": "The PAYMENT.SALE.COMPLETED notice WH-KWF93SVIXKDLNC1PD-F1ULNEJ9NOH05CZ21 was accepted without checking its signature (on 2027-01-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The PAYMENT.SALE.COMPLETED notice WH-DZ2TEVBBOD51OTNU1-D7H9VM63ISE28WM9O was accepted without checking its signature (on 2027-01-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-KWF93SVIXKDLNC1PD-F1ULNEJ9NOH05CZ21"
+       "WH-DZ2TEVBBOD51OTNU1-D7H9VM63ISE28WM9O"
       ]
      },
      {
       "at": "2027-01-01T01:06:00.000Z",
-      "summary": "The BILLING.SUBSCRIPTION.PAYMENT.FAILED notice WH-TDDSP9P96KC9PL5R6-C9DP4RRWYSSO4Y702 was accepted without checking its signature (on 2027-01-01). Anyone who can reach your webhook URL could send a notice like it.",
+      "summary": "The BILLING.SUBSCRIPTION.PAYMENT.FAILED notice WH-P0ZT3GJOD5AJRY3LE-MS8876UVKKPDG9IM2 was accepted without checking its signature (on 2027-01-01). Anyone who can reach your webhook URL could send a notice like it.",
       "eventIds": [
-       "WH-TDDSP9P96KC9PL5R6-C9DP4RRWYSSO4Y702"
+       "WH-P0ZT3GJOD5AJRY3LE-MS8876UVKKPDG9IM2"
       ]
      }
     ]
@@ -2360,9 +2360,9 @@
     "findings": [
      {
       "at": "2027-01-01T23:59:59.999Z",
-      "summary": "Leo still had access from 2027-01-01 to 2027-01-15 although the subscription was active (2 checks).",
+      "summary": "Leo still had access from 2027-01-01 to 2027-01-15 although PayPal had suspended the subscription (2 checks).",
       "eventIds": [
-       "WH-TDDSP9P96KC9PL5R6-C9DP4RRWYSSO4Y702"
+       "WH-0WES8N74LW6PG7907-BB7JSYH5T4U75SECF"
       ],
       "explanation": "Your app's idea of whether this customer has access disagreed with the subscription's real status at PayPal. Usually the app ignored a suspend or cancel notice, or handled notices out of order.",
       "fix": "Set access from the subscription status every time a notice arrives, and handle suspended, cancelled and expired as well as activated."
@@ -2377,7 +2377,7 @@
       "at": "2026-11-01T23:59:59.999Z",
       "summary": "Maya was given what they paid for 2 times from 2026-11-01 to 2026-11-20, but only 1 payment had completed (2 checks). Something was delivered without a matching payment, for example a repeated notice handled twice.",
       "eventIds": [
-       "WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP"
+       "WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1"
       ],
       "explanation": "PayPal sent the same notice twice and your app treated it as two payments, so the customer got the product twice for one charge. PayPal may deliver a notice more than once, by design.",
       "fix": "Remember the id of every notice you have handled and ignore any id you have seen before."
@@ -2386,8 +2386,8 @@
       "at": "2026-12-01T23:59:59.999Z",
       "summary": "Maya was given what they paid for 4 times from 2026-12-01 to 2026-12-16, but only 2 payments had completed (5 checks). Something was delivered without a matching payment, for example a repeated notice handled twice.",
       "eventIds": [
-       "WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP",
-       "WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I"
+       "WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1",
+       "WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U"
       ],
       "explanation": "PayPal sent the same notice twice and your app treated it as two payments, so the customer got the product twice for one charge. PayPal may deliver a notice more than once, by design.",
       "fix": "Remember the id of every notice you have handled and ignore any id you have seen before."
@@ -2396,8 +2396,8 @@
       "at": "2026-12-01T23:59:59.999Z",
       "summary": "Ana was given what they paid for 3 times from 2026-12-01 to 2026-12-16, but only 2 payments had completed (5 checks). Something was delivered without a matching payment, for example a repeated notice handled twice.",
       "eventIds": [
-       "WH-J60BZ0ZV6OAMU41D4-VAJO6H5LV1TC6GUFI",
-       "WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47"
+       "WH-QV2AQ1YDXF8D1S6J6-RZSGRIKCIE9KL8LI6",
+       "WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5"
       ],
       "explanation": "PayPal sent the same notice twice and your app treated it as two payments, so the customer got the product twice for one charge. PayPal may deliver a notice more than once, by design.",
       "fix": "Remember the id of every notice you have handled and ignore any id you have seen before."
@@ -2406,18 +2406,18 @@
       "at": "2027-01-01T23:59:59.999Z",
       "summary": "Maya was given what they paid for 5 times from 2027-01-01 to 2027-01-15, but only 3 payments had completed (2 checks). Something was delivered without a matching payment, for example a repeated notice handled twice.",
       "eventIds": [
-       "WH-HKWGX4ETFHW2Z2RWC-CZE3PSA5H9U5H4KVP",
-       "WH-7K2QKFH9JMO4INS9R-E4UJ665TH76OZOB6I",
-       "WH-WJMUKLGFERQV7DXJ8-LBEMDHLIEO7WPQ41X"
+       "WH-KXPJZMAT2TEREYME7-1N9BNY1ILY8ELVES1",
+       "WH-EDAXV8N6PWC2670GV-E3W9ZE2GUXA4LW13U",
+       "WH-WCQTBYTP4N0OUWB7U-SQ2HDPI9N3AVOQ0CF"
       ]
      },
      {
       "at": "2027-01-01T23:59:59.999Z",
       "summary": "Ana was given what they paid for 4 times from 2027-01-01 to 2027-01-15, but only 3 payments had completed (2 checks). Something was delivered without a matching payment, for example a repeated notice handled twice.",
       "eventIds": [
-       "WH-J60BZ0ZV6OAMU41D4-VAJO6H5LV1TC6GUFI",
-       "WH-J3JS3K3X3QQC90K5I-JKER8QDZ8JTEXZQ47",
-       "WH-KWF93SVIXKDLNC1PD-F1ULNEJ9NOH05CZ21"
+       "WH-QV2AQ1YDXF8D1S6J6-RZSGRIKCIE9KL8LI6",
+       "WH-JASW789P3XDN6BWVC-3NORWBLDTP4GUBCB5",
+       "WH-DZ2TEVBBOD51OTNU1-D7H9VM63ISE28WM9O"
       ]
      }
     ]
@@ -2428,9 +2428,9 @@
     "findings": [
      {
       "at": "2026-11-20T00:55:00.000Z",
-      "summary": "Dispute PP-D-70706 opened on 2026-11-20 was not answered by the deadline of 2026-12-10. PayPal rules for the customer when the seller stays silent.",
+      "summary": "Dispute PP-D-39784 opened on 2026-11-20 was not answered by the deadline of 2026-12-10. PayPal rules for the customer when the seller stays silent.",
       "eventIds": [
-       "WH-6W2Q5HVUIVXX9QGSS-K29DTTRCNEEYUBAVC"
+       "WH-S0NF8UBUION4UG0FA-FEDYH3NZVLI6I99MK"
       ],
       "explanation": "A customer opened a dispute and your app did not respond before the due date. When the seller stays silent PayPal decides in the buyer's favour and you lose the money.",
       "fix": "When a dispute-created notice arrives, send your evidence (for example tracking details) through the disputes API, or alert a person before the due date."
