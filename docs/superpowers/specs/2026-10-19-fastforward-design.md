@@ -57,7 +57,7 @@ scenario.yaml ──► CLI / dashboard / MCP ──► twin (stand-in PayPal, v
 | `packages/ai` | Claude calls: scenario writer, customer decisions, failure narration; offline fallback |
 | `packages/cli` | `fastforward run`, `fastforward new`, `fastforward twin` |
 | `packages/mcp` | MCP server exposing run/write/explain tools |
-| `apps/web` | Dashboard: timeline, event inspector, customer chat, report |
+| `apps/web` | Dashboard: timeline, AG Grid deliveries table, event inspector, customer chat, report, sandbox fidelity panel |
 | `examples/coffee-club` | Demo subscription app with switchable bugs, built with PayPal's official SDK |
 
 Runs are held in memory and exported as JSON. No database.
@@ -126,7 +126,7 @@ Checkpoints: after each virtual day in which at least one event was delivered, a
 
 - **CLI:** `fastforward run <scenario.yaml> [--report-dir dir] [--fresh]`, `fastforward new "<description>" [-o file]`, `fastforward twin [--port 4010]`.
 - **Control API** (twin, prefix `/_ff`): `POST /_ff/runs`, `POST /_ff/runs/:id/advance` `{to|by}`, `GET /_ff/runs/:id`, `GET /_ff/runs/:id/trace`, `GET /_ff/runs/:id/report`, `GET /_ff/runs/:id/stream` (server-sent events).
-- **Dashboard:** customers as rows, events along virtual time, a scrubber to advance, event inspector (payload, attempts, app responses), dispute chat, report.
+- **Dashboard:** customers as rows, events along virtual time, a scrubber to advance, an **AG Grid** deliveries table (every delivery attempt, sortable and filterable, failing checks highlighted), event inspector (payload, attempts, app responses), dispute chat, report, and a "Checked against the real PayPal sandbox" panel (AG Grid) showing the latest fidelity results.
 - **MCP tools:** `ff_write_scenario {description}`, `ff_run {scenarioPath}`, `ff_explain {runId, checkId}`.
 
 ## 10. Real PayPal usage
@@ -134,6 +134,7 @@ Checkpoints: after each virtual day in which at least one event was delivered, a
 - Twin request and response shapes validated against PayPal's official OpenAPI specs (`paypal/paypal-rest-api-specifications`, Apache-2.0).
 - Fidelity suite (`npm run fidelity`): same requests to the real sandbox and the twin; response shapes compared. Skips without keys.
 - Endpoints the twin does not implement are passed through to the real sandbox with the twin's own sandbox credentials.
+- **Made visible to judges** (the rules' stage one is pass/fail on "reasonably applies the required PayPal APIs/SDKs"): the fidelity suite writes `fidelity/latest.json` (shapes and statuses only, never values or tokens). The dashboard shows it side by side, real sandbox against twin; the video shows a live fidelity run; README and Devpost text state each way PayPal is used.
 - The demo app uses PayPal's official `@paypal/paypal-server-sdk`.
 
 ## 11. Safety
@@ -150,7 +151,7 @@ Other PayPal products (orders checkout UI, payouts, invoicing), non-Node languag
 ## 13. Decisions that are Vinay's
 
 1. Final product name.
-2. Sponsor prize: **Bryntum** (timeline is the hero view; 3 × $1,000; meaningful use is natural) or **AG Studio** (larger purse; used for run-history dashboards). Max one sponsor prize. Recommendation: Bryntum for fit. Both are commercial licences; the hosted demo is the judges' primary path.
+2. ~~Sponsor prize~~ **Decided 19 Oct: AG Grid** ("Best Use of AG Grid", $5,000 / $2,000 / 3 × $1,000; open to any AG Grid tool). AG Grid Community is MIT on public npm, so it fits the open-source rule; Bryntum ships only a commercial trial. Rules allow one grand prize or honourable mention, plus one sponsor prize.
 3. Releasing early to other entrants (outward-facing).
 4. Creating the public GitHub repo and pushing; deploying to Railway (hosting choice made 19 Oct).
 

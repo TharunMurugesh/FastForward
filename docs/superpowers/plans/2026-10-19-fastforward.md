@@ -316,8 +316,9 @@ Rules (spec §7): `ACK_FAST` fails per delivery with `status === null || status 
 
 - [ ] **Step 1: Failing tests:** `html contains each check id and status`; `html escapes payload text` (a summary containing `<script>` renders inert); `html has no http(s) URLs except in user data`.
 - [ ] **Step 2: Fidelity test** (runs only with `FF_FIDELITY=1` and sandbox keys; `npm run fidelity`): create product, plan and subscription in the real sandbox and in the twin with identical bodies; `shapeOf` of each response equal, except fields listed in `ALLOWED_DIFFS` with a reason each; both pass `assertMatchesSpec`.
+- [ ] **Step 2b: Fidelity evidence file** (decided 19 Oct: PayPal use must be visible to judges, rules §6 stage one). Each run of the suite writes `fidelity/latest.json`: `{ranAt, sandboxBase, checks: {endpoint, method, sandboxStatus, twinStatus, shapeMatch: boolean, specMatch: boolean, allowedDiffs: {field, reason}[]}[]}`. Never store response values, ids or tokens, only shapes and statuses. The committed copy is what the dashboard and the hosted demo show.
 - [ ] **Step 3–4:** Implement; `npm test` → PASS; `npm run fidelity` → PASS (record any real differences found and fix the twin or `fidelity.ts`).
-- [ ] **Step 5: Commit** `git add packages/cli/src/html-report.ts packages/cli/src/runner.ts packages/cli/test/html-report.test.ts packages/twin/test/fidelity && git commit -m "feat: HTML report and sandbox fidelity suite"`
+- [ ] **Step 5: Commit** `git add packages/cli/src/html-report.ts packages/cli/src/runner.ts packages/cli/test/html-report.test.ts packages/twin/test/fidelity fidelity/latest.json && git commit -m "feat: HTML report and sandbox fidelity suite"`
 
 ---
 
@@ -325,15 +326,17 @@ Rules (spec §7): `ACK_FAST` fails per delivery with `status === null || status 
 
 ### Task 15: Web dashboard
 
-Sponsor decision (spec §13.2) decides the timeline renderer. Build the plain SVG renderer first behind the `Timeline` props; a Bryntum or AG Studio version replaces it in its own commit if Vinay chooses.
+Sponsor (decided 19 Oct): **AG Grid**, competing for "Best Use of AG Grid". Use AG Grid **Community** only (`ag-grid-community` + `ag-grid-react`, MIT, public npm); never Enterprise (commercial licence). The timeline stays a plain SVG renderer.
 
 **Files:**
-- Create: `apps/web/{package.json,vite.config.ts,index.html}`, `apps/web/src/{main.tsx,App.tsx,api.ts}`, `apps/web/src/timeline/{model.ts,Timeline.tsx}`, `apps/web/src/panels/{EventInspector.tsx,DisputeChat.tsx,ReportPanel.tsx}`
-- Test: `apps/web/test/model.test.ts`
+- Create: `apps/web/{package.json,vite.config.ts,index.html}`, `apps/web/src/{main.tsx,App.tsx,api.ts}`, `apps/web/src/timeline/{model.ts,Timeline.tsx}`, `apps/web/src/grids/{rows.ts,DeliveriesGrid.tsx,FidelityGrid.tsx}`, `apps/web/src/panels/{EventInspector.tsx,DisputeChat.tsx,ReportPanel.tsx}`
+- Test: `apps/web/test/model.test.ts`, `apps/web/test/rows.test.ts`
 
 **Interfaces — Produces:** `toTimeline(trace: TraceEntry[], subscriptions: {customer: string; subscriptionId: string}[]): TimelineModel`; `TimelineModel {rows: {customer: string; subscriptionId: string}[]; markers: {row: number; at: string; kind: 'payment_ok'|'payment_failed'|'suspended'|'cancelled'|'expired'|'dispute'|'forged'|'duplicate'|'delivery_failed'; eventId: string}[]}`; `<Timeline model now onSelect(eventId) />`. Scrubber calls `POST /_ff/runs/:id/advance`; live updates from `/_ff/runs/:id/stream`. Every screen shows a "Simulated" badge.
+- `toDeliveryRows(trace: TraceEntry[], subscriptions): DeliveryRow[]`; `DeliveryRow {at; customer; eventType; eventId; attempt; status: number|null; ms; verified: boolean; duplicate: boolean; forged: boolean; failedChecks: CheckId[]}`. `<DeliveriesGrid rows onSelect(eventId) />`: AG Grid with sorting, column filters, quick search, row colour by outcome, and a "failing checks only" toggle; selecting a row opens the event inspector and highlights the timeline marker. This grid is where the developer sees the evidence for every bug.
+- `<FidelityGrid report />` reads `fidelity/latest.json` (Task 14): one row per endpoint with real sandbox status, twin status, shape match, spec match and allowed differences, plus the date it ran. Titled "Checked against the real PayPal sandbox".
 
-- [ ] **Step 1: Failing tests:** `maps SALE.COMPLETED to payment_ok on the right row`; `marks a second delivery of the same id as duplicate`; `forged events get kind forged`; `failed delivery (status null) adds delivery_failed`.
+- [ ] **Step 1: Failing tests:** `maps SALE.COMPLETED to payment_ok on the right row`; `marks a second delivery of the same id as duplicate`; `forged events get kind forged`; `failed delivery (status null) adds delivery_failed`; `delivery rows carry customer name and failed check ids`; `retry attempts of one event become separate rows with attempt numbers`.
 - [ ] **Step 2–4:** Run → FAIL; implement; run → PASS; manual check in the browser against a Coffee Club run (Sara records a screenshot for Vinay).
 - [ ] **Step 5: Commit** `git add apps/web && git commit -m "feat(web): dashboard with timeline, inspector, dispute chat, report"`
 
@@ -356,7 +359,7 @@ Deploying and pushing need Vinay's yes (spec §13.4).
 **Files:**
 - Create: `railway.json`, `scripts/start-hosted.mjs`, `README.md`, `docs/submission/{devpost.md,video-script.md}`
 
-**Interfaces — Produces:** `start-hosted.mjs` starts the twin on 4010, Coffee Club on 3000 (add-on preloaded, `FASTFORWARD=1`, bugs from `COFFEE_BUGS`), and the web app on `$PORT` serving the built dashboard, proxying `/_ff/*` to the twin and `/demo/*` to Coffee Club. README opens with the revenue-first pitch (spec §1), then a 3-command quickstart (`npm install`, `npm run demo`, open the dashboard), the integration contract (spec §5), and the licence. `devpost.md` follows the hackathon's required sections (description, tools used and how). `video-script.md`: under 3 minutes, opening with the money problem, then the live bug-finding run, the coding-assistant fix, and the ask.
+**Interfaces — Produces:** `start-hosted.mjs` starts the twin on 4010, Coffee Club on 3000 (add-on preloaded, `FASTFORWARD=1`, bugs from `COFFEE_BUGS`), and the web app on `$PORT` serving the built dashboard, proxying `/_ff/*` to the twin and `/demo/*` to Coffee Club. README opens with the revenue-first pitch (spec §1), then a 3-command quickstart (`npm install`, `npm run demo`, open the dashboard), the integration contract (spec §5), and the licence. `devpost.md` follows the hackathon's required sections (description, tools used and how). `video-script.md`: under 3 minutes, opening with the money problem, then the live bug-finding run (AG Grid deliveries table as the evidence), the side-by-side check against the real PayPal sandbox, the coding-assistant fix, and the ask. No third-party logos or copyrighted music (rules §4). `devpost.md` and README state plainly how PayPal is used: official OpenAPI specs, official SDK in the demo app, passthrough and fidelity checks against the real sandbox.
 
 - [ ] **Step 1:** `node scripts/start-hosted.mjs` locally with `PORT=8080` → dashboard loads, a demo run completes, `/demo/__ff/probe?subscription_id=...` answers. Expected: all three processes up within 10 s.
 - [ ] **Step 2:** Fresh-clone check: in a temporary folder, `git clone` the local repo, `npm install`, `npm run demo` works without `.env` (AI off, no sandbox keys).
@@ -372,10 +375,10 @@ Deploying and pushing need Vinay's yes (spec §13.4).
 | 0 | Sara | 0 (gate, then Vinay decides) | `spike/`, `docs/spike-results.md` |
 | 1 | Sara | 1 | root config, `packages/contracts` |
 | 2 | Worker A | 2 → 3 → 4 | `packages/twin/src/{server,control,ids,passthrough}.ts`, `time/`, `subscriptions/`, `fidelity.ts`, `spec/` |
-| 2 | Worker B | 5 → 6 | `packages/twin/src/webhooks/`, `packages/register/` |
+| 2 | Worker B | 6 → 5 (5 needs Worker A's clock and `fidelity.ts`) | `packages/twin/src/webhooks/`, `packages/register/` |
 | 2 | Worker C | 7 → 8 | `examples/coffee-club/`, `packages/ai/` |
 | 3 | Sara + Worker A | 9 → 10 → 11 | `packages/twin/src/run/`, `checks/`, `packages/cli/`, `test/e2e/` |
-| 3 | Worker C | 15 (against recorded traces) | `apps/web/` |
+| 3 | Worker C | 15 (against recorded traces and a fixture `fidelity/latest.json` in the Task 14 format) | `apps/web/` |
 | 4 | Worker A | 12 → 13 | `packages/twin/src/disputes/`, `webhooks/weather.ts` |
 | 4 | Worker B | 16 | `packages/mcp/` |
 | 4 | Sara | 14 | `html-report.ts`, `test/fidelity/` |
