@@ -56,12 +56,12 @@ export function Timeline({ model, range, now, selectedEventId, onSelect }: Props
 
   // Nudge markers that would sit on top of each other (same lane, nearly the same time).
   const slots = new Map<string, number>();
-  const placed = model.markers.map((m: TimelineMarker) => {
+  const placed = model.markers.map((m: TimelineMarker, index) => {
     const lane = LOWER_LANE.has(m.kind) ? 1 : 0;
     const key = `${m.row}:${lane}:${Math.round(pct(m.at) * 3)}`;
     const n = slots.get(key) ?? 0;
     slots.set(key, n + 1);
-    return { m, lane, left: pct(m.at), nudge: n * 15 };
+    return { m, index, lane, left: pct(m.at), nudge: n * 15 };
   });
 
   const present = [...new Set(model.markers.map((m) => m.kind))];
@@ -88,15 +88,15 @@ export function Timeline({ model, range, now, selectedEventId, onSelect }: Props
               <div className="tl-line" />
               {placed
                 .filter((p) => p.m.row === i)
-                .map(({ m, lane, left, nudge }) => (
+                .map(({ m, index, lane, left, nudge }) => (
                   <button
-                    key={`${m.eventId}-${m.kind}-${m.at}`}
+                    key={`${m.eventId}-${m.kind}-${m.at}-${index}`}
                     type="button"
                     className={`tl-marker k-${m.kind}${selectedEventId === m.eventId ? ' selected' : ''}`}
                     style={{ left: `calc(${left}% + ${nudge}px)`, top: lane === 0 ? '4px' : '24px' } as CSSProperties}
                     onClick={() => onSelect(m.eventId)}
-                    title={`${LABEL[m.kind]} · ${fmtDateTime(m.at)}`}
-                    aria-label={`${row.customer}: ${LABEL[m.kind]}, ${fmtDateTime(m.at)}`}
+                    title={`${LABEL[m.kind]}${m.count && m.count > 1 ? ` ×${m.count}` : ''} · ${fmtDateTime(m.at)}`}
+                    aria-label={`${row.customer}: ${LABEL[m.kind]}${m.count && m.count > 1 ? `, ${m.count} attempts` : ''}, ${fmtDateTime(m.at)}`}
                   >
                     <svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true">
                       <path d={GLYPH[m.kind]} fill={STROKE_ONLY.has(m.kind) ? 'none' : 'currentColor'} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />

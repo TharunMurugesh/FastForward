@@ -53,7 +53,7 @@ const columnDefs: ColDef<DeliveryRow>[] = [
     headerName: 'Event',
     width: 190,
     valueFormatter: (p) => EVENT_LABELS[p.value as string] ?? String(p.value ?? ''),
-    tooltipValueGetter: (p) => String(p.value ?? ''),
+    tooltip: (p) => p.data?.eventType ?? '',
     filterValueGetter: (p) => `${p.data?.eventType ?? ''} ${EVENT_LABELS[p.data?.eventType ?? ''] ?? ''}`,
   },
   { field: 'status', headerName: 'App answered', width: 138, cellRenderer: Status, filter: 'agNumberColumnFilter' },

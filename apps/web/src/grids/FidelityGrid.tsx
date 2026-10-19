@@ -21,7 +21,7 @@ const columnDefs: ColDef<FidelityCheck>[] = [
     minWidth: 240,
     flex: 1,
     valueGetter: (p) => p.data?.allowedDiffs.map((d) => `${d.field}: ${d.reason}`).join('; ') || 'None',
-    tooltipValueGetter: (p) => String(p.value ?? ''),
+    tooltip: (p) => String(p.value ?? ''),
     wrapText: true,
     autoHeight: true,
   },
