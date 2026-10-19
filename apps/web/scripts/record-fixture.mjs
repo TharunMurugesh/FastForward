@@ -21,8 +21,10 @@ const outFile = fileURLToPath(new URL('../src/fixtures/bad-month.recorded.json',
 // bad-month.yaml fixes the app on 3000 and the register add-on's default twin is 4010.
 const APP_PORT = 3000;
 const TWIN_PORT = 4010;
-// `all` is the default; FF_FIXTURE_BUGS=no-verify,no-dedupe,... records a variant with fewer bugs.
-const BUGS = process.env.FF_FIXTURE_BUGS || 'all';
+// The default leaves out slow-ack: with it every notice times out and retries about a dozen times, which
+// buries the other bugs. FF_FIXTURE_BUGS=all records the everything-on variant instead.
+const DEFAULT_BUGS = 'no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order';
+const BUGS = process.env.FF_FIXTURE_BUGS || DEFAULT_BUGS;
 
 async function assertFree(port) {
   await new Promise((resolve, reject) => {

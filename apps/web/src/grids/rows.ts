@@ -1,4 +1,5 @@
 import type { CheckId, EventType, Report, TraceEntry } from '@fastforward/contracts';
+import { CHECK_TITLES } from '../format.js';
 import { eventOwners, isFailedDelivery, type TimelineRow } from '../timeline/model.js';
 
 export interface DeliveryRow {
@@ -14,7 +15,9 @@ export interface DeliveryRow {
   ms: number;
   /** The app checked the signature during this delivery. */
   verified: boolean;
-  /** This delivery is a second copy of an event already delivered once. */
+  /** 0 for the notice as first sent; 1, 2... for extra copies PayPal delivered of the same event. */
+  copy: number;
+  /** This delivery belongs to an extra copy of an event already delivered once. */
   duplicate: boolean;
   forged: boolean;
   failedChecks: CheckId[];
@@ -36,8 +39,9 @@ export function toDeliveryRows(trace: TraceEntry[], subscriptions: TimelineRow[]
 
   const failingChecks = (report?.checks ?? []).filter((c) => c.status === 'fail');
   const attemptsOfEvent = new Map<string, number>();
-  const firstAttemptSeen = new Set<string>();
-  const duplicateTransmission = new Map<string, boolean>();
+  // Per event, one entry per copy delivered: where its retry chain has got to. Retries get a transmission id
+  // of their own, so a retry is matched to the copy whose previous attempt failed, not by id.
+  const copiesOfEvent = new Map<string, { lastAttempt: number; lastFailed: boolean }[]>();
   const rows: DeliveryRow[] = [];
 
   for (const t of trace) {
@@ -45,14 +49,21 @@ export function toDeliveryRows(trace: TraceEntry[], subscriptions: TimelineRow[]
     const event = events.get(t.eventId);
     if (!event) continue;
 
-    let duplicate: boolean;
-    if (t.attempt === 1) {
-      duplicate = firstAttemptSeen.has(t.eventId);
-      firstAttemptSeen.add(t.eventId);
-      duplicateTransmission.set(t.transmissionId, duplicate);
-    } else {
-      duplicate = duplicateTransmission.get(t.transmissionId) ?? false;
+    const copies = copiesOfEvent.get(t.eventId) ?? [];
+    copiesOfEvent.set(t.eventId, copies);
+    // A retry continues a copy whose previous attempt failed; anything else starting mid-chain falls back to the previous attempt.
+    let copy = -1;
+    if (t.attempt > 1) {
+      copy = copies.findIndex((c) => c.lastAttempt === t.attempt - 1 && c.lastFailed);
+      if (copy === -1) copy = copies.findIndex((c) => c.lastAttempt === t.attempt - 1);
     }
+    if (copy === -1) {
+      copy = copies.length;
+      copies.push({ lastAttempt: t.attempt, lastFailed: isFailedDelivery(t) });
+    } else {
+      copies[copy] = { lastAttempt: t.attempt, lastFailed: isFailedDelivery(t) };
+    }
+    const duplicate = copy > 0;
 
     const n = attemptsOfEvent.get(t.eventId) ?? 0;
     attemptsOfEvent.set(t.eventId, n + 1);
@@ -73,10 +84,55 @@ export function toDeliveryRows(trace: TraceEntry[], subscriptions: TimelineRow[]
       status: t.status,
       ms: t.ms,
       verified: t.verifyCalled,
+      copy,
       duplicate,
       forged: event.forged,
       failedChecks,
     });
   }
   return rows;
+}
+
+/** One notice as the developer thinks of it: all the attempts to deliver it, boiled down. */
+export interface NoticeRow extends DeliveryRow {
+  /** How many delivery attempts this notice took. */
+  tries: number;
+  /** The worst thing that happened: null if any attempt timed out, else the highest status code. */
+  worstStatus: number | null;
+  /** When the last attempt happened. `at` is when the first one did. */
+  lastAt: string;
+}
+
+// Type-only imports from contracts keep its zod and yaml parser out of the browser bundle; the labels table is in check order.
+const CHECK_ORDER = new Map((Object.keys(CHECK_TITLES) as CheckId[]).map((id, i) => [id, i]));
+
+/**
+ * One row per notice (an event, and each extra copy PayPal delivered of it). `status`, `ms` and `attempt`
+ * are the last attempt's, because that is how the story ended; failing checks are the union over all attempts.
+ */
+export function toNoticeRows(rows: DeliveryRow[]): NoticeRow[] {
+  const groups = new Map<string, DeliveryRow[]>();
+  for (const r of rows) {
+    const key = `${r.eventId}#c${r.copy}`;
+    const group = groups.get(key);
+    if (group) group.push(r);
+    else groups.set(key, [r]);
+  }
+  return [...groups].map(([id, attempts]) => {
+    const first = attempts[0]!;
+    const last = attempts[attempts.length - 1]!;
+    const timedOut = attempts.some((a) => a.status === null);
+    const worstStatus = timedOut ? null : Math.max(...attempts.map((a) => a.status ?? 0));
+    const failedChecks = [...new Set(attempts.flatMap((a) => a.failedChecks))].sort((a, b) => (CHECK_ORDER.get(a) ?? 0) - (CHECK_ORDER.get(b) ?? 0));
+    return {
+      ...last,
+      id,
+      at: first.at,
+      lastAt: last.at,
+      tries: attempts.length,
+      worstStatus,
+      verified: attempts.some((a) => a.verified),
+      failedChecks,
+    };
+  });
 }

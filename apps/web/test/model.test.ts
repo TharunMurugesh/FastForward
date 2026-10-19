@@ -139,6 +139,6 @@ describe('toTimeline', () => {
 describe('bad-month fixture (a real recorded run)', () => {
   it('shows the marker kinds a buggy app produces under bad weather', () => {
     const kinds = new Set(toTimeline(badMonth.trace, badMonth.subscriptions).markers.map((m) => m.kind));
-    for (const k of ['payment_ok', 'payment_failed', 'suspended', 'dispute', 'forged', 'duplicate', 'delivery_failed']) expect(kinds).toContain(k);
+    for (const k of ['payment_ok', 'payment_failed', 'suspended', 'dispute', 'forged', 'duplicate']) expect(kinds).toContain(k);
   });
 });
