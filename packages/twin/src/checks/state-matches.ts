@@ -1,5 +1,5 @@
 import type { CheckResult, Finding } from '@fastforward/contracts';
-import { day, type CheckContext } from './context.js';
+import { checksNote, span, stretches, type CheckContext } from './context.js';
 
 const WHY: Record<string, string> = {
   SUSPENDED: 'PayPal had suspended the subscription',
@@ -10,7 +10,10 @@ const WHY: Record<string, string> = {
   ACTIVE: 'the subscription was active',
 };
 
-/** STATE_MATCHES: at each checkpoint the app's access flag equals what the subscription's true status allows. */
+/**
+ * STATE_MATCHES: at each checkpoint the app's access flag equals what the subscription's true status allows.
+ * Consecutive bad checkpoints for one subscription with the same wrong answer are reported as one stretch.
+ */
 export function stateMatches(ctx: CheckContext): CheckResult {
   if (!ctx.scenario.app.probeUrl) {
     return { id: 'STATE_MATCHES', status: 'skipped', findings: [], note: 'the scenario has no app.probeUrl, so the app\'s state could not be read' };
@@ -19,22 +22,22 @@ export function stateMatches(ctx: CheckContext): CheckResult {
     return { id: 'STATE_MATCHES', status: 'skipped', findings: [], note: 'no checkpoint probed your app' };
   }
 
-  const findings: Finding[] = [];
-  for (const p of ctx.probes) {
-    if (p.access === p.expectedAccess && p.access !== null) continue;
+  const bad = stretches(ctx.probes, (p) => (p.access === p.expectedAccess && p.access !== null ? null : `${p.access}|${p.expectedAccess}`));
+  const findings: Finding[] = bad.map(({ first: p, last, count }): Finding => {
     const who = ctx.customerOf(p.subscriptionId);
     const state = ctx.statusAt(p.subscriptionId, p.at);
     const why = state ? (WHY[state.status] ?? `the subscription was ${state.status}`) : p.expectedAccess ? 'the subscription was in good standing' : 'the subscription did not allow access';
-    const eventIds = state ? [state.eventId] : [];
+    const n = checksNote(count);
     let summary: string;
     if (p.access === null) {
-      summary = `On ${day(p.at)} your app did not answer the check of ${who}'s access, so it could not be compared with the subscription (${why}).`;
+      const when = span(p.at, last.at, 'On');
+      summary = `${when[0]!.toUpperCase()}${when.slice(1)} your app did not answer the check of ${who}'s access, so it could not be compared with the subscription (${why})${n}.`;
     } else if (p.access) {
-      summary = `${who} still had access on ${day(p.at)} although ${why}.`;
+      summary = `${who} still had access ${span(p.at, last.at)} although ${why}${n}.`;
     } else {
-      summary = `${who} had no access on ${day(p.at)} although ${why} and access should have been allowed.`;
+      summary = `${who} had no access ${span(p.at, last.at)} although ${why} and access should have been allowed${n}.`;
     }
-    findings.push({ at: p.at, summary, eventIds });
-  }
+    return { at: p.at, summary, eventIds: state ? [state.eventId] : [] };
+  });
   return { id: 'STATE_MATCHES', status: findings.length > 0 ? 'fail' : 'pass', findings };
 }

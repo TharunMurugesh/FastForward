@@ -26,8 +26,8 @@ export function verifiesSignatures(ctx: CheckContext): CheckResult {
   const findings: Finding[] = [];
   for (const { at, event, forged } of ctx.events) {
     if (forged) continue;
-    const attempts = ctx.deliveries.filter((d) => d.eventId === event.id);
-    if (attempts.length === 0) continue;
+    const attempts = ctx.deliveriesByEvent.get(event.id);
+    if (!attempts) continue;
     if (offline || attempts.some((d) => verified.has(d.transmissionId))) continue;
     findings.push({
       at,
