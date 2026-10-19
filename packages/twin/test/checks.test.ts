@@ -110,6 +110,19 @@ describe('ACK_FAST', () => {
     expect(r.findings[2]!.summary).toContain('attempt 2');
   });
 
+  it('a forged event the app rightly rejects with an error status is not a failure', () => {
+    const f = ev('BILLING.SUBSCRIPTION.CANCELLED', {}, 'WH-forged');
+    const r = check([event(f, '2026-12-16T00:00:00.000Z', true), delivery('WH-forged', { status: 400 }), delivery('WH-forged', { attempt: 2, status: 400 })], 'ACK_FAST');
+    expect(r).toMatchObject({ status: 'pass', findings: [] });
+  });
+
+  it('a forged event the app never answers, or answers too slowly, still fails', () => {
+    const f = ev('BILLING.SUBSCRIPTION.CANCELLED', {}, 'WH-forged');
+    const r = check([event(f, '2026-12-16T00:00:00.000Z', true), delivery('WH-forged', { status: null, ms: 10000 }), delivery('WH-forged', { attempt: 2, status: 200, ms: 12000 })], 'ACK_FAST');
+    expect(r.status).toBe('fail');
+    expect(r.findings).toHaveLength(2);
+  });
+
   it('a retry that finally succeeds does not erase the earlier failure', () => {
     const e = ev('PAYMENT.SALE.COMPLETED', {}, 'WH-r');
     const r = check([event(e), delivery('WH-r', { status: 503 }), delivery('WH-r', { attempt: 2, status: 200 })], 'ACK_FAST');
