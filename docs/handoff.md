@@ -25,7 +25,7 @@ STATUS: waiting for the next Sara
 - Prize rule: one grand prize or honourable mention, plus one sponsor prize. Aim: top 3 / Best Use of
   PayPal + AI / Best Demo Delivery, plus Best Use of AG Grid.
 
-## Built and on `main` (all reviewed by Sara, 187 tests pass incl. Task 10, `npm run typecheck` clean)
+## Built and on `main` (all reviewed by Sara; see "In flight" for the latest count, `npm run typecheck` clean)
 | Task | What | Notes |
 |---|---|---|
 | 0 | Redirect spike | `docs/spike-results.md`: SDK and fetch both redirectable |
@@ -51,24 +51,28 @@ Branch names no longer match the work (each worker reuses its worktree); that is
 and branches once Phase 3 is merged. Workers report to the lead session by name; tell them the new lead's
 listed name when you take over (send each a one-line message).
 
-## In flight (wave 3, briefs sent 19 Oct ~13:30)
-- **Worker B, Task 9** (run orchestration, wiring createTwin, recording `app_call`, `verify_call`,
-  `cert_fetch`). May swap the Scheduler internals for a heap if the 200×365 perf test needs it. Target 25 Oct.
-- **Worker A**: Task 10 (checks) is DONE and on main (e3d0030, 187 tests). Job (1), one finding per
-  stretch + indexes (200×365 checked in <1.5 s), is merged (076d3e6, 193 tests). Job (2), Task 12 disputes
-  engine/routes, is merged (c8567d4; `onSellerMessage` hook and `reply()` ready for run wiring; 2 run-dependent
-  tests are `it.todo`). Now doing: (3) Task 13 `webhooks/weather.ts` pure parts only. Wiring disputes/weather into `run.ts` waits for B's Task 9.
-- Worker B was approved to edit `packages/twin/test/server.test.ts` (runs block needs a full Scenario).
-- **Worker C, Task 15** (dashboard, AG Grid Community) against fixtures; will send a run command and a
-  screenshot. Target 28 Oct.
+## In flight (19 Oct ~14:00)
+Merged to main and green (b7e3a4d, 262 tests pass, 2 todo): Tasks 0–10, 15, plus Task 12 and 13 pure parts
+(disputes engine/routes, `webhooks/weather.ts`). Worker B (PayPal 4) is RELEASED: his window can be closed.
+- **Worker A** now owns `run/**`, `control.ts`, `server.ts`: (1) disputes in runs + dispute resource fields
+  the dashboard reads (`dispute_id`, `reason`, `seller_response_due_date`,
+  `disputed_transactions[].seller_transaction_id`, `messages[]`, `dispute_outcome.outcome_code`); (2) weather in
+  runs (seeded, same seed same trace); (3) control API: `GET /_ff/runs/current`, `start` on `GET /_ff/runs/:id`,
+  `GET /_ff/runs/:id/report`. Target 24 Oct.
+- **Worker C**: Task 11 (packages/cli, `fastforward` bin; e2e in `test/e2e`, run by `npm run test:e2e` only).
+  Will send terminal output + a screenshot of a live run (`?run=<id>`) = the Phase 1 demo for Vinay. Target 25 Oct.
+- Dashboard notes: run with `npm run dev -w @fastforward/web`, open http://localhost:5173 (fixture "Sample run"
+  without `?run=`). AG Grid 36.2.0 Community only (checked: no enterprise import). Open: bundle 1.4 MB because of
+  AllCommunityModule (trim later); the fidelity panel shows sample data until Task 14 writes `fidelity/latest.json`
+  (format = `FidelityFile` in `apps/web/src/fidelity.ts`; hosting must serve `/fidelity/latest.json`).
 
 ## Next for Sara
 1. Review and merge each report (read the diff, check for attribution lines, `npm ci && npm test && npm run
    typecheck` on main yourself). Then reply with a review and the next job.
-2. After 9 and 10 are merged: **Task 11** (CLI + Phase 1 e2e acceptance) to Worker A or B, then **show
-   Vinay a live run** before Phase 2. Wire `GET /_ff/runs/:id/report` there if Task 9 didn't.
-3. Then wave 4: Task 12 disputes (Worker A; put `dispute_id` in dispute resources), Task 13 bad weather,
-   Task 14 HTML report + fidelity suite + `fidelity/latest.json` (Sara), Task 16 MCP (Worker B).
+2. After Task 11 lands: **show Vinay a live run** (Phase 1 gate) before Phase 2 polish.
+3. Then: restore full `bad-month.yaml` in the e2e (weather + dispute; buggy fails, fixed passes all);
+   Task 14 HTML report + fidelity suite + `fidelity/latest.json` (Sara; the real-sandbox run needs .env keys,
+   tell Vinay first); Task 16 MCP (fresh worker session); Task 17 hosting/README/submission.
 4. When workers go idle with nothing left, tell Vinay which windows to close (shared allowance).
 
 ## Vinay's open items
