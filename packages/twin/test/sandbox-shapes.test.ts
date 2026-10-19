@@ -75,16 +75,16 @@ describe('a subscription has the fields the sandbox has at each status', () => {
     const { status, body } = await inject(h, 'POST', '/v1/billing/subscriptions', { plan_id: 'P-X', custom_id: 'c' });
     expect(status).toBe(201);
     expect(keys(body)).toEqual(PENDING_CREATE);
-    expect(body!.subscriber).toEqual({});
+    expect(body!.subscriber).toEqual({ tenant: 'paypal' }); // the sandbox adds a tenant when the request has no subscriber
     assertMatchesSpec(BILLING, '/v1/billing/subscriptions', 'POST', 201, body);
   });
 
-  it('on GET while APPROVAL_PENDING: the same, and no status_update_time either', async () => {
+  it('on GET while APPROVAL_PENDING: the same, and neither status_update_time nor subscriber', async () => {
     const h = harness();
     const created = (await inject(h, 'POST', '/v1/billing/subscriptions', { plan_id: 'P-X', custom_id: 'c' })).body!;
     const { status, body } = await inject(h, 'GET', `/v1/billing/subscriptions/${created.id}`);
     expect(status).toBe(200);
-    expect(keys(body)).toEqual(PENDING_CREATE.filter((k) => k !== 'status_update_time'));
+    expect(keys(body)).toEqual(PENDING_CREATE.filter((k) => k !== 'status_update_time' && k !== 'subscriber'));
     assertMatchesSpec(BILLING, `/v1/billing/subscriptions/${created.id}`, 'GET', 200, body);
   });
 
@@ -146,6 +146,8 @@ describe('cancel', () => {
     expect(status).toBe(404);
     expect(keys(body)).toEqual(['debug_id', 'details', 'links', 'message', 'name']);
     expect(body!.name).toBe('RESOURCE_NOT_FOUND');
+    // The sandbox's error links carry a method.
+    expect(body!.links.every((l: { method?: string }) => l.method === 'GET')).toBe(true);
     expect((await inject(h, 'GET', `/v1/billing/subscriptions/${created.id}`)).body!.status).toBe('APPROVAL_PENDING');
   });
 
@@ -176,7 +178,7 @@ describe('verify-webhook-signature', () => {
     webhook_event: { id: 'WH-1', event_type: 'PAYMENT.SALE.COMPLETED', resource: {} },
   });
 
-  it('a malformed body (the suite\'s deliberately invalid one) answers 400 VALIDATION_ERROR in PayPal error format', async () => {
+  it('a malformed body (the suite\'s deliberately invalid one) answers 400 INVALID_REQUEST in PayPal error format', async () => {
     const app = await verifyApp();
     const res = await app.inject({
       method: 'POST',
@@ -194,12 +196,12 @@ describe('verify-webhook-signature', () => {
     expect(res.statusCode).toBe(400);
     const body = res.json();
     expect(Object.keys(body).sort()).toEqual(['debug_id', 'details', 'links', 'message', 'name']);
-    expect(body.name).toBe('VALIDATION_ERROR');
+    expect(body.name).toBe('INVALID_REQUEST');
     expect(body.details.map((d: { field: string }) => d.field)).toEqual(expect.arrayContaining(['/transmission_id', '/transmission_sig']));
-    for (const d of body.details) expect(Object.keys(d).sort()).toEqual(['description', 'field', 'issue', 'location', 'value']);
+    for (const d of body.details) expect(Object.keys(d).sort()).toEqual(['field', 'issue', 'location', 'value']);
   });
 
-  it('a body with a missing field answers 400 VALIDATION_ERROR too', async () => {
+  it('a body with a missing field answers 400 INVALID_REQUEST too', async () => {
     const app = await verifyApp();
     const { webhook_id: _gone, ...rest } = wellFormed();
     const res = await app.inject({ method: 'POST', url: '/v1/notifications/verify-webhook-signature', payload: rest });

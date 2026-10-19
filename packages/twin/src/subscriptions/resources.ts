@@ -34,7 +34,7 @@ export class PayPalError extends Error {
       message: this.message,
       debug_id: newId('SALE').toLowerCase(),
       ...(this.details.length > 0 ? { details: this.details } : {}),
-      links: [{ href: 'https://developer.paypal.com/docs/api/v1/billing/subscriptions#errors', rel: 'information_link' }],
+      links: [{ href: 'https://developer.paypal.com/docs/api/v1/billing/subscriptions#errors', rel: 'information_link', method: 'GET' }],
     };
   }
 }
@@ -214,6 +214,9 @@ function links(sub: SubState): Record<string, unknown>[] {
  *   GET has no status_update_time either.
  * - The plan is only included when asked for (`?fields=plan`), and in webhook notices.
  */
+/** unverified: the sandbox's tenant value; the live run saw the field, not its content. */
+const SANDBOX_TENANT = 'paypal';
+
 export interface SubscriptionView {
   context: 'create' | 'get' | 'event';
   includePlan?: boolean;
@@ -223,6 +226,7 @@ export function subscriptionResource(sub: SubState, view: SubscriptionView = { c
   const { plan } = sub;
   const waiting = sub.status === 'APPROVAL_PENDING' || sub.status === 'APPROVED';
   const hideStatusTime = waiting && view.context === 'get';
+  const hideSubscriber = hideStatusTime;
   return {
     id: sub.id,
     plan_id: sub.planId,
@@ -232,7 +236,8 @@ export function subscriptionResource(sub: SubState, view: SubscriptionView = { c
     start_time: sub.startTime.toISOString(),
     quantity: '1',
     ...(sub.shippingAmount ? { shipping_amount: sub.shippingAmount } : {}),
-    subscriber: sub.subscriber,
+    // Waiting for approval, GET leaves the subscriber out; POST echoes it, with a tenant when the request had none.
+    ...(hideSubscriber ? {} : { subscriber: view.context === 'create' && Object.keys(sub.subscriber).length === 0 ? { tenant: SANDBOX_TENANT } : sub.subscriber }),
     ...(waiting
       ? {}
       : {
