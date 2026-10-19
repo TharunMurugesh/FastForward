@@ -407,7 +407,9 @@ describe("speed", () => {
     trace.push({ at: "2026-11-02T00:00:00.000Z", kind: "cert_fetch" });
     const started = performance.now();
     runChecks(trace, scenario);
-    expect(performance.now() - started).toBeLessThan(1500);
+    // About 1 s alone; the quadratic version took minutes. 10 s keeps that regression caught without
+    // failing when the whole suite (and other work) shares the machine.
+    expect(performance.now() - started).toBeLessThan(10_000);
   });
 });
 
