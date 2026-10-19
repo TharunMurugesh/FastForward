@@ -57,10 +57,13 @@ CLI: `fastforward run <scenario> [--keep-twin]` prints each bug with explanation
 `bad-month.yaml` is now **P75D, threshold 2** (Leo: fails 12-01, retries 12-06/12-11, suspended 2027-01-01).
 Phase 1 live run shown to Vinay 19 Oct (scratchpad screenshots web-live-full.png, cli-final.log in worker C's
 scratchpad). Worker B released (window PayPal 4 can be closed; worktree and branch deleted).
-- **Worker A** (job 4): e2e on the unmodified bad-month: bugs=all fails 5 checks, bugs=none passes all six
-  (non-vacuous: Leo suspended 2027-01-01, dispute answered, duplicate + forged delivered and forged rejected).
-- **Worker C**: dashboard fixture replaced by a REAL recorded run plus a regenerate script; bundle trimmed to the
-  modules in use. Root `npm run demo` waits for Task 17.
+- DONE (main 929ad1d, 300 unit + 4 e2e pass, Sara ran both; e2e takes ~4.5 min): full bad-month e2e.
+  bugs=all fails exactly 5 checks; bugs=none passes all six non-vacuously. ACK_FAST no longer counts a 4xx
+  rejection of a FORGED notice. Real dashboard fixture (`npm run fixture -w @fastforward/web`), bundle trimmed.
+  Worker A is STANDING BY.
+- **Worker C** (design job): sample recorded without slow-ack; deliveries grid defaults to ONE ROW PER NOTICE
+  (toggle "Show every attempt"); Report tab first with per-check counts that filter the grid; fidelity header
+  wording "match PayPal's shape (N known, explained differences)". Sends before/after screenshots.
 - Dashboard: `npm run dev -w @fastforward/web` → http://localhost:5173; CLI run with `--keep-twin` to view live.
 
 ## Next for Sara
