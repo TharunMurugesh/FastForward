@@ -54,9 +54,9 @@ listed name when you take over (send each a one-line message).
 ## In flight (wave 3, briefs sent 19 Oct ~13:30)
 - **Worker B, Task 9** (run orchestration, wiring createTwin, recording `app_call`, `verify_call`,
   `cert_fetch`). May swap the Scheduler internals for a heap if the 200×365 perf test needs it. Target 25 Oct.
-- **Worker A**: Task 10 (checks) is DONE and on main (e3d0030, 187 tests). Now doing, each reported
-  separately: (1) collapse lasting-bug findings into one per stretch + index deliveries by eventId;
-  (2) Task 12 disputes engine/routes only (`dispute_id`, `seller_response_due_date` in resources);
+- **Worker A**: Task 10 (checks) is DONE and on main (e3d0030, 187 tests). Job (1), one finding per
+  stretch + indexes (200×365 checked in <1.5 s), is merged (076d3e6, 193 tests). Now doing, each reported
+  separately: (2) Task 12 disputes engine/routes only (`dispute_id`, `seller_response_due_date` in resources);
   (3) Task 13 `webhooks/weather.ts` pure parts only. Wiring disputes/weather into `run.ts` waits for B's Task 9.
 - Worker B was approved to edit `packages/twin/test/server.test.ts` (runs block needs a full Scenario).
 - **Worker C, Task 15** (dashboard, AG Grid Community) against fixtures; will send a run command and a
