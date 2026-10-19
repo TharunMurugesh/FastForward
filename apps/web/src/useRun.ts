@@ -88,12 +88,13 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
         if (cancelled) return;
         live.current = { id: runId };
         let timer: ReturnType<typeof setTimeout> | undefined;
+        // The twin replays the whole trace on connect and then sends each new entry. Appending would
+        // double the history, so a stream message only says "something changed": refetch, debounced.
         const unsubscribe = api.stream(
           runId,
-          (entry) => {
-            setState((s) => ({ ...s, trace: [...s.trace, entry] }));
+          () => {
             clearTimeout(timer);
-            timer = setTimeout(() => void refreshLive(runId).catch(() => {}), 800); // keep the report current
+            timer = setTimeout(() => void refreshLive(runId).catch(() => {}), 300);
           },
           () => {},
         );
