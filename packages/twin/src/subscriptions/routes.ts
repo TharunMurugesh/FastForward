@@ -3,7 +3,7 @@ import type { SubscriptionEngine } from './engine.js';
 import { PayPalError } from './resources.js';
 
 /** Runs a handler, turning a PayPalError into PayPal's error body and status. */
-async function guarded(reply: FastifyReply, fn: () => unknown | Promise<unknown>): Promise<unknown> {
+export async function guarded(reply: FastifyReply, fn: () => unknown | Promise<unknown>): Promise<unknown> {
   try {
     return await fn();
   } catch (err) {
