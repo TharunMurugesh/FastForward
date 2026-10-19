@@ -25,7 +25,7 @@ STATUS: waiting for the next Sara
 - Prize rule: one grand prize or honourable mention, plus one sponsor prize. Aim: top 3 / Best Use of
   PayPal + AI / Best Demo Delivery, plus Best Use of AG Grid.
 
-## Built and on `main` (all reviewed by Sara; see "In flight" for the latest count, `npm run typecheck` clean)
+## Built earlier (detail; current state is in "State on main" below)
 | Task | What | Notes |
 |---|---|---|
 | 0 | Redirect spike | `docs/spike-results.md`: SDK and fetch both redirectable |
@@ -40,53 +40,36 @@ STATUS: waiting for the next Sara
 Root `typecheck` is `tsc -b` (noEmit is refused with project references). Root `tsconfig.json` lists every
 package; on merges keep all references and regenerate `package-lock.json` (take main's, then `npm install`).
 
-## Workers (real sessions Vinay opened; all run in "prompting" mode, so he clicks Allow)
-| His window | Listed as | Model | Worktree / branch |
-|---|---|---|---|
-| PayPal 3 | `paypal-hackathon-fc` | Sonnet 5.5 | Worker A: `../PayPal-Hackathon-twin`, `ff/twin` |
-| PayPal 4 | `paypal-hackathon-fa` | Opus 5.5 | Worker B: `../PayPal-Hackathon-register`, `ff/register` |
-| PayPal 5 | `paypal-hackathon-be` | Sonnet 5.5 | Worker C: `../PayPal-Hackathon-coffee`, `ff/coffee` |
+## Workers
+All wave workers are RELEASED (19 Oct ~15:45): Worker A `paypal-hackathon-fc` (PayPal 3), Worker B
+`paypal-hackathon-fa` (PayPal 4), Worker C `paypal-hackathon-be` (PayPal 5). Branches merged; worktrees removed
+once each confirmed a clean tree. Next jobs go to FRESH worker sessions with self-contained briefs (one worktree
+each, per the method).
 
-Branch names no longer match the work (each worker reuses its worktree); that is fine. Delete the worktrees
-and branches once Phase 3 is merged. Workers report to the lead session by name; tell them the new lead's
-listed name when you take over (send each a one-line message).
+## State on main (19 Oct ~15:45): PHASES 1 AND 2 DONE
+- 369 unit tests + 4 e2e pass (Sara ran both; e2e ~4.5 min, `npm run test:e2e`).
+- Built: twin (subscriptions, disputes, signed webhooks, retries, weather, control API incl. /runs/current and
+  /report), register add-on, Coffee Club (6 switchable bugs, official SDK, re-fetches status), AI package, checks
+  (6), CLI (`fastforward run|new|twin`, report.json + self-contained report.html, dashboard link), dashboard
+  (AG Grid Community: one row per notice, Report tab first, timeline, dispute chat, fidelity panel).
+- **Live fidelity (Vinay said yes; reruns covered):** three runs against his sandbox: 27 → 4 → **0
+  differences, 7 of 7 endpoints match** (status, shape, spec). `fidelity/latest.json` committed (e238caf).
+  Pitch line: "we compared our simulator against PayPal's real sandbox, found 27 differences, fixed them all."
+  Honest limit: the suite covers the APPROVAL_PENDING path (cancel → 404); approved/active subscriptions need a
+  buyer approval in the sandbox and are not compared. Remaining guesses are in `packages/twin/src/fidelity.ts`,
+  each marked verified/unverified. Each live run leaves 1 product + 1 plan + 1 pending subscription in his sandbox.
+- `bad-month.yaml`: P75D, threshold 2; bugs=all → exactly 5 checks fail; bugs=none → all 6 pass.
+- Demo bug set: no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order.
+- Notes: every retry has its own transmission id; STATE_MATCHES orders notices by `status_update_time`.
 
-## In flight (19 Oct ~14:40) — PHASE 1 DONE
-Main 5eaae53: 296 unit tests + 2 e2e pass (Sara ran both). Tasks 0–13 and 15 done except the full-bad-month e2e.
-CLI: `fastforward run <scenario> [--keep-twin]` prints each bug with explanation and fix, plus a dashboard link.
-`bad-month.yaml` is now **P75D, threshold 2** (Leo: fails 12-01, retries 12-06/12-11, suspended 2027-01-01).
-Phase 1 live run shown to Vinay 19 Oct (scratchpad screenshots web-live-full.png, cli-final.log in worker C's
-scratchpad). Worker B released (window PayPal 4 can be closed; worktree and branch deleted).
-- DONE (main 929ad1d, 300 unit + 4 e2e pass, Sara ran both; e2e takes ~4.5 min): full bad-month e2e.
-  bugs=all fails exactly 5 checks; bugs=none passes all six non-vacuously. ACK_FAST no longer counts a 4xx
-  rejection of a FORGED notice. Real dashboard fixture (`npm run fixture -w @fastforward/web`), bundle trimmed.
-  Worker A is STANDING BY.
-- DONE (main 0bcfa15, 309 tests): dashboard design pass: one row per notice (+ "Show every attempt"), Report tab
-  first with clickable per-check counts, plain-word finding chips, sample = real recording with bugs
-  no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order. NOTE: every retry has its own
-  transmission id; duplicate copies' retries interleave (rows.ts follows retry chains).
-- DONE (main 0ae095f, 322 tests): Task 14 HTML report (self-contained report.html next to report.json).
-  Worker C is STANDING BY (session long: give new jobs to fresh sessions).
-- DONE (main 856a3d6, 353 tests), Worker A STANDING BY: Task 14 fidelity suite CODE ONLY (`npm run fidelity`, FF_FIDELITY=1 + sandbox keys, writes
-  `fidelity/latest.json` in the dashboard's FidelityFile format, values stripped) + STATE_MATCHES findings carry
-  event ids. Wording bug FIXED and verified on a real run (main 8a426c2 + re-recorded
-  sample 025871f, 330 tests): STATE_MATCHES orders notices by `status_update_time`. **Running it against the real sandbox needs Vinay's yes** (`FF_FIDELITY=1 npm run fidelity`;
-  creates 1 product, 1 plan, 1 subscription in his sandbox, cancels the subscription; ALLOWED_DIFFS starts empty,
-  so expect to resolve real differences, e.g. cancel of APPROVAL_PENDING, verify with a bad body). Vinay said YES 19 Oct;
-  first live run 15:22 found 27 differences (file clean, NOT committed). Worker A is fixing the twin to match;
-  then Sara reruns `FF_FIDELITY=1 npm run fidelity` and commits fidelity/latest.json. Vinay's yes covers reruns.
-- Remaining after that: Task 16 MCP (fresh worker session), Task 17 (railway.json, start-hosted, README,
-  devpost.md, video script; root `npm run demo`), Vinay's outward items below.
-- Dashboard: `npm run dev -w @fastforward/web` → http://localhost:5173; CLI run with `--keep-twin` to view live.
-
-## Next for Sara
-1. Review and merge each report (read the diff, check for attribution lines, `npm ci && npm test && npm run
-   typecheck` on main yourself). Then reply with a review and the next job.
-2. Phase 1 gate passed (live run shown). Collect Vinay's reactions as a user (Design score).
-3. Then: restore full `bad-month.yaml` in the e2e (weather + dispute; buggy fails, fixed passes all);
-   Task 14 HTML report + fidelity suite + `fidelity/latest.json` (Sara; the real-sandbox run needs .env keys,
-   tell Vinay first); Task 16 MCP (fresh worker session); Task 17 hosting/README/submission.
-4. When workers go idle with nothing left, tell Vinay which windows to close (shared allowance).
+## Next for Sara (Phase 3)
+1. **Task 16 MCP server** (packages/mcp: ff_write_scenario, ff_run, ff_explain): fresh worker.
+2. **Task 17**: `railway.json`, `scripts/start-hosted.mjs` (twin + Coffee Club + dashboard on $PORT, serving
+   `/fidelity/latest.json`), root `npm run demo`, README (revenue-first pitch, 3-command quickstart, how PayPal is
+   used, known limits from `webhooks/weather.ts`), `docs/submission/{devpost.md,video-script.md}`: fresh worker(s).
+3. Optional polish: e2e speed (4.5 min), print check of report.html.
+4. Outward steps, each needing Vinay's explicit yes: public GitHub repo + push, Railway deploy (tell him the
+   cost; the demo must stay up until 15 Dec; set an Anthropic spend cap), Devpost submission.
 
 ## Vinay's open items
 - **Discord question to PayPal** (outward, his to send; offer to draft): does a sandbox emulator built from
