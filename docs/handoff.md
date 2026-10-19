@@ -25,7 +25,7 @@ STATUS: waiting for the next Sara
 - Prize rule: one grand prize or honourable mention, plus one sponsor prize. Aim: top 3 / Best Use of
   PayPal + AI / Best Demo Delivery, plus Best Use of AG Grid.
 
-## Built and on `main` (all reviewed by Sara, 157 tests pass, `npm run typecheck` clean)
+## Built and on `main` (all reviewed by Sara, 187 tests pass incl. Task 10, `npm run typecheck` clean)
 | Task | What | Notes |
 |---|---|---|
 | 0 | Redirect spike | `docs/spike-results.md`: SDK and fetch both redirectable |
@@ -54,9 +54,11 @@ listed name when you take over (send each a one-line message).
 ## In flight (wave 3, briefs sent 19 Oct ~13:30)
 - **Worker B, Task 9** (run orchestration, wiring createTwin, recording `app_call`, `verify_call`,
   `cert_fetch`). May swap the Scheduler internals for a heap if the 200×365 perf test needs it. Target 25 Oct.
-- **Worker A, Task 10** (checks) as pure `runChecks(trace, scenario)` + pure `buildReport({...})`, with the
-  new VERIFIES_SIGNATURES rule (verify call matching a delivery's transmissionId anywhere in the run, or any
-  cert fetch). A will send an export line for `packages/twin/src/index.ts`; Sara adds it at merge. Target 22 Oct.
+- **Worker A**: Task 10 (checks) is DONE and on main (e3d0030, 187 tests). Now doing, each reported
+  separately: (1) collapse lasting-bug findings into one per stretch + index deliveries by eventId;
+  (2) Task 12 disputes engine/routes only (`dispute_id`, `seller_response_due_date` in resources);
+  (3) Task 13 `webhooks/weather.ts` pure parts only. Wiring disputes/weather into `run.ts` waits for B's Task 9.
+- Worker B was approved to edit `packages/twin/test/server.test.ts` (runs block needs a full Scenario).
 - **Worker C, Task 15** (dashboard, AG Grid Community) against fixtures; will send a run command and a
   screenshot. Target 28 Oct.
 
