@@ -17,6 +17,14 @@ export const fidelity = {
   //   failed_payments_count. The twin raises failed_payments_count and outstanding_balance once per
   //   cycle, when retries are exhausted. Each failed attempt still emits
   //   BILLING.SUBSCRIPTION.PAYMENT.FAILED (the docs are silent on the webhook).
+  // Dispute rules below, implemented in disputes/engine.ts (no values to tune), all unverified:
+  // - unverified: after the seller provides evidence the dispute is UNDER_REVIEW (status enum in
+  //   customer_disputes_v1.json; PayPal publishes no transition table) and it stays there; the twin never rules
+  //   for the seller.
+  // - unverified: after the seller sends a message or makes an offer the dispute is WAITING_FOR_BUYER_RESPONSE
+  //   (same source), and a buyer reply returns it to WAITING_FOR_SELLER_RESPONSE.
+  // - unverified: a dispute the seller never touches is resolved in the buyer's favour at the due date
+  //   (design spec section 6: our assumption, not checked against PayPal's docs).
   // verified 2026-10-03: sandbox dispute created with seller_response_due_date = create time + 20 days.
   disputeResponseDays: 20,
   // unverified: Hookdeck PayPal webhook guide (10 s acknowledge window); PayPal publishes no number.
