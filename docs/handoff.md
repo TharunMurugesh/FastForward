@@ -69,8 +69,8 @@ scratchpad). Worker B released (window PayPal 4 can be closed; worktree and bran
   Worker C is STANDING BY (session long: give new jobs to fresh sessions).
 - **Worker A**: Task 14 fidelity suite CODE ONLY (`npm run fidelity`, FF_FIDELITY=1 + sandbox keys, writes
   `fidelity/latest.json` in the dashboard's FidelityFile format, values stripped) + STATE_MATCHES findings carry
-  event ids + FIX STATE_MATCHES WORDING BUG (said "although the subscription was active" for suspended Leo;
-  must word from the true status, maybe a `trueStatus` probe field = contract change by Sara). **Running it against the real sandbox needs Vinay's yes**; Sara runs it, then commits latest.json.
+  event ids. Wording bug FIXED and verified on a real run (main 8a426c2 + re-recorded
+  sample 025871f, 330 tests): STATE_MATCHES orders notices by `status_update_time`. **Running it against the real sandbox needs Vinay's yes**; Sara runs it, then commits latest.json.
 - Remaining after that: Task 16 MCP (fresh worker session), Task 17 (railway.json, start-hosted, README,
   devpost.md, video script; root `npm run demo`), Vinay's outward items below.
 - Dashboard: `npm run dev -w @fastforward/web` → http://localhost:5173; CLI run with `--keep-twin` to view live.
