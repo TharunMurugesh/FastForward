@@ -5,6 +5,7 @@
     { "path": "packages/twin" },
     { "path": "packages/register" },
     { "path": "packages/ai" },
+    { "path": "apps/web" },
     { "path": "examples/coffee-club" }
   ]
 }
