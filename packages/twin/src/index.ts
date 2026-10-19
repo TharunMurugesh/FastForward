@@ -9,3 +9,4 @@ export * from './subscriptions/events.js';
 export * from './subscriptions/engine.js';
 export { registerSubscriptionRoutes } from './subscriptions/routes.js';
 export { PayPalError } from './subscriptions/resources.js';
+export * from './checks/index.js';
