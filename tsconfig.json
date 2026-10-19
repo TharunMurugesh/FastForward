@@ -4,6 +4,7 @@
     { "path": "packages/contracts" },
     { "path": "packages/twin" },
     { "path": "packages/register" },
+    { "path": "packages/ai" },
     { "path": "examples/coffee-club" }
   ]
 }
