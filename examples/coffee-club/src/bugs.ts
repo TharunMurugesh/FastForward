@@ -1,4 +1,4 @@
-export const BUG_NAMES = ['no-verify', 'no-dedupe', 'slow-ack', 'ignores-suspend', 'ignores-disputes'] as const;
+export const BUG_NAMES = ['no-verify', 'no-dedupe', 'slow-ack', 'ignores-suspend', 'ignores-disputes', 'trusts-event-order'] as const;
 export type Bug = (typeof BUG_NAMES)[number];
 
 /** Parses COFFEE_BUGS: `none` (default), `all`, or a comma list of bug names. */

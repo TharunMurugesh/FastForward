@@ -2,7 +2,7 @@ import express from 'express';
 import { pathToFileURL } from 'node:url';
 import { parseBugs, type Bug } from './bugs.js';
 import { createPaypalClient, type PaypalClient } from './paypal.js';
-import { Store } from './store.js';
+import { Store, type Member } from './store.js';
 
 export interface AppConfig {
   paypal: PaypalClient;
@@ -60,8 +60,15 @@ export function createApp(config: AppConfig): express.Express {
       }
     }
 
-    if (bugs.has('no-dedupe') || store.firstSight(event.id)) {
+    if (bugs.has('no-dedupe')) {
       await apply(event);
+    } else if (store.firstSight(event.id)) {
+      try {
+        await apply(event);
+      } catch (err) {
+        store.forget(event.id); // let PayPal's retry be handled, not skipped as a repeat
+        throw err;
+      }
     }
 
     if (bugs.has('slow-ack')) await sleep(config.slowMs);
@@ -70,24 +77,27 @@ export function createApp(config: AppConfig): express.Express {
 
   async function apply(event: PaypalEvent): Promise<void> {
     const r = event.resource;
-    switch (event.event_type) {
-      case 'BILLING.SUBSCRIPTION.ACTIVATED':
-        if (r.id) store.member(r.id).access = true;
-        break;
-      case 'PAYMENT.SALE.COMPLETED':
-        if (r.billing_agreement_id) {
-          const m = store.member(r.billing_agreement_id);
-          m.fulfilments += 1;
-          m.access = true;
+    const type = event.event_type;
+    const isSale = type === 'PAYMENT.SALE.COMPLETED';
+
+    // Webhooks can arrive late or out of order, so the payload is only a hint that something changed.
+    // Access follows the subscription's current status at PayPal, unless the trusts-event-order bug is on.
+    // Look the status up before changing anything, so a failed lookup leaves no half-applied event.
+    if (isSale || type.startsWith('BILLING.SUBSCRIPTION.')) {
+      const subscriptionId = isSale ? r.billing_agreement_id : r.id;
+      if (subscriptionId) {
+        const member = store.member(subscriptionId);
+        if (bugs.has('trusts-event-order')) {
+          applyPayload(member, type);
+        } else if (!(bugs.has('ignores-suspend') && type === 'BILLING.SUBSCRIPTION.SUSPENDED')) {
+          const status = await paypal.getSubscriptionStatus(subscriptionId);
+          member.access = status === 'ACTIVE' || (bugs.has('ignores-suspend') && status === 'SUSPENDED');
         }
-        break;
-      case 'BILLING.SUBSCRIPTION.SUSPENDED':
-        if (r.id && !bugs.has('ignores-suspend')) store.member(r.id).access = false;
-        break;
-      case 'BILLING.SUBSCRIPTION.CANCELLED':
-      case 'BILLING.SUBSCRIPTION.EXPIRED':
-        if (r.id) store.member(r.id).access = false;
-        break;
+        if (isSale) member.fulfilments += 1;
+      }
+    }
+
+    switch (type) {
       case 'CUSTOMER.DISPUTE.CREATED': {
         const disputeId = r.dispute_id ?? r.id;
         if (disputeId && !bugs.has('ignores-disputes')) {
@@ -96,6 +106,13 @@ export function createApp(config: AppConfig): express.Express {
         break;
       }
     }
+  }
+
+  /** The trusts-event-order bug: believe each event as it arrives. */
+  function applyPayload(member: Member, type: string): void {
+    if (type === 'BILLING.SUBSCRIPTION.ACTIVATED' || type === 'PAYMENT.SALE.COMPLETED') member.access = true;
+    else if (type === 'BILLING.SUBSCRIPTION.SUSPENDED' && !bugs.has('ignores-suspend')) member.access = false;
+    else if (type === 'BILLING.SUBSCRIPTION.CANCELLED' || type === 'BILLING.SUBSCRIPTION.EXPIRED') member.access = false;
   }
 
   app.get('/__ff/probe', (req, res) => {

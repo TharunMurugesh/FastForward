@@ -23,6 +23,10 @@ export class Store {
     return this.members.get(subscriptionId);
   }
 
+  forget(eventId: string): void {
+    this.seenEvents.delete(eventId);
+  }
+
   /** Returns true the first time an event id is seen. */
   firstSight(eventId: string): boolean {
     if (this.seenEvents.has(eventId)) return false;

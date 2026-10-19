@@ -18,6 +18,8 @@ export interface VerifyInput {
 
 export interface PaypalClient {
   createSubscription(planId: string, name: string, email: string): Promise<string>;
+  /** The subscription's current status at PayPal (ACTIVE, SUSPENDED, ...). */
+  getSubscriptionStatus(subscriptionId: string): Promise<string | undefined>;
   verifyWebhook(input: VerifyInput): Promise<boolean>;
   provideEvidence(disputeId: string, trackingNumber: string, carrier: string): Promise<void>;
 }
@@ -65,6 +67,11 @@ export function createPaypalClient(config: PaypalConfig): PaypalClient {
       });
       if (!result.id) throw new Error('PayPal returned no subscription id');
       return result.id;
+    },
+
+    async getSubscriptionStatus(subscriptionId) {
+      const { result } = await subscriptions.getSubscription({ id: subscriptionId });
+      return result.status;
     },
 
     async verifyWebhook({ headers, webhookId, event }) {

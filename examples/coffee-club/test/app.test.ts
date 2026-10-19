@@ -10,7 +10,7 @@ interface Call { method: string; path: string; body: string }
 /** A local stand-in for PayPal. Accepts both plain paths and the full URLs the SDK sends in proxy mode. */
 async function startFakePaypal() {
   const calls: Call[] = [];
-  const state = { verify: 'SUCCESS' };
+  const state = { verify: 'SUCCESS', status: 'ACTIVE', statusFailures: 0 };
   const server = http.createServer((req, res) => {
     const chunks: Buffer[] = [];
     req.on('data', (c) => chunks.push(c));
@@ -23,6 +23,14 @@ async function startFakePaypal() {
       } else if (path === '/v1/billing/subscriptions') {
         res.statusCode = 201;
         res.end(JSON.stringify({ id: 'I-TEST1', status: 'APPROVAL_PENDING' }));
+      } else if (req.method === 'GET' && path.startsWith('/v1/billing/subscriptions/')) {
+        if (state.statusFailures > 0) {
+          state.statusFailures -= 1;
+          res.statusCode = 500;
+          res.end('{}');
+        } else {
+          res.end(JSON.stringify({ id: path.split('/').pop(), status: state.status }));
+        }
       } else if (path === '/v1/notifications/verify-webhook-signature') {
         res.end(JSON.stringify({ verification_status: state.verify }));
       } else if (path.endsWith('/provide-evidence')) {
@@ -127,6 +135,7 @@ describe('Coffee Club', () => {
     await subscribe();
     await deliver(activated());
     expect((await probe('I-TEST1')).access).toBe(true);
+    fake.state.status = 'SUSPENDED';
     await deliver(suspended());
     expect((await probe('I-TEST1')).access).toBe(false);
   });
@@ -135,8 +144,51 @@ describe('Coffee Club', () => {
     await startApp('ignores-suspend');
     await subscribe();
     await deliver(activated());
+    fake.state.status = 'SUSPENDED';
     await deliver(suspended());
     expect((await probe('I-TEST1')).access).toBe(true);
+    await deliver(sale('WH-LATER')); // a later event must not reveal the suspension either
+    expect((await probe('I-TEST1')).access).toBe(true);
+  });
+
+  it('out-of-order SALE.COMPLETED after SUSPENDED keeps access off', async () => {
+    await startApp();
+    await subscribe();
+    await deliver(activated());
+    fake.state.status = 'SUSPENDED';
+    await deliver(suspended());
+    await deliver(sale('WH-LATE')); // delayed delivery of a payment from before the suspension
+    expect(await probe('I-TEST1')).toEqual({ access: false, fulfilments: 1 });
+  });
+
+  it('with trusts-event-order the same late SALE.COMPLETED turns access back on', async () => {
+    await startApp('trusts-event-order');
+    await subscribe();
+    await deliver(activated());
+    fake.state.status = 'SUSPENDED';
+    await deliver(suspended());
+    expect((await probe('I-TEST1')).access).toBe(false);
+    await deliver(sale('WH-LATE'));
+    expect((await probe('I-TEST1')).access).toBe(true);
+    expect(fake.calls.some((c) => c.method === 'GET' && c.path.startsWith('/v1/billing/subscriptions/'))).toBe(false);
+  });
+
+  it('a late ACTIVATED after SUSPENDED does not re-grant access', async () => {
+    await startApp();
+    await subscribe();
+    fake.state.status = 'SUSPENDED';
+    await deliver(suspended());
+    await deliver(activated());
+    expect((await probe('I-TEST1')).access).toBe(false);
+  });
+
+  it('a failed status lookup returns an error and the retry is processed, not skipped as a repeat', async () => {
+    await startApp();
+    await subscribe();
+    fake.state.statusFailures = 1;
+    expect((await deliver(sale('WH-R'))).status).toBe(500);
+    expect((await deliver(sale('WH-R'))).status).toBe(200);
+    expect(await probe('I-TEST1')).toEqual({ access: true, fulfilments: 1 });
   });
 
   it('rejects event when verify returns FAILURE (no state change)', async () => {
@@ -203,7 +255,7 @@ describe('Coffee Club', () => {
 describe('parseBugs', () => {
   it('handles none, all, lists and typos', () => {
     expect(parseBugs(undefined).size).toBe(0);
-    expect(parseBugs('all').size).toBe(5);
+    expect(parseBugs('all').size).toBe(6);
     expect([...parseBugs('no-verify, slow-ack')]).toEqual(['no-verify', 'slow-ack']);
     expect(() => parseBugs('no-verfy')).toThrow(/no-verfy/);
   });
