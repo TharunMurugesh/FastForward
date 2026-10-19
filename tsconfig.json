@@ -1,4 +1,9 @@
 {
   "files": [],
-  "references": [{ "path": "packages/contracts" }, { "path": "packages/twin" }, { "path": "packages/register" }]
+  "references": [
+    { "path": "packages/contracts" },
+    { "path": "packages/twin" },
+    { "path": "packages/register" },
+    { "path": "examples/coffee-club" }
+  ]
 }
