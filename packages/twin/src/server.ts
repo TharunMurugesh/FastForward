@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import type { AddressInfo } from 'node:net';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { registerControlRoutes } from './control.js';
+import { registerDisputeRoutes } from './disputes/routes.js';
 import { checkUpstreamBase, registerPassthrough, SANDBOX_BASE, type SandboxCreds } from './passthrough.js';
 import { createRunRegistry } from './run/registry.js';
 import { Run, type RunDeps } from './run/run.js';
@@ -92,6 +93,11 @@ export async function createTwin(opts: TwinOptions = {}): Promise<Twin> {
     const run = registry.active();
     if (!run) throw new PayPalError(409, 'NO_ACTIVE_RUN', 'No Fastforward run is active. Start one with POST /_ff/runs.');
     return run.engine;
+  });
+  registerDisputeRoutes(app, () => {
+    const run = registry.active();
+    if (!run) throw new PayPalError(409, 'NO_ACTIVE_RUN', 'No Fastforward run is active. Start one with POST /_ff/runs.');
+    return run.disputes;
   });
   registerControlRoutes(app, registry);
   registerPassthrough(app, { upstreamBase, ...(opts.sandboxCreds ? { sandboxCreds: opts.sandboxCreds } : {}) });

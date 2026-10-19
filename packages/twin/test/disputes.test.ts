@@ -1,11 +1,14 @@
-import type { TraceEntry } from '@fastforward/contracts';
+import type { Customer, CustomerDecision, Scenario, TraceEntry } from '@fastforward/contracts';
 import Fastify from 'fastify';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { runChecks } from '../src/checks/index.js';
+import { createTwin, type DecisionContext, type Twin } from '../src/index.js';
 import { DisputeEngine } from '../src/disputes/engine.js';
 import { registerDisputeRoutes } from '../src/disputes/routes.js';
 import type { DomainEvent } from '../src/subscriptions/events.js';
 import { VirtualClock } from '../src/time/clock.js';
 import { Scheduler } from '../src/time/scheduler.js';
+import { FakeApp } from './support/fake-app.js';
 import { assertMatchesSpec } from './support/openapi.js';
 
 // Compiling the 445 KB dispute spec takes several seconds the first time.
@@ -275,7 +278,151 @@ describe('deadline', () => {
   });
 });
 
-describe('needs the run (Task 9 wiring, after Worker B merges)', () => {
-  it.todo('scenario action dispute opens against the latest sale (needs Run: customer actions, SubscriptionEngine.latestSaleId)');
-  it.todo('send-message triggers the customer seller_message decision and a reply message on the dispute (needs Run: decide(), then engine.reply())');
+describe('in runs', { timeout: 60_000 }, () => {
+  const closers: (() => Promise<void>)[] = [];
+  afterEach(async () => {
+    while (closers.length > 0) await closers.pop()!();
+  });
+
+  const json = { 'content-type': 'application/json' };
+  const customer = (name: string, extra: Partial<Customer> = {}): Customer => ({ name, email: `${name.toLowerCase()}@example.test`, persona: '', card: { kind: 'ok' }, actions: [], ...extra });
+  const buildScenario = (app: FakeApp, customers: Customer[]): Scenario => ({
+    name: 'disputes',
+    seed: 1,
+    start: '2026-11-01T00:00:00.000Z',
+    durationDays: 61,
+    app: { webhookUrl: app.webhookUrl, webhookId: 'WH-FF-LOCAL', subscribeUrl: app.subscribeUrl, probeUrl: app.probeUrl },
+    plan: { name: 'Monthly', price: '12.00', currency: 'USD', interval: 'MONTH', trialDays: 0, totalCycles: 0, paymentFailureThreshold: 2 },
+    customers,
+    weather: { duplicates: 0, reorder: 0, delayMinutes: [0, 0], forged: 0, burst: false },
+    expect: { accessWhile: ['ACTIVE'] },
+  });
+
+  async function start(customers: Customer[], decide?: (ctx: DecisionContext) => Promise<CustomerDecision>) {
+    const twin: Twin = await createTwin({ port: 0, ...(decide ? { deps: { decide } } : {}) });
+    closers.push(() => twin.close());
+    const app = new FakeApp({ twinUrl: twin.url });
+    await app.start();
+    closers.push(() => app.close());
+    const scenario = buildScenario(app, customers);
+    const res = await fetch(`${twin.url}/_ff/runs`, { method: 'POST', headers: json, body: JSON.stringify({ scenario }) });
+    const { runId } = (await res.json()) as { runId: string };
+    const run = twin.activeRun()!;
+    const post = (path: string, body: unknown = {}) => fetch(`${twin.url}${path}`, { method: 'POST', headers: json, body: JSON.stringify(body) });
+    return {
+      twin,
+      run,
+      app,
+      scenario,
+      runId,
+      advance: (by: string) => post(`/_ff/runs/${runId}/advance`, { by }),
+      finish: () => post(`/_ff/runs/${runId}/finish`),
+      seller: (disputeId: string, action: string, body: unknown) => post(`/v1/customer/disputes/${disputeId}/${action}`, body),
+      dispute: (id: string) => fetch(`${twin.url}/v1/customer/disputes/${id}`).then((r) => r.json() as Promise<Record<string, any>>),
+    };
+  }
+
+  const events = (trace: TraceEntry[], type: string) => trace.flatMap((t) => (t.kind === 'event' && t.event.event_type === type ? [t.event] : []));
+  const ana = () =>
+    customer('Ana', { actions: [{ at: '2026-11-20', do: 'dispute', reason: 'MERCHANDISE_OR_SERVICE_NOT_RECEIVED', message: 'My first bag never arrived.' }] });
+
+  it('scenario action dispute opens against the latest sale and reaches the app with the real-API fields', async () => {
+    const r = await start([ana()]);
+    await r.advance('P25D'); // 26 Nov: Ana paid on 1 Nov and disputed on 20 Nov
+    const [created] = events(r.run.trace, 'CUSTOMER.DISPUTE.CREATED');
+    expect(created).toBeDefined();
+    expect(r.app.events.map((e) => e.event_type)).toContain('CUSTOMER.DISPUTE.CREATED');
+
+    const [sale] = events(r.run.trace, 'PAYMENT.SALE.COMPLETED');
+    const resource = created!.resource as Record<string, any>;
+    expect(resource).toMatchObject({
+      dispute_id: expect.stringMatching(/^PP-D-\d{5}$/),
+      reason: 'MERCHANDISE_OR_SERVICE_NOT_RECEIVED',
+      status: 'WAITING_FOR_SELLER_RESPONSE',
+      seller_response_due_date: '2026-12-10T00:00:00.000Z',
+      dispute_amount: { currency_code: 'USD', value: '12.00' },
+    });
+    expect(resource.disputed_transactions[0].seller_transaction_id).toBe((sale!.resource as { id: string }).id);
+    expect(resource.messages).toEqual([{ posted_by: 'BUYER', time_posted: '2026-11-20T00:00:00.000Z', content: 'My first bag never arrived.' }]);
+
+    const live = await r.dispute(resource.dispute_id);
+    assertMatchesSpec(SPEC, `/v1/customer/disputes/${resource.dispute_id}`, 'GET', 200, live);
+    assertMatchesSpec(SPEC, `/v1/customer/disputes/${resource.dispute_id}`, 'GET', 200, resource);
+  });
+
+  it('an unanswered dispute is resolved for the buyer at the deadline, and DISPUTE_ANSWERED fails', async () => {
+    const r = await start([ana()]);
+    await r.finish();
+    const [resolved] = events(r.run.trace, 'CUSTOMER.DISPUTE.RESOLVED');
+    expect(resolved!.resource).toMatchObject({ status: 'RESOLVED', dispute_outcome: { outcome_code: 'RESOLVED_BUYER_FAVOUR' } });
+    expect(r.app.events.map((e) => e.event_type)).toContain('CUSTOMER.DISPUTE.RESOLVED');
+    expect(runChecks(r.run.trace, r.scenario).find((c) => c.id === 'DISPUTE_ANSWERED')!.status).toBe('fail');
+  });
+
+  it('an answered dispute is not resolved, and DISPUTE_ANSWERED passes', async () => {
+    const r = await start([ana()]);
+    await r.advance('P21D');
+    const id = (events(r.run.trace, 'CUSTOMER.DISPUTE.CREATED')[0]!.resource as { dispute_id: string }).dispute_id;
+    const res = await r.seller(id, 'provide-evidence', { evidences: [{ evidence_type: 'PROOF_OF_FULFILLMENT' }] });
+    expect(res.status).toBe(200);
+    await r.finish();
+    expect(events(r.run.trace, 'CUSTOMER.DISPUTE.RESOLVED')).toEqual([]);
+    expect(runChecks(r.run.trace, r.scenario).find((c) => c.id === 'DISPUTE_ANSWERED')!.status).toBe('pass');
+  });
+
+  it('send-message triggers the customer seller_message decision and a reply message on the dispute', async () => {
+    const asked: DecisionContext[] = [];
+    const decide = async (ctx: DecisionContext): Promise<CustomerDecision> => {
+      asked.push(ctx);
+      return { action: 'reply', message: `Reply number ${asked.length}: still nothing.` };
+    };
+    const r = await start([ana()], decide);
+    await r.advance('P21D');
+    const id = (events(r.run.trace, 'CUSTOMER.DISPUTE.CREATED')[0]!.resource as { dispute_id: string }).dispute_id;
+
+    await r.seller(id, 'send-message', { message: 'It shipped with UPS on 15 Nov.' });
+    await r.advance('P1D');
+    expect(asked).toHaveLength(1);
+    expect(asked[0]).toMatchObject({ key: 'Ana:seller_message:1', point: 'seller_message' });
+    expect(asked[0]!.details).toContain('It shipped with UPS on 15 Nov.');
+    let dispute = await r.dispute(id);
+    expect(dispute.messages.map((m: { posted_by: string; content: string }) => [m.posted_by, m.content])).toEqual([
+      ['BUYER', 'My first bag never arrived.'],
+      ['SELLER', 'It shipped with UPS on 15 Nov.'],
+      ['BUYER', 'Reply number 1: still nothing.'],
+    ]);
+    expect(dispute.status).toBe('WAITING_FOR_SELLER_RESPONSE');
+    expect(r.run.trace.filter((t) => t.kind === 'customer_decision')).toEqual([
+      { at: expect.any(String), kind: 'customer_decision', customer: 'Ana', decision: { action: 'reply', message: 'Reply number 1: still nothing.' } },
+    ]);
+
+    await r.seller(id, 'send-message', { message: 'Please check with a neighbour.' });
+    await r.advance('P1D');
+    expect(asked.map((a) => a.key)).toEqual(['Ana:seller_message:1', 'Ana:seller_message:2']);
+    dispute = await r.dispute(id);
+    expect(dispute.messages).toHaveLength(5);
+  });
+
+  it('a payment_failed decision to dispute opens a dispute against the latest sale', async () => {
+    const decide = async (): Promise<CustomerDecision> => ({ action: 'dispute', reason: 'UNAUTHORISED', message: 'I do not recognise this charge.' });
+    const r = await start([customer('Leo', { card: { kind: 'fails_from', date: '2026-12-01' } })], decide);
+    await r.finish();
+    const [created] = events(r.run.trace, 'CUSTOMER.DISPUTE.CREATED');
+    expect(created!.resource).toMatchObject({ reason: 'UNAUTHORISED', messages: [{ posted_by: 'BUYER', content: 'I do not recognise this charge.' }] });
+  });
+
+  it('a dispute before the customer has paid anything is ignored', async () => {
+    const early = customer('Zed', { actions: [{ at: '2026-11-01', do: 'dispute', reason: 'OTHER' }], card: { kind: 'fails_from', date: '2026-11-01' } });
+    const r = await start([early]);
+    await r.advance('P3D');
+    expect(events(r.run.trace, 'CUSTOMER.DISPUTE.CREATED')).toEqual([]);
+  });
+
+  it('dispute routes answer 409 in PayPal format when no run is active', async () => {
+    const twin = await createTwin({ port: 0 });
+    closers.push(() => twin.close());
+    const res = await fetch(`${twin.url}/v1/customer/disputes`);
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({ name: 'NO_ACTIVE_RUN' });
+  });
 });
