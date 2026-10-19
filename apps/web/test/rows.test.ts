@@ -1,7 +1,7 @@
 import type { Report, TraceEntry, WebhookEvent } from '@fastforward/contracts';
 import { describe, expect, it } from 'vitest';
 import { badMonth } from '../src/fixtures/bad-month.js';
-import { toDeliveryRows } from '../src/grids/rows.js';
+import { toDeliveryRows, toNoticeRows } from '../src/grids/rows.js';
 import { disputeThreads } from '../src/panels/thread.js';
 
 const subs = [
@@ -153,5 +153,116 @@ describe('disputeThreads', () => {
     ];
     const t = disputeThreads(trace, subs)[0]!;
     expect(t.messages.some((m) => m.from === 'seller' && /evidence/i.test(m.text))).toBe(true);
+  });
+});
+
+
+describe('retry chains in real traces (each retry has its own transmission id)', () => {
+  const tx = (n: number) => ({ transmissionId: `tx-${n}` });
+  const at = (s: number) => `2026-11-01T00:00:${String(s).padStart(2, '0')}.000Z`;
+
+  it('attributes interleaved retries to the right copy, so a duplicate copy is marked on every attempt', () => {
+    const rows = toDeliveryRows(
+      [
+        sale,
+        delivery('E1', { ...tx(1), attempt: 1, status: null, ms: 10000, at: at(1) }), // copy 0
+        delivery('E1', { ...tx(2), attempt: 1, status: null, ms: 10000, at: at(2) }), // copy 1 (the duplicate)
+        delivery('E1', { ...tx(3), attempt: 2, status: null, ms: 10000, at: at(3) }), // copy 0
+        delivery('E1', { ...tx(4), attempt: 2, status: 200, ms: 20, at: at(4) }), // copy 1
+        delivery('E1', { ...tx(5), attempt: 3, status: 200, ms: 20, at: at(5) }), // copy 0: copy 1 already finished
+      ],
+      subs,
+    );
+    expect(rows.map((r) => [r.copy, r.duplicate])).toEqual([
+      [0, false],
+      [1, true],
+      [0, false],
+      [1, true],
+      [0, false],
+    ]);
+  });
+});
+
+describe('toNoticeRows', () => {
+  const at = (s: number) => `2026-11-01T00:00:${String(s).padStart(2, '0')}.000Z`;
+  const failing = (n: number) => delivery('E1', { transmissionId: `t${n}`, attempt: n, status: null, ms: 10000, at: at(n) });
+  const checks = (...ids: Array<'ACK_FAST' | 'FULFIL_ONCE'>): Report =>
+    report(ids.map((id) => ({ id, status: 'fail' as const, findings: [{ at: '', summary: '', eventIds: ['E1'] }] })));
+
+  it('turns many attempts of one notice into one row: last outcome, tries, worst status, first time', () => {
+    const rows = toDeliveryRows([sale, failing(1), failing(2), delivery('E1', { transmissionId: 't3', attempt: 3, status: 200, ms: 31, at: at(3) })], subs);
+    const notices = toNoticeRows(rows);
+    expect(notices).toHaveLength(1);
+    expect(notices[0]).toMatchObject({
+      eventId: 'E1',
+      customer: 'Leo',
+      tries: 3,
+      status: 200, // the last attempt's outcome
+      ms: 31,
+      worstStatus: null, // a timeout is the worst thing that happened
+      at: at(1), // when the notice first went out
+      duplicate: false,
+    });
+  });
+
+  it('worst status is the highest error code when nothing timed out, else the last answer', () => {
+    const mixed = toNoticeRows(
+      toDeliveryRows([sale, delivery('E1', { transmissionId: 'a', attempt: 1, status: 500 }), delivery('E1', { transmissionId: 'b', attempt: 2, status: 503 }), delivery('E1', { transmissionId: 'c', attempt: 3, status: 200 })], subs),
+    );
+    expect(mixed[0]).toMatchObject({ worstStatus: 503, status: 200, tries: 3 });
+    const clean = toNoticeRows(toDeliveryRows([sale, delivery('E1')], subs));
+    expect(clean[0]).toMatchObject({ worstStatus: 200, tries: 1 });
+  });
+
+  it('unions the failing checks of every attempt', () => {
+    const rows = toDeliveryRows([sale, failing(1), delivery('E1', { transmissionId: 't2', attempt: 2, status: 200, ms: 5, at: at(2) })], subs, checks('ACK_FAST', 'FULFIL_ONCE'));
+    // ACK_FAST attaches to the failed attempt only, FULFIL_ONCE to both; the notice carries both once.
+    expect(rows.map((r) => r.failedChecks)).toEqual([['ACK_FAST', 'FULFIL_ONCE'], ['FULFIL_ONCE']]);
+    expect(toNoticeRows(rows)[0]?.failedChecks).toEqual(['ACK_FAST', 'FULFIL_ONCE']);
+  });
+
+  it('a duplicate copy is its own row, marked duplicate, with its own tries', () => {
+    const rows = toDeliveryRows(
+      [
+        sale,
+        delivery('E1', { transmissionId: 'a1', attempt: 1, status: 500, at: at(1) }),
+        delivery('E1', { transmissionId: 'b1', attempt: 1, status: 200, at: at(2) }),
+        delivery('E1', { transmissionId: 'a2', attempt: 2, status: 200, at: at(3) }),
+      ],
+      subs,
+    );
+    const notices = toNoticeRows(rows);
+    expect(notices.map((n) => [n.duplicate, n.tries, n.status])).toEqual([
+      [false, 2, 200],
+      [true, 1, 200],
+    ]);
+    expect(new Set(notices.map((n) => n.id)).size).toBe(2);
+  });
+
+  it('is signature-checked when any attempt checked it, and keeps forged and customer', () => {
+    const rows = toDeliveryRows(
+      [event('F1', 'BILLING.SUBSCRIPTION.CANCELLED', { id: 'I-MAYA' }, true), delivery('F1', { transmissionId: 'x', verifyCalled: false, status: 500 }), delivery('F1', { transmissionId: 'y', attempt: 2, verifyCalled: true, status: 400 })],
+      subs,
+    );
+    expect(toNoticeRows(rows)[0]).toMatchObject({ verified: true, forged: true, customer: 'Maya', worstStatus: 500, status: 400 });
+  });
+
+  it('keeps the order notices first went out in', () => {
+    const second = event('E2', 'BILLING.SUBSCRIPTION.SUSPENDED', { id: 'I-LEO' });
+    const rows = toDeliveryRows([sale, second, delivery('E2', { transmissionId: 'p', at: at(1) }), delivery('E1', { transmissionId: 'q', at: at(2) })], subs);
+    expect(toNoticeRows(rows).map((n) => n.eventId)).toEqual(['E2', 'E1']);
+  });
+});
+
+describe('bad-month fixture notices', () => {
+  const attempts = toDeliveryRows(badMonth.trace, badMonth.subscriptions, badMonth.report);
+  const notices = toNoticeRows(attempts);
+  it('has no more rows than attempts, and every notice is accounted for', () => {
+    expect(notices.length).toBeLessThanOrEqual(attempts.length);
+    expect(notices.reduce((sum, n) => sum + n.tries, 0)).toBe(attempts.length);
+  });
+  it('keeps duplicate copies and forged notices visible', () => {
+    expect(notices.some((n) => n.duplicate)).toBe(true);
+    expect(notices.some((n) => n.forged)).toBe(true);
   });
 });

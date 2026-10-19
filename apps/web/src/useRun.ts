@@ -12,7 +12,7 @@ export interface RunState {
   /** Why the sample run is showing, when it is. */
   note: string | null;
   /** Which recording the sample is, when it is showing. */
-  sample: { scenario: string; recordedAt: string } | null;
+  sample: { scenario: string; recordedAt: string; bugs: string[] } | null;
   info: RunInfo;
   start: string;
   trace: TraceEntry[];
@@ -75,7 +75,11 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
       ...s,
       mode: 'sample',
       note,
-      sample: { scenario: badMonth.scenario, recordedAt: badMonth.recordedAt },
+      sample: {
+        scenario: badMonth.scenario,
+        recordedAt: badMonth.recordedAt,
+        bugs: badMonth.recipe.coffeeBugs === 'all' ? ['no-verify', 'no-dedupe', 'slow-ack', 'ignores-suspend', 'ignores-disputes', 'trusts-event-order'] : badMonth.recipe.coffeeBugs.split(','),
+      },
       info: sampleInfo(badMonth, badMonth.end),
       start: badMonth.start,
       ...sampleAt(badMonth, badMonth.end),

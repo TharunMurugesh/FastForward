@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { fmtDate, fmtDateYear } from './format.js';
+import type { CheckId } from '@fastforward/contracts';
+import { BUG_LABELS, fmtDate, fmtDateYear } from './format.js';
 import { DeliveriesGrid } from './grids/DeliveriesGrid.js';
 import { FidelityGrid } from './grids/FidelityGrid.js';
-import { toDeliveryRows } from './grids/rows.js';
+import { toDeliveryRows, toNoticeRows } from './grids/rows.js';
 import { DisputeChat } from './panels/DisputeChat.js';
 import { EventInspector } from './panels/EventInspector.js';
 import { ReportPanel } from './panels/ReportPanel.js';
@@ -17,10 +18,17 @@ export function App() {
   const run = useRun();
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('report');
+  const [checkFilter, setCheckFilter] = useState<CheckId | null>(null);
 
   const { info, trace, report, start, mode } = run;
   const subs = info.subscriptions;
   const rows = useMemo(() => toDeliveryRows(trace, subs, report ?? undefined), [trace, subs, report]);
+  const notices = useMemo(() => toNoticeRows(rows), [rows]);
+  const noticeCounts = useMemo(() => {
+    const counts: Partial<Record<CheckId, number>> = {};
+    for (const n of notices) for (const id of n.failedChecks) counts[id] = (counts[id] ?? 0) + 1;
+    return counts;
+  }, [notices]);
   const model = useMemo(() => toTimeline(trace, subs), [trace, subs]);
   const failed = report?.checks.filter((c) => c.status === 'fail').length ?? 0;
 
@@ -73,8 +81,8 @@ export function App() {
 
       {mode === 'sample' && run.note && run.sample && (
         <p className="banner" role="status">
-          {run.note} What you see is a recording of a real run (taken {fmtDateYear(run.sample.recordedAt)}): the <strong>{run.sample.scenario}</strong> scenario against Coffee Club with
-          its bugs switched on, so you can try the screen.
+          {run.note} What you see is a recording of a real run (taken {fmtDateYear(run.sample.recordedAt)}): the <strong>{run.sample.scenario}</strong> scenario against Coffee Club, whose billing code was
+          switched to misbehave like this: {run.sample.bugs.map((b) => BUG_LABELS[b] ?? b).join('; ')}.
         </p>
       )}
 
@@ -116,7 +124,7 @@ export function App() {
       <Timeline model={model} range={{ start, end: info.end }} now={info.now} selectedEventId={selected} onSelect={select} />
 
       <div className="main">
-        <DeliveriesGrid rows={rows} selectedEventId={selected} onSelect={select} />
+        <DeliveriesGrid rows={rows} notices={notices} selectedEventId={selected} onSelect={select} checkFilter={checkFilter} onClearCheck={() => setCheckFilter(null)} />
         <aside className="card side" aria-label="Details">
           <div className="tabs" role="tablist">
             <button role="tab" aria-selected={tab === 'report'} className={tab === 'report' ? 'on' : ''} onClick={() => setTab('report')}>
@@ -130,7 +138,7 @@ export function App() {
             </button>
           </div>
           <div className="tab-body" role="tabpanel">
-            {tab === 'report' && <ReportPanel report={report} onSelect={select} />}
+            {tab === 'report' && <ReportPanel report={report} noticeCounts={noticeCounts} activeCheck={checkFilter} onFilter={setCheckFilter} onSelect={select} />}
             {tab === 'event' && <EventInspector eventId={selected} trace={trace} subscriptions={subs} report={report} />}
             {tab === 'dispute' && <DisputeChat trace={trace} subscriptions={subs} />}
           </div>

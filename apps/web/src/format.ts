@@ -31,3 +31,23 @@ export const EVENT_LABELS: Record<string, string> = {
   'CUSTOMER.DISPUTE.UPDATED': 'Dispute updated',
   'CUSTOMER.DISPUTE.RESOLVED': 'Dispute resolved',
 };
+
+/** Coffee Club's switchable bugs in plain words, for naming what was on in a recorded run. */
+export const BUG_LABELS: Record<string, string> = {
+  'no-verify': 'does not verify signatures',
+  'no-dedupe': 'handles a repeated notice twice',
+  'slow-ack': 'answers slowly',
+  'ignores-suspend': 'ignores suspensions',
+  'ignores-disputes': 'ignores disputes',
+  'trusts-event-order': 'trusts the order notices arrive in',
+};
+
+/** Short plain-words labels for the grid chips; the full title and the id are in the hover text. */
+export const CHECK_SHORT: Record<CheckId, string> = {
+  ACK_FAST: 'slow answer',
+  VERIFIES_SIGNATURES: 'unverified',
+  STATE_MATCHES: 'wrong access',
+  FULFIL_ONCE: 'paid twice',
+  DISPUTE_ANSWERED: 'dispute ignored',
+  NO_LIVE_CALLS: 'live call',
+};

@@ -31,6 +31,7 @@ const defaultColDef: ColDef<FidelityCheck> = { sortable: true, filter: true, res
 
 export function FidelityGrid({ file, isSample }: { file: FidelityFile; isSample: boolean }) {
   const matching = file.checks.filter((c) => c.shapeMatch && c.specMatch).length;
+  const known = file.checks.filter((c) => c.allowedDiffs.length > 0).length;
   return (
     <section className="card" aria-label="Checked against the real PayPal sandbox">
       <header className="card-head">
@@ -38,7 +39,8 @@ export function FidelityGrid({ file, isSample }: { file: FidelityFile; isSample:
           <h2>Checked against the real PayPal sandbox</h2>
           <p className="muted">
             The same requests were sent to PayPal's sandbox and to Fastforward; only response shapes and status codes are compared, never values or
-            tokens. {matching} of {file.checks.length} endpoints match completely. Last run {fmtDateYear(file.ranAt)}.
+            tokens. {matching} of {file.checks.length} endpoints match PayPal's shape
+            {known > 0 && ` (${known} known, explained ${known === 1 ? 'difference' : 'differences'})`}. Last run {fmtDateYear(file.ranAt)}.
           </p>
         </div>
         {isSample && <span className="chip warn">Sample data, not a real run</span>}
