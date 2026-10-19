@@ -383,6 +383,41 @@ describe('STATE_MATCHES findings name the notice that should have changed access
     expect(r.findings[0]!.summary).toContain('Maya had no access');
   });
 
+  it('the real-run case: a reordered stale notice still gives "PayPal had suspended the subscription" over the whole stretch', () => {
+    const trace: TraceEntry[] = [
+      event(notice('BILLING.SUBSCRIPTION.ACTIVATED', 'ACTIVE', '2026-11-01T00:00:00.000Z', 'WH-active')),
+      event(notice('BILLING.SUBSCRIPTION.PAYMENT.FAILED', 'ACTIVE', '2026-11-01T00:00:00.000Z', 'WH-failed'), '2027-01-01T00:40:00.000Z'),
+      event(notice('BILLING.SUBSCRIPTION.SUSPENDED', 'SUSPENDED', '2027-01-01T00:00:00.000Z', 'WH-susp'), '2027-01-01T00:05:00.000Z'),
+      badProbe('2027-01-01T23:59:59.999Z'),
+      badProbe('2027-01-15T23:59:59.999Z'),
+    ];
+    const r = check(trace, 'STATE_MATCHES');
+    expect(r.findings.map((f) => f.summary)).toEqual(['Leo still had access from 2027-01-01 to 2027-01-15 although PayPal had suspended the subscription (2 checks).']);
+    expect(r.findings[0]!.eventIds).toEqual(['WH-susp']);
+  });
+
+  it('never calls the subscription active when the app was expected to have no access (the suspension notice is missing)', () => {
+    const trace: TraceEntry[] = [
+      event(notice('BILLING.SUBSCRIPTION.ACTIVATED', 'ACTIVE', '2026-11-01T00:00:00.000Z', 'WH-active')),
+      event(notice('BILLING.SUBSCRIPTION.PAYMENT.FAILED', 'ACTIVE', '2026-11-01T00:00:00.000Z', 'WH-failed'), '2027-01-01T00:40:00.000Z'),
+      badProbe('2027-01-01T23:59:59.999Z'),
+    ];
+    const r = check(trace, 'STATE_MATCHES');
+    expect(r.findings[0]!.summary).toBe('Leo still had access on 2027-01-01 although the subscription did not allow access.');
+    expect(r.findings[0]!.summary).not.toMatch(/active/i);
+    expect(r.findings[0]!.eventIds).toEqual([]);
+  });
+
+  it('never calls the subscription suspended when the app was expected to have access (the reactivation notice is missing)', () => {
+    const trace: TraceEntry[] = [
+      event(notice('BILLING.SUBSCRIPTION.SUSPENDED', 'SUSPENDED', '2026-12-01T00:00:00.000Z', 'WH-susp')),
+      probe(SUB_LEO, { at: '2026-12-20T00:00:00.000Z', access: false, expectedAccess: true }),
+    ];
+    const r = check(trace, 'STATE_MATCHES');
+    expect(r.findings[0]!.summary).toBe('Leo had no access on 2026-12-20 although the subscription was in good standing and access should have been allowed.');
+    expect(r.findings[0]!.eventIds).toEqual([]);
+  });
+
   it('every finding of a failing check carries an event id when the twin sent any notice for that subscription', () => {
     const trace: TraceEntry[] = [
       event(notice('BILLING.SUBSCRIPTION.SUSPENDED', 'SUSPENDED', '2026-12-01T00:00:00.000Z', 'WH-susp')),
