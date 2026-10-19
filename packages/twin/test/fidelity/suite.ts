@@ -195,14 +195,24 @@ async function call(base: string, token: string, method: string, path: string, b
   return { status: res.status, body: parsed };
 }
 
+// PayPal's disputes schema says `items` has at least one entry, but the real sandbox returns an empty array when
+// there are no disputes. Both sides do that, so this one complaint is not a finding.
+const KNOWN_SPEC_QUIRKS = ['/items must NOT have fewer than 1 items'];
+
 function specErrorsFor(step: Step, side: 'sandbox' | 'twin', path: string, result: SideResult): string[] {
   if (!step.specFile || result.status < 200 || result.status >= 300) return [];
   try {
     assertMatchesSpec(step.specFile, path, step.method, result.status, result.body);
     return [];
   } catch (err) {
+    const message = (err as Error).message;
+    // assertMatchesSpec lists the schema problems after "does not match <file>: ", separated by "; ".
+    const marker = message.indexOf('.json: ');
+    const problems = marker < 0 ? [message] : message.slice(marker + '.json: '.length).split('; ');
+    const real = problems.filter((p) => !KNOWN_SPEC_QUIRKS.includes(p));
+    if (marker >= 0 && real.length === 0) return [];
     // Spec trouble is the schema's field names and messages, never response values.
-    return [`${side}: ${(err as Error).message.slice(0, 400)}`];
+    return [`${side}: ${message.slice(0, 400)}`];
   }
 }
 
@@ -245,6 +255,11 @@ export interface Evaluation {
   check: FidelityCheck;
   /** Differences nobody has explained yet, in words. Empty when the endpoint matches or every difference is allowed. */
   unexpected: string[];
+  /**
+   * Extra detail for the person reading the test output, never written to latest.json: the PayPal error `name` of
+   * a non-2xx answer (a fixed constant such as RESOURCE_NOT_FOUND), so a wrong guess can be corrected.
+   */
+  notes: string[];
 }
 
 /** Applies the allowed-differences table to one outcome and produces its line for latest.json. */
@@ -265,7 +280,21 @@ export function evaluate(outcome: StepOutcome, allowed: AllowedDiffs): Evaluatio
     else unexpected.push(`(status) (sandbox ${outcome.sandbox.status}, twin ${outcome.twin.status})`);
   }
 
+  const nameOf = (r: SideResult): string | undefined => {
+    const name = (r.body as { name?: unknown } | undefined)?.name;
+    return typeof name === 'string' && /^[A-Z0-9_]{3,64}$/.test(name) ? name : undefined;
+  };
+  const notes: string[] = [];
+  const failed = (r: SideResult) => r.status >= 300;
+  if (failed(outcome.sandbox) || failed(outcome.twin)) {
+    const sandboxName = failed(outcome.sandbox) ? (nameOf(outcome.sandbox) ?? '(no name)') : '(succeeded)';
+    const twinName = failed(outcome.twin) ? (nameOf(outcome.twin) ?? '(no body)') : '(succeeded)';
+    const sandboxText = outcome.sandbox.body === undefined && failed(outcome.sandbox) ? '(no body)' : sandboxName;
+    if (sandboxText !== twinName) notes.push(`error name: sandbox ${sandboxText}, twin ${twinName}`);
+  }
+
   return {
+    notes,
     check: {
       endpoint: outcome.template,
       method: outcome.method,

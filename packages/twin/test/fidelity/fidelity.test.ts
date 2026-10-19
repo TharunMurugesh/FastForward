@@ -49,8 +49,12 @@ describe.skipIf(!enabled)(`sandbox fidelity${enabled ? '' : ` (skipped: ${reason
   });
 
   it('the sandbox and the twin agree on status and shape, except for differences listed in ALLOWED_DIFFS', () => {
-    const unexpected = outcomes.flatMap((o) => evaluate(o, ALLOWED_DIFFS).unexpected.map((u) => `${o.method} ${o.template}: ${u}`));
-    expect(unexpected).toEqual([]);
+    const evaluations = outcomes.map((o) => ({ o, e: evaluate(o, ALLOWED_DIFFS) }));
+    // Error names are printed here (and only here), so a wrong guess in the twin can be corrected.
+    const notes = evaluations.flatMap(({ o, e }) => e.notes.map((n) => `${o.method} ${o.template}: ${n}`));
+    for (const line of notes) console.log(line);
+    const unexpected = evaluations.flatMap(({ o, e }) => e.unexpected.map((u) => `${o.method} ${o.template}: ${u}`));
+    expect(unexpected, notes.join('\n')).toEqual([]);
   });
 
   it('both sides satisfy the OpenAPI schema', () => {

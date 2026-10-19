@@ -65,7 +65,7 @@ describe('the suite, against a fake sandbox that is another twin', () => {
     const outcomes = await runFidelitySuite({ sandboxBase: sandbox.url, sandboxCreds: creds, twinUrl: twin.url });
 
     expect(outcomes.map(keyOf)).toEqual(ENDPOINTS);
-    expect(outcomes.map((o) => [o.sandbox.status, o.twin.status])).toEqual([[201, 201], [201, 201], [201, 201], [200, 200], [204, 204], [200, 200], [200, 200]]);
+    expect(outcomes.map((o) => [o.sandbox.status, o.twin.status])).toEqual([[201, 201], [201, 201], [201, 201], [200, 200], [404, 404], [400, 400], [200, 200]]);
     for (const o of outcomes) {
       expect(o.diffs, keyOf(o)).toEqual([]);
       expect(o.specErrors, keyOf(o)).toEqual([]);
@@ -89,38 +89,34 @@ describe('the suite, against a fake sandbox that is another twin', () => {
     const twin = await fakeSandbox();
     const front = await proxy(sandbox, (method, path, status, body) => {
       if (method === 'GET' && /^\/v1\/billing\/subscriptions\/[^/]+$/.test(path)) {
-        const { billing_info: _dropped, ...rest } = body as Record<string, unknown>;
+        const { quantity: _dropped, ...rest } = body as Record<string, unknown>;
         return { status, body: rest };
       }
-      if (path.endsWith('/cancel')) return { status: 422, body: { name: 'UNPROCESSABLE_ENTITY', message: 'x' } };
+      if (path.endsWith('/cancel')) return { status: 422, body }; // same error body, different status
       return { status, body };
     });
     const outcomes = await runFidelitySuite({ sandboxBase: front.url, sandboxCreds: creds, twinUrl: twin.url });
 
     const get = outcomes.find((o) => o.template === '/v1/billing/subscriptions/{id}' && o.method === 'GET')!;
-    expect(get.diffs).toEqual([{ field: 'billing_info', detail: 'only in twin' }]);
+    expect(get.diffs).toEqual([{ field: 'quantity', detail: 'only in twin' }]);
     const cancel = outcomes.find((o) => o.template.endsWith('/cancel'))!;
-    expect([cancel.sandbox.status, cancel.twin.status]).toEqual([422, 204]);
+    expect([cancel.sandbox.status, cancel.twin.status]).toEqual([422, 404]);
 
     const strict = outcomes.map((o) => evaluate(o, {}));
     expect(strict.filter((c) => !c.check.shapeMatch).map((c) => `${c.check.method} ${c.check.endpoint}`)).toEqual([
       'GET /v1/billing/subscriptions/{id}',
       'POST /v1/billing/subscriptions/{id}/cancel',
     ]);
-    expect(strict.find((c) => c.check.method === 'GET' && c.check.endpoint.endsWith('{id}'))!.unexpected).toEqual(['billing_info (only in twin)']);
+    expect(strict.find((c) => c.check.method === 'GET' && c.check.endpoint.endsWith('{id}'))!.unexpected).toEqual(['quantity (only in twin)']);
 
     const allowed: AllowedDiffs = {
-      'GET /v1/billing/subscriptions/{id}': [{ field: 'billing_info', reason: 'test: the fake sandbox omits it' }],
-      'POST /v1/billing/subscriptions/{id}/cancel': [
-        { field: '(status)', reason: 'test: the fake sandbox refuses' },
-        { field: '(body)', reason: 'test: the refusal has a body' },
-      ],
+      'GET /v1/billing/subscriptions/{id}': [{ field: 'quantity', reason: 'test: the fake sandbox omits it' }],
+      'POST /v1/billing/subscriptions/{id}/cancel': [{ field: '(status)', reason: 'test: the fake sandbox refuses' }],
     };
     const lenient = outcomes.map((o) => evaluate(o, allowed));
     expect(lenient.every((c) => c.check.shapeMatch && c.unexpected.length === 0)).toBe(true);
     expect(lenient.flatMap((c) => c.check.allowedDiffs)).toEqual([
-      { field: 'billing_info', reason: 'test: the fake sandbox omits it' },
-      { field: '(body)', reason: 'test: the refusal has a body' },
+      { field: 'quantity', reason: 'test: the fake sandbox omits it' },
       { field: '(status)', reason: 'test: the fake sandbox refuses' },
     ]);
   });
@@ -136,6 +132,36 @@ describe('the suite, against a fake sandbox that is another twin', () => {
     expect(get.specErrors.join(' ')).toMatch(/sandbox.*status/);
     expect(evaluate(get, {}).check.specMatch).toBe(false);
     expect(evaluate(get, {}).check.shapeMatch).toBe(true); // a string is still a string
+  });
+});
+
+describe('error names', () => {
+  it('are reported in the notes for non-2xx answers, never in the evidence file', async () => {
+    const sandbox = await fakeSandbox();
+    const twin = await fakeSandbox();
+    const front = await proxy(sandbox, (_m, path, status, body) =>
+      path.endsWith('/cancel') ? { status: 404, body: { name: 'INVALID_RESOURCE_ID', message: 'm', debug_id: 'd', details: [], links: [] } } : { status, body },
+    );
+    const outcomes = await runFidelitySuite({ sandboxBase: front.url, sandboxCreds: creds, twinUrl: twin.url });
+    const cancel = outcomes.find((o) => o.template.endsWith('/cancel'))!;
+    const e = evaluate(cancel, {});
+    expect(e.notes).toEqual(['error name: sandbox INVALID_RESOURCE_ID, twin RESOURCE_NOT_FOUND']);
+    expect(JSON.stringify(e.check)).not.toContain('INVALID_RESOURCE_ID');
+    expect(evaluate(outcomes[0]!, {}).notes).toEqual([]);
+  });
+
+  it('are compared when both sides fail', () => {
+    const outcome: StepOutcome = {
+      name: 'x',
+      method: 'POST',
+      template: '/v1/x',
+      sandbox: { status: 404, body: { name: 'INVALID_RESOURCE_ID' } },
+      twin: { status: 404, body: { name: 'RESOURCE_NOT_FOUND' } },
+      diffs: [],
+      specErrors: [],
+    };
+    expect(evaluate(outcome, {}).notes).toEqual(['error name: sandbox INVALID_RESOURCE_ID, twin RESOURCE_NOT_FOUND']);
+    expect(evaluate({ ...outcome, twin: { status: 404, body: { name: 'INVALID_RESOURCE_ID' } } }, {}).notes).toEqual([]);
   });
 });
 

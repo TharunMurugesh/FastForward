@@ -286,7 +286,7 @@ export class Run {
   /** A customer disputes their latest sale. With no payment yet there is nothing to dispute, so nothing happens. */
   private openDispute(subscriptionId: string, reason: Parameters<DisputeEngine['open']>[3], message: string): void {
     const saleId = this.engine.latestSaleId(subscriptionId);
-    const amount = (this.engine.get(subscriptionId).billing_info as { last_payment?: { amount: Money } }).last_payment?.amount;
+    const amount = (this.engine.get(subscriptionId).billing_info as { last_payment?: { amount: Money } } | undefined)?.last_payment?.amount;
     if (saleId && amount) this.disputes.open(subscriptionId, saleId, amount, reason, message);
   }
 

@@ -60,6 +60,7 @@ export function productResource(p: ProductDef): Record<string, unknown> {
     type: p.type,
     ...(p.category !== undefined ? { category: p.category } : {}),
     create_time: p.createTime.toISOString(),
+    update_time: p.createTime.toISOString(),
     links: [{ href: `${API}/v1/catalogs/products/${p.id}`, rel: 'self', method: 'GET' }],
   };
 }
@@ -106,12 +107,23 @@ export function planBillingCycles(plan: PlanDef): Record<string, unknown>[] {
     tenure_type: c.tenure,
     sequence: c.sequence,
     total_cycles: c.total,
-    pricing_scheme: { version: 1, fixed_price: toMoney(c.priceCents, plan.currency) },
+    pricing_scheme: {
+      version: 1,
+      fixed_price: toMoney(c.priceCents, plan.currency),
+      create_time: plan.createTime.toISOString(),
+      update_time: plan.createTime.toISOString(),
+    },
   }));
 }
 
 export function planPaymentPreferences(plan: PlanDef): Record<string, unknown> {
-  return { auto_bill_outstanding: true, setup_fee_failure_action: 'CANCEL', payment_failure_threshold: plan.failureThreshold };
+  return {
+    auto_bill_outstanding: true,
+    setup_fee: { currency_code: plan.currency, value: '0' },
+    setup_fee_failure_action: 'CANCEL',
+    payment_failure_threshold: plan.failureThreshold,
+    service_type: 'PREPAID',
+  };
 }
 
 export function planResource(plan: PlanDef): Record<string, unknown> {
@@ -124,9 +136,10 @@ export function planResource(plan: PlanDef): Record<string, unknown> {
     billing_cycles: planBillingCycles(plan),
     payment_preferences: planPaymentPreferences(plan),
     quantity_supported: false,
+    usage_type: 'LICENSED',
     create_time: plan.createTime.toISOString(),
     update_time: plan.createTime.toISOString(),
-    links: [{ href: `${API}/v1/billing/plans/${plan.id}`, rel: 'self', method: 'GET' }],
+    links: [{ href: `${API}/v1/billing/plans/${plan.id}`, rel: 'self', method: 'GET', encType: 'application/json' }],
   };
 }
 
@@ -163,7 +176,10 @@ export interface SubState {
   updateTime: Date;
   baToken: string;
   customId?: string;
+  /** The `subscriber` object from the create request, echoed back (empty when the request had none). */
+  subscriber: Record<string, unknown>;
   subscriberEmail?: string;
+  shippingAmount?: Money;
   /** Index into plan.cycles of the cycle being billed. */
   cycleIdx: number;
   cyclesDone: number[];
@@ -191,54 +207,76 @@ function links(sub: SubState): Record<string, unknown>[] {
   ];
 }
 
-export function subscriptionResource(sub: SubState): Record<string, unknown> {
+/**
+ * How much of a subscription the caller sees, matching what PayPal's sandbox returns (first live fidelity run):
+ * - `create`: the POST response. `get`: GET. `event`: the resource inside a webhook notice.
+ * - While the subscription still waits for approval there is no billing_info, update_time or shipping_amount, and
+ *   GET has no status_update_time either.
+ * - The plan is only included when asked for (`?fields=plan`), and in webhook notices.
+ */
+export interface SubscriptionView {
+  context: 'create' | 'get' | 'event';
+  includePlan?: boolean;
+}
+
+export function subscriptionResource(sub: SubState, view: SubscriptionView = { context: 'event', includePlan: true }): Record<string, unknown> {
   const { plan } = sub;
+  const waiting = sub.status === 'APPROVAL_PENDING' || sub.status === 'APPROVED';
+  const hideStatusTime = waiting && view.context === 'get';
   return {
     id: sub.id,
     plan_id: sub.planId,
     status: sub.status,
     ...(sub.statusNote !== undefined ? { status_change_note: sub.statusNote } : {}),
-    status_update_time: sub.statusTime.toISOString(),
+    ...(hideStatusTime ? {} : { status_update_time: sub.statusTime.toISOString() }),
     start_time: sub.startTime.toISOString(),
     quantity: '1',
-    shipping_amount: toMoney(0, plan.currency),
-    ...(sub.subscriberEmail !== undefined ? { subscriber: { email_address: sub.subscriberEmail } } : {}),
-    billing_info: {
-      outstanding_balance: toMoney(sub.outstandingCents, plan.currency),
-      cycle_executions: plan.cycles.map((c, i) => ({
-        tenure_type: c.tenure,
-        sequence: c.sequence,
-        cycles_completed: sub.cyclesDone[i] ?? 0,
-        ...(c.total > 0 ? { cycles_remaining: Math.max(c.total - (sub.cyclesDone[i] ?? 0), 0) } : {}),
-        total_cycles: c.total,
-      })),
-      ...(sub.lastPayment
-        ? { last_payment: { amount: toMoney(sub.lastPayment.amountCents, plan.currency), time: sub.lastPayment.time.toISOString() } }
-        : {}),
-      ...(sub.nextBilling && sub.status === 'ACTIVE' ? { next_billing_time: sub.nextBilling.toISOString() } : {}),
-      failed_payments_count: sub.failedCount,
-      ...(sub.lastFailed
-        ? {
-            last_failed_payment: {
-              amount: toMoney(sub.lastFailed.amountCents, plan.currency),
-              time: sub.lastFailed.time.toISOString(),
-              reason_code: 'PAYMENT_DENIED',
-              ...(sub.lastFailed.retryAt ? { next_payment_retry_time: sub.lastFailed.retryAt.toISOString() } : {}),
-            },
-          }
-        : {}),
-    },
+    ...(sub.shippingAmount ? { shipping_amount: sub.shippingAmount } : {}),
+    subscriber: sub.subscriber,
+    ...(waiting
+      ? {}
+      : {
+          billing_info: {
+            outstanding_balance: toMoney(sub.outstandingCents, plan.currency),
+            cycle_executions: plan.cycles.map((c, i) => ({
+              tenure_type: c.tenure,
+              sequence: c.sequence,
+              cycles_completed: sub.cyclesDone[i] ?? 0,
+              ...(c.total > 0 ? { cycles_remaining: Math.max(c.total - (sub.cyclesDone[i] ?? 0), 0) } : {}),
+              total_cycles: c.total,
+            })),
+            ...(sub.lastPayment
+              ? { last_payment: { amount: toMoney(sub.lastPayment.amountCents, plan.currency), time: sub.lastPayment.time.toISOString() } }
+              : {}),
+            ...(sub.nextBilling && sub.status === 'ACTIVE' ? { next_billing_time: sub.nextBilling.toISOString() } : {}),
+            failed_payments_count: sub.failedCount,
+            ...(sub.lastFailed
+              ? {
+                  last_failed_payment: {
+                    amount: toMoney(sub.lastFailed.amountCents, plan.currency),
+                    time: sub.lastFailed.time.toISOString(),
+                    reason_code: 'PAYMENT_DENIED',
+                    ...(sub.lastFailed.retryAt ? { next_payment_retry_time: sub.lastFailed.retryAt.toISOString() } : {}),
+                  },
+                }
+              : {}),
+          },
+        }),
     create_time: sub.createTime.toISOString(),
-    update_time: sub.updateTime.toISOString(),
+    ...(waiting ? {} : { update_time: sub.updateTime.toISOString() }),
     ...(sub.customId !== undefined ? { custom_id: sub.customId } : {}),
     plan_overridden: false,
-    plan: {
-      product_id: plan.productId,
-      name: plan.name,
-      billing_cycles: planBillingCycles(plan),
-      payment_preferences: planPaymentPreferences(plan),
-      quantity_supported: false,
-    },
+    ...(view.includePlan
+      ? {
+          plan: {
+            product_id: plan.productId,
+            name: plan.name,
+            billing_cycles: planBillingCycles(plan),
+            payment_preferences: planPaymentPreferences(plan),
+            quantity_supported: false,
+          },
+        }
+      : {}),
     links: links(sub),
   };
 }

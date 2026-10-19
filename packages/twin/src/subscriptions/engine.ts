@@ -186,7 +186,7 @@ export class SubscriptionEngine {
 
   // ---- subscriptions ------------------------------------------------------------------------
 
-  createSubscription(body: { plan_id: string; custom_id?: string; start_time?: string; subscriber?: { email_address?: string } }): SubscriptionResource {
+  createSubscription(body: { plan_id: string; custom_id?: string; start_time?: string; subscriber?: { email_address?: string } & Record<string, unknown>; shipping_amount?: { currency_code: string; value: string } }): SubscriptionResource {
     if (typeof body?.plan_id !== 'string' || body.plan_id === '') {
       throw invalid('/plan_id', 'MISSING_REQUIRED_PARAMETER', 'A required field is missing: plan_id.');
     }
@@ -217,12 +217,14 @@ export class SubscriptionEngine {
       sales: [],
       retryPending: false,
       retryToken: 0,
+      subscriber: typeof body.subscriber === 'object' && body.subscriber !== null ? { ...body.subscriber } : {},
+      ...(body.shipping_amount ? { shippingAmount: body.shipping_amount } : {}),
       ...(body.custom_id !== undefined ? { customId: body.custom_id } : {}),
       ...(body.subscriber?.email_address !== undefined ? { subscriberEmail: body.subscriber.email_address } : {}),
     };
     this.subs.set(sub.id, sub);
     this.emitSubscription('BILLING.SUBSCRIPTION.CREATED', sub);
-    return subscriptionResource(sub);
+    return subscriptionResource(sub, { context: 'create' });
   }
 
   /** The buyer approves: the subscription goes ACTIVE and the first billing event is queued. */
@@ -236,6 +238,9 @@ export class SubscriptionEngine {
 
   cancel(id: string, reason: string): void {
     const sub = this.find(id);
+    // The real sandbox answers 404 (not 422) for a subscription that was never approved. The error name is a
+    // guess, see fidelity.ts.
+    if (sub.status === 'APPROVAL_PENDING') throw notFound('Subscription', id);
     this.requireStatus(sub, ['APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED'], 'cancel');
     this.stopBilling(sub);
     this.setStatus(sub, 'CANCELLED', reason);
@@ -260,8 +265,9 @@ export class SubscriptionEngine {
     this.queueBoundary(sub, this.deps.clock.now());
   }
 
-  get(id: string): SubscriptionResource {
-    return subscriptionResource(this.find(id));
+  /** `includePlan` is what `?fields=plan` asks for. */
+  get(id: string, opts: { includePlan?: boolean } = {}): SubscriptionResource {
+    return subscriptionResource(this.find(id), { context: 'get', includePlan: opts.includePlan ?? false });
   }
 
   transactions(id: string): Record<string, unknown> {
