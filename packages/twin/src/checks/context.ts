@@ -21,9 +21,15 @@ export interface CheckContext {
   liveCalls: Of<'live_call_blocked'>[];
   /** A readable name for a subscription: the scenario customer it belongs to, else its id. */
   customerOf(subscriptionId: string): string;
-  /** PayPal's status for a subscription at a moment, from genuine (not forged) notices. */
+  /**
+   * PayPal's status for a subscription at a moment, from genuine (not forged) notices, and the notice that
+   * announced it. Ordered by when the status really changed (the resource's status_update_time), not by when
+   * the notice reached the app, so reordered or late notices still name the right one.
+   */
   statusAt(subscriptionId: string, at: string): { status: string; eventId: string } | null;
 }
+
+const STATUS_RANK: Record<string, number> = { APPROVAL_PENDING: 1, APPROVED: 2, ACTIVE: 3, SUSPENDED: 4, CANCELLED: 5, EXPIRED: 5 };
 
 export const day = (iso: string): string => iso.slice(0, 10);
 
@@ -41,7 +47,7 @@ export function buildContext(trace: TraceEntry[], scenario: Scenario): CheckCont
 
   // custom_id on a subscription is what the app (or the twin) stored to say who the subscriber is.
   const customIds = new Map<string, string>();
-  const statuses = new Map<string, { at: number; status: string; eventId: string }[]>();
+  const statuses = new Map<string, { at: number; status: string; eventId: string; rank: number }[]>();
   for (const { at, event, forged } of events) {
     if (forged) continue;
     const subId = subscriptionIdOf(event.resource);
@@ -51,7 +57,8 @@ export function buildContext(trace: TraceEntry[], scenario: Scenario): CheckCont
     const status = event.resource.status;
     if (typeof status === 'string' && event.resource.id === subId) {
       const list = statuses.get(subId) ?? [];
-      list.push({ at: Date.parse(at), status, eventId: event.id });
+      const changed = Date.parse(String(event.resource.status_update_time ?? at));
+      list.push({ at: Number.isNaN(changed) ? Date.parse(at) : changed, status, eventId: event.id, rank: STATUS_RANK[status] ?? 0 });
       statuses.set(subId, list);
     }
   }
@@ -95,7 +102,15 @@ export function buildContext(trace: TraceEntry[], scenario: Scenario): CheckCont
     statusAt(subscriptionId, at) {
       const t = Date.parse(at);
       let found: { status: string; eventId: string } | null = null;
-      for (const s of statuses.get(subscriptionId) ?? []) if (s.at <= t) found = { status: s.status, eventId: s.eventId };
+      let best: { at: number; rank: number } | null = null;
+      for (const s of statuses.get(subscriptionId) ?? []) {
+        if (s.at > t) continue;
+        // Latest status change wins; at the same instant the later stage of the lifecycle wins (ACTIVE over APPROVAL_PENDING).
+        if (!best || s.at > best.at || (s.at === best.at && s.rank > best.rank)) {
+          best = s;
+          found = { status: s.status, eventId: s.eventId };
+        }
+      }
       return found;
     },
   };

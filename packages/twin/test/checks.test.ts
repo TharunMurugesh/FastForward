@@ -333,6 +333,70 @@ describe('NO_LIVE_CALLS', () => {
   });
 });
 
+describe('STATE_MATCHES findings name the notice that should have changed access', () => {
+  /** A subscription notice whose resource carries PayPal's own status_update_time (when the status really changed). */
+  const notice = (type: WebhookEvent['event_type'], status: string, statusTime: string, id: string, who = 'leo@example.test', sub = SUB_LEO) =>
+    ev(type, { id: sub, plan_id: 'P-1', status, status_update_time: statusTime, custom_id: who }, id);
+  const badProbe = (at: string, sub = SUB_LEO) => probe(sub, { at, access: true, expectedAccess: false });
+
+  it('names the SUSPENDED notice even when a stale PAYMENT.FAILED notice reached the app after it', () => {
+    const trace: TraceEntry[] = [
+      event(notice('BILLING.SUBSCRIPTION.ACTIVATED', 'ACTIVE', '2026-11-01T00:00:00.000Z', 'WH-active')),
+      // Reordered by the weather: the suspension arrives first, the failure notice (status still ACTIVE, from
+      // before the suspension) arrives afterwards.
+      event(notice('BILLING.SUBSCRIPTION.SUSPENDED', 'SUSPENDED', '2027-01-01T00:00:00.000Z', 'WH-susp'), '2027-01-01T00:10:00.000Z'),
+      event(notice('BILLING.SUBSCRIPTION.PAYMENT.FAILED', 'ACTIVE', '2026-11-01T00:00:00.000Z', 'WH-failed'), '2027-01-01T00:20:00.000Z'),
+      badProbe('2027-01-02T00:00:00.000Z'),
+    ];
+    const r = check(trace, 'STATE_MATCHES');
+    expect(r.findings).toHaveLength(1);
+    expect(r.findings[0]!.eventIds).toEqual(['WH-susp']);
+    expect(r.findings[0]!.summary).toContain('PayPal had suspended the subscription');
+  });
+
+  it('names a notice that reached the app only after the check ran', () => {
+    const trace: TraceEntry[] = [
+      event(notice('BILLING.SUBSCRIPTION.ACTIVATED', 'ACTIVE', '2026-11-01T00:00:00.000Z', 'WH-active')),
+      event(notice('BILLING.SUBSCRIPTION.SUSPENDED', 'SUSPENDED', '2026-12-30T00:00:00.000Z', 'WH-late'), '2026-12-31T06:00:00.000Z'),
+      badProbe('2026-12-31T00:00:00.000Z'),
+    ];
+    expect(check(trace, 'STATE_MATCHES').findings[0]!.eventIds).toEqual(['WH-late']);
+  });
+
+  it('ignores notices about later status changes', () => {
+    const trace: TraceEntry[] = [
+      event(notice('BILLING.SUBSCRIPTION.SUSPENDED', 'SUSPENDED', '2026-12-01T00:00:00.000Z', 'WH-susp')),
+      event(notice('BILLING.SUBSCRIPTION.ACTIVATED', 'ACTIVE', '2027-02-01T00:00:00.000Z', 'WH-back')),
+      badProbe('2026-12-15T00:00:00.000Z'),
+    ];
+    expect(check(trace, 'STATE_MATCHES').findings[0]!.eventIds).toEqual(['WH-susp']);
+  });
+
+  it('when access was lost, names the ACTIVATED notice that should have turned it on, not CREATED', () => {
+    const trace: TraceEntry[] = [
+      event(notice('BILLING.SUBSCRIPTION.CREATED', 'APPROVAL_PENDING', '2026-11-01T00:00:00.000Z', 'WH-created', 'Maya', SUB_MAYA)),
+      event(notice('BILLING.SUBSCRIPTION.ACTIVATED', 'ACTIVE', '2026-11-01T00:00:00.000Z', 'WH-active', 'Maya', SUB_MAYA)),
+      probe(SUB_MAYA, { at: '2026-11-03T00:00:00.000Z', access: false, expectedAccess: true }),
+    ];
+    const r = check(trace, 'STATE_MATCHES');
+    expect(r.findings[0]!.eventIds).toEqual(['WH-active']);
+    expect(r.findings[0]!.summary).toContain('Maya had no access');
+  });
+
+  it('every finding of a failing check carries an event id when the twin sent any notice for that subscription', () => {
+    const trace: TraceEntry[] = [
+      event(notice('BILLING.SUBSCRIPTION.SUSPENDED', 'SUSPENDED', '2026-12-01T00:00:00.000Z', 'WH-susp')),
+      badProbe('2026-12-02T00:00:00.000Z'),
+      probe(SUB_LEO, { at: '2026-12-03T00:00:00.000Z', access: false, expectedAccess: false }),
+      badProbe('2026-12-04T00:00:00.000Z'),
+      probe(SUB_LEO, { at: '2026-12-05T00:00:00.000Z', access: null, expectedAccess: false }),
+    ];
+    const r = check(trace, 'STATE_MATCHES');
+    expect(r.findings).toHaveLength(3);
+    for (const f of r.findings) expect(f.eventIds).toEqual(['WH-susp']);
+  });
+});
+
 describe("lasting bugs collapse into one finding per stretch", () => {
   const dayProbe = (sub: string, d: number, o: Partial<Extract<TraceEntry, { kind: "probe" }>> = {}) =>
     probe(sub, { at: `2026-12-${String(d).padStart(2, "0")}T00:00:00.000Z`, ...o });
