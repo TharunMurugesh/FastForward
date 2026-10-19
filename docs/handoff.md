@@ -54,7 +54,7 @@ listed name when you take over (send each a one-line message).
 ## In flight (19 Oct ~14:00)
 Merged to main and green (b7e3a4d, 262 tests pass, 2 todo): Tasks 0–10, 15, plus Task 12 and 13 pure parts
 (disputes engine/routes, `webhooks/weather.ts`). Worker B (PayPal 4) is RELEASED: his window can be closed.
-- **Worker A** now owns `run/**`, `control.ts`, `server.ts`: (1) disputes in runs + dispute resource fields
+- **Worker A** now owns `run/**`, `control.ts`, `server.ts`: (1) DONE, merged 5bb8667 (269 tests): disputes in runs + dispute resource fields
   the dashboard reads (`dispute_id`, `reason`, `seller_response_due_date`,
   `disputed_transactions[].seller_transaction_id`, `messages[]`, `dispute_outcome.outcome_code`); (2) weather in
   runs (seeded, same seed same trace); (3) control API: `GET /_ff/runs/current`, `start` on `GET /_ff/runs/:id`,
