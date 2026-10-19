@@ -25,7 +25,7 @@ customers:
 describe('parseScenario', () => {
   it('parses bad-month.yaml', () => {
     const s = parseScenario(badMonth);
-    expect(s.durationDays).toBe(60);
+    expect(s.durationDays).toBe(75);
     expect(s.seed).toBe(42);
     const [maya, leo, ana] = s.customers;
     expect(maya?.email).toBe('maya@example.test');

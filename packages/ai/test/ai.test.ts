@@ -290,6 +290,6 @@ describe('anthropicClient (stubbed SDK, no network)', () => {
 
 describe('bad-month.yaml stays valid for the writer prompt', () => {
   it('parses', () => {
-    expect(parseScenario(badMonth).durationDays).toBe(60);
+    expect(parseScenario(badMonth).durationDays).toBe(75);
   });
 });

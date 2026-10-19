@@ -1,9 +1,11 @@
-# Coffee Club, a rough two months: one healthy customer, one whose card starts
+# Coffee Club, a rough ten weeks: one healthy customer, one whose card starts
 # failing, one who opens a dispute, all under bad webhook weather.
 name: bad-month
 seed: 42
 start: 2026-11-01T00:00:00.000Z
-duration: P60D
+# 75 days so PayPal's real retry rule plays out: Leo's 1 Dec failure is retried on 6 and 11 Dec
+# and counted after both retries fail; his 1 Jan failure reaches the threshold (2) and suspends him.
+duration: P75D
 
 app:
   webhookUrl: http://127.0.0.1:3000/webhooks/paypal
