@@ -1,0 +1,8 @@
+Fastforward
+Copyright (c) 2026 Vinay G. Licensed under the MIT License (see LICENSE).
+
+This product includes material from PayPal REST API Specifications
+(https://github.com/paypal/paypal-rest-api-specifications), licensed under the
+Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
+OpenAPI specification files under packages/twin/spec/, and the dispute reason
+list in packages/contracts/src/scenario.ts.

@@ -1,0 +1,27 @@
+{
+  "name": "fastforward",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "examples/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "test:e2e": "vitest run --project e2e",
+    "typecheck": "tsc -b --noEmit",
+    "fidelity": "vitest run --project fidelity",
+    "demo": "echo \"demo arrives in Task 11\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

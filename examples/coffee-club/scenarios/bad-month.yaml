@@ -1,0 +1,40 @@
+# Coffee Club, a rough two months: one healthy customer, one whose card starts
+# failing, one who opens a dispute, all under bad webhook weather.
+name: bad-month
+seed: 42
+start: 2026-11-01T00:00:00.000Z
+duration: P60D
+
+app:
+  webhookUrl: http://127.0.0.1:3000/webhooks/paypal
+  subscribeUrl: http://127.0.0.1:3000/subscribe
+  probeUrl: http://127.0.0.1:3000/__ff/probe
+
+plan:
+  name: Coffee Club Monthly
+  price: "12.00"
+  currency: USD
+  interval: MONTH
+
+customers:
+  - name: Maya
+    persona: Pays on time and never complains.
+    card: ok
+  - name: Leo
+    persona: Busy, rarely reads email, card expires in December.
+    card: fails_from:2026-12-01
+  - name: Ana
+    persona: Impatient; says her first bag never arrived.
+    card: ok
+    actions:
+      - at: 2026-11-20
+        do: dispute
+        reason: MERCHANDISE_OR_SERVICE_NOT_RECEIVED
+        message: My first bag of coffee never arrived.
+
+weather:
+  duplicates: 0.2
+  reorder: 0.1
+  delayMinutes: [0, 90]
+  forged: 1
+  burst: false
