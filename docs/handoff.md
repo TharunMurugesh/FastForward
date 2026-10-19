@@ -61,9 +61,16 @@ scratchpad). Worker B released (window PayPal 4 can be closed; worktree and bran
   bugs=all fails exactly 5 checks; bugs=none passes all six non-vacuously. ACK_FAST no longer counts a 4xx
   rejection of a FORGED notice. Real dashboard fixture (`npm run fixture -w @fastforward/web`), bundle trimmed.
   Worker A is STANDING BY.
-- **Worker C** (design job): sample recorded without slow-ack; deliveries grid defaults to ONE ROW PER NOTICE
-  (toggle "Show every attempt"); Report tab first with per-check counts that filter the grid; fidelity header
-  wording "match PayPal's shape (N known, explained differences)". Sends before/after screenshots.
+- DONE (main 0bcfa15, 309 tests): dashboard design pass: one row per notice (+ "Show every attempt"), Report tab
+  first with clickable per-check counts, plain-word finding chips, sample = real recording with bugs
+  no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order. NOTE: every retry has its own
+  transmission id; duplicate copies' retries interleave (rows.ts follows retry chains).
+- **Worker C**: Task 14 HTML report (`renderHtmlReport`, report.html next to report.json).
+- **Worker A**: Task 14 fidelity suite CODE ONLY (`npm run fidelity`, FF_FIDELITY=1 + sandbox keys, writes
+  `fidelity/latest.json` in the dashboard's FidelityFile format, values stripped) + STATE_MATCHES findings carry
+  event ids. **Running it against the real sandbox needs Vinay's yes**; Sara runs it, then commits latest.json.
+- Remaining after that: Task 16 MCP (fresh worker session), Task 17 (railway.json, start-hosted, README,
+  devpost.md, video script; root `npm run demo`), Vinay's outward items below.
 - Dashboard: `npm run dev -w @fastforward/web` → http://localhost:5173; CLI run with `--keep-twin` to view live.
 
 ## Next for Sara
