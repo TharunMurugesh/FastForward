@@ -88,6 +88,12 @@ describe('planDeliveries', () => {
     expect(view(plan)).toEqual(['B@0', 'A@10', 'C@20']);
   });
 
+  it('reorder 1.0 also swaps events that were emitted at the same instant', () => {
+    const simultaneous = [item('A', 0), item('B', 0), item('C', 0), item('D', 0)];
+    expect(view(planDeliveries(simultaneous, weather({ reorder: 1 }), mulberry32(3))).map((v) => v[0])).toEqual(['B', 'A', 'D', 'C']);
+    expect(view(planDeliveries(simultaneous, calm, mulberry32(3))).map((v) => v[0])).toEqual(['A', 'B', 'C', 'D']);
+  });
+
   it('delays stay inside [min,max]', () => {
     const events = Array.from({ length: 300 }, (_, i) => item(`E${i}`, i * 1000));
     const plan = planDeliveries(events, weather({ delayMinutes: [5, 90] }), mulberry32(9));

@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import type { Customer, CustomerAction, CustomerDecision, Scenario, SubscriptionStatus, TraceEntry } from '@fastforward/contracts';
+import type { Customer, CustomerAction, CustomerDecision, Scenario, SubscriptionStatus, TraceEntry, Weather, WebhookEvent } from '@fastforward/contracts';
 import { DisputeEngine } from '../disputes/engine.js';
 import { SubscriptionEngine } from '../subscriptions/engine.js';
 import type { DomainEvent } from '../subscriptions/events.js';
@@ -8,6 +8,7 @@ import { VirtualClock } from '../time/clock.js';
 import { Scheduler } from '../time/scheduler.js';
 import { Dispatcher, VerifyLedger } from '../webhooks/dispatcher.js';
 import { toWebhookEvent } from '../webhooks/envelope.js';
+import { forgedEvents, mulberry32, planDeliveries } from '../webhooks/weather.js';
 import type { Signer } from '../webhooks/sign.js';
 import { CustomerBook } from './customers.js';
 import { probe } from './probe.js';
@@ -53,6 +54,11 @@ export class Run {
   private readonly finishListeners = new Set<() => void>();
   private readonly checkpointDays = new Set<string>();
   private subscriptionCreates = 0;
+  private readonly rng: () => number;
+  private readonly weather: Weather;
+  /** Events emitted at the current virtual instant, waiting for the weather to decide when they go out. */
+  private batch: { event: WebhookEvent; at: Date }[] = [];
+  private flushQueued = false;
   private queue: Promise<unknown> = Promise.resolve();
 
   constructor(
@@ -64,6 +70,9 @@ export class Run {
     this.scheduler = new Scheduler(this.clock);
     this.end = new Date(this.clock.now().getTime() + scenario.durationDays * DAY_MS);
     this.book = new CustomerBook();
+    this.rng = mulberry32(scenario.seed);
+    const w: Partial<Weather> = scenario.weather ?? {};
+    this.weather = { duplicates: w.duplicates ?? 0, reorder: w.reorder ?? 0, delayMinutes: w.delayMinutes ?? [0, 0], forged: w.forged ?? 0, burst: w.burst ?? false };
     this.engine = new SubscriptionEngine({
       clock: this.clock,
       scheduler: this.scheduler,
@@ -132,7 +141,19 @@ export class Run {
     for (const customer of scenario.customers) {
       for (const action of customer.actions) this.scheduleAction(customer, action);
     }
+    this.scheduleForged();
     await this.serial(() => this.scheduler.advanceTo(this.clock.now()));
+  }
+
+  /** `weather.forged` notices at random moments of the run, signed so that verification fails. */
+  private scheduleForged(): void {
+    const { forged } = this.weather;
+    const subscriptionIds = this.subscriptions().map((s) => s.subscriptionId);
+    if (forged <= 0 || subscriptionIds.length === 0) return;
+    const startMs = this.clock.now().getTime();
+    const span = this.end.getTime() - startMs;
+    const times = Array.from({ length: forged }, () => new Date(startMs + Math.floor(this.rng() * span)));
+    forgedEvents(subscriptionIds, forged, this.rng, (i) => times[i]!).forEach((event, i) => this.dispatcher.scheduleSend(event, times[i]!, { forged: true }));
   }
 
   /** Moves virtual time forward to `to` (clamped to the run's end), delivering everything due. */
@@ -196,13 +217,39 @@ export class Run {
   private onDomainEvent(e: DomainEvent): void {
     const now = this.clock.now();
     // Queued at the current instant rather than sent inline: the engine may be inside an app's request.
-    this.dispatcher.scheduleSend(toWebhookEvent(e, now), now);
+    this.send(toWebhookEvent(e, now), now);
     if (e.type !== 'BILLING.SUBSCRIPTION.PAYMENT.FAILED' || !this.deps.decide) return;
     const subscriptionId = String(e.resource.id);
     const customer = this.book.customerOf(subscriptionId);
     if (!customer) return;
     const n = this.book.noteFailure(subscriptionId);
     this.scheduler.schedule(now, `decide ${customer.name}`, () => this.decideAfterFailure(customer, subscriptionId, n, now));
+  }
+
+  private get calm(): boolean {
+    const w = this.weather;
+    return w.duplicates <= 0 && w.reorder <= 0 && w.delayMinutes[1] <= 0 && !w.burst;
+  }
+
+  /**
+   * Sends an event now (calm weather), or collects it with everything else emitted at this virtual
+   * instant and lets the weather plan the whole batch (delays, burst, reordering, duplicates).
+   */
+  private send(event: WebhookEvent, now: Date): void {
+    if (this.calm) {
+      this.dispatcher.scheduleSend(event, now);
+      return;
+    }
+    this.batch.push({ event, at: now });
+    if (this.flushQueued) return;
+    this.flushQueued = true;
+    // Queued behind the jobs already waiting at this instant, so the batch holds the whole cascade.
+    this.scheduler.schedule(now, 'weather', async () => {
+      this.flushQueued = false;
+      const batch = this.batch;
+      this.batch = [];
+      for (const p of planDeliveries(batch, this.weather, this.rng)) this.dispatcher.scheduleSend(p.event, p.at, { forged: p.forged });
+    });
   }
 
   private async decideAfterFailure(customer: Customer, subscriptionId: string, n: number, at: Date): Promise<void> {
