@@ -4,6 +4,7 @@ import { DecisionLock, aiFromEnv, decideCustomerAction, narrate, type AiClient }
 import { parseScenario, type Report, type Scenario, type TraceEntry } from '@fastforward/contracts';
 import { buildReport, createTwin, type Twin } from '@fastforward/twin';
 import { ToolError } from './errors.js';
+import { renderHtmlReport } from './html-report.js';
 import { checkReachable } from './reachability.js';
 
 export interface RunOptions {
@@ -28,6 +29,8 @@ export interface RunResult {
   /** The full trace the report was computed from. */
   trace: TraceEntry[];
   reportDir: string;
+  /** The report as one self-contained HTML file, next to report.json. */
+  htmlReportPath: string;
   /** 0 when every check passed or was skipped, 1 when any failed. Tool errors are thrown as ToolError. */
   exitCode: 0 | 1;
   runId: string;
@@ -122,6 +125,8 @@ export async function runScenarioFile(path: string, opts: RunOptions = {}): Prom
     const reportDir = opts.reportDir ?? join('.fastforward', 'runs', runId);
     mkdirSync(reportDir, { recursive: true });
     writeFileSync(join(reportDir, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+    const htmlReportPath = join(reportDir, 'report.html');
+    writeFileSync(htmlReportPath, renderHtmlReport(report, { scenario, trace }));
 
     const base = opts.dashboardUrl ?? process.env.FF_DASHBOARD_URL ?? 'http://localhost:5173';
     const dashboardLink = `${base.replace(/\/$/, '')}/?run=${runId}`;
@@ -130,6 +135,7 @@ export async function runScenarioFile(path: string, opts: RunOptions = {}): Prom
       report,
       trace,
       reportDir,
+      htmlReportPath,
       exitCode: report.checks.some((c) => c.status === 'fail') ? 1 : 0,
       runId,
       dashboardLink,

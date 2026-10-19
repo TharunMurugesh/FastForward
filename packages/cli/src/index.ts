@@ -10,6 +10,7 @@ import { scenarioToYaml } from './yaml.js';
 export { ToolError } from './errors.js';
 export { checkReachable } from './reachability.js';
 export { formatReport } from './print.js';
+export { renderHtmlReport, type HtmlReportOptions } from './html-report.js';
 export { runScenarioFile, lockPathFor, type RunOptions, type RunResult } from './runner.js';
 export { scenarioToYaml } from './yaml.js';
 
@@ -95,7 +96,7 @@ async function runCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
     keepTwin: values['keep-twin'] === true,
   });
 
-  io.stdout(formatReport(result.report, { reportDir: result.reportDir, dashboardLink: result.dashboardLink, twinKept: result.twin !== null || values['twin-url'] !== undefined }));
+  io.stdout(formatReport(result.report, { reportDir: result.reportDir, htmlReport: result.htmlReportPath, dashboardLink: result.dashboardLink, twinKept: result.twin !== null || values['twin-url'] !== undefined }));
   if (result.twin) {
     io.stdout(`\nThe twin is still running at ${result.twin.url}. Press Ctrl+C to stop it.\n`);
     await (io.waitForInterrupt ?? waitForSigint)();
