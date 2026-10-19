@@ -217,3 +217,33 @@ describe('usage', () => {
     expect(c.err).toContain('fastforward run');
   });
 });
+
+describe('formatReport', () => {
+  const finding = (n: number) => ({ at: '2026-11-01T00:00:00.000Z', summary: `Notice ${n} was accepted unchecked`, eventIds: [`E${n}`], explanation: 'Same explanation.', fix: 'Same fix.' });
+  const report: Report = {
+    runId: 'run-1',
+    scenario: 's',
+    start: '2026-11-01T00:00:00.000Z',
+    end: '2026-12-01T00:00:00.000Z',
+    checks: [
+      { id: 'ACK_FAST', status: 'pass', findings: [] },
+      { id: 'VERIFIES_SIGNATURES', status: 'fail', findings: [1, 2, 3, 4, 5].map(finding) },
+      { id: 'STATE_MATCHES', status: 'skipped', findings: [], note: 'no probeUrl' },
+    ],
+    counts: { events: 5, deliveries: 5, customers: 1 },
+  };
+
+  it('lists each finding, says the explanation and fix once, and counts the rest', async () => {
+    const { formatReport } = await import('../src/index.js');
+    const text = formatReport(report, { reportDir: 'out', dashboardLink: 'http://localhost:5173/?run=run-1', twinKept: true });
+    expect(text.match(/Same explanation\./g)).toHaveLength(1);
+    expect(text.match(/Fix: Same fix\./g)).toHaveLength(1);
+    expect(text).toContain('Notice 3 was accepted unchecked');
+    expect(text).not.toContain('Notice 4');
+    expect(text).toContain('… and 2 more');
+    expect(text).toContain('1 of 3 checks failed');
+    expect(text).toContain('(no probeUrl)');
+    expect(text).toContain('Dashboard: http://localhost:5173/?run=run-1');
+    expect(text).not.toContain('--keep-twin');
+  });
+});

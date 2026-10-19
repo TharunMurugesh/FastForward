@@ -49,11 +49,12 @@ export function formatReport(report: Report, ctx: PrintContext): string {
     if (!c) continue;
     out.push(`  ${MARK[c.status]} ${id.padEnd(20)} ${TITLES[id]}${c.status === 'skipped' && c.note ? `  (${c.note})` : ''}`);
     if (c.status !== 'fail') continue;
-    for (const f of c.findings.slice(0, SHOWN_PER_CHECK)) {
-      out.push(wrap(f.summary, '      '));
-      if (f.explanation) out.push(wrap(f.explanation, '        '));
-      if (f.fix) out.push(wrap(`Fix: ${f.fix}`, '        '));
-    }
+    const shown = c.findings.slice(0, SHOWN_PER_CHECK);
+    for (const f of shown) out.push(wrap(f.summary, '      '));
+    // One bad habit repeats on every delivery, so the explanation and the fix are said once per check.
+    const help = shown.find((f) => f.explanation || f.fix);
+    if (help?.explanation) out.push(wrap(help.explanation, '        '));
+    if (help?.fix) out.push(wrap(`Fix: ${help.fix}`, '        '));
     if (c.findings.length > SHOWN_PER_CHECK) out.push(`      … and ${c.findings.length - SHOWN_PER_CHECK} more (see the report file)`);
   }
   out.push('');
