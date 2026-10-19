@@ -21,6 +21,8 @@ export interface TimelineMarker {
   at: string;
   kind: MarkerKind;
   eventId: string;
+  /** For delivery_failed: how many attempts failed. A retrying notice is one marker, not a dozen. */
+  count?: number;
 }
 
 export interface TimelineModel {
@@ -90,6 +92,7 @@ export function toTimeline(trace: TraceEntry[], subscriptions: TimelineRow[]): T
   const forgedIds = new Set<string>();
   const markers: TimelineMarker[] = [];
   const firstAttemptSeen = new Set<string>();
+  const failedMarker = new Map<string, TimelineMarker>();
 
   const rowForEvent = (eventId: string): number | undefined => {
     const owner = owners.get(eventId);
@@ -115,7 +118,16 @@ export function toTimeline(trace: TraceEntry[], subscriptions: TimelineRow[]): T
         firstAttemptSeen.add(t.eventId);
       }
       // A forged notice the app rejects is the app doing its job, not a failed delivery.
-      if (isFailedDelivery(t) && !forgedIds.has(t.eventId)) markers.push({ row, at: t.at, kind: 'delivery_failed', eventId: t.eventId });
+      if (isFailedDelivery(t) && !forgedIds.has(t.eventId)) {
+        const existing = failedMarker.get(t.eventId);
+        if (existing) {
+          existing.count = (existing.count ?? 1) + 1;
+        } else {
+          const marker: TimelineMarker = { row, at: t.at, kind: 'delivery_failed', eventId: t.eventId, count: 1 };
+          failedMarker.set(t.eventId, marker);
+          markers.push(marker);
+        }
+      }
     }
   }
 

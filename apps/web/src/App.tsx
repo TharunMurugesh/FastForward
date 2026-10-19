@@ -71,16 +71,17 @@ export function App() {
         </div>
       </header>
 
-      {mode === 'sample' && run.note && (
+      {mode === 'sample' && run.note && run.sample && (
         <p className="banner" role="status">
-          {run.note} Everything below is recorded sample data of the <strong>bad-month</strong> scenario against a deliberately buggy Coffee Club, so you can try the screen.
+          {run.note} What you see is a recording of a real run (taken {fmtDateYear(run.sample.recordedAt)}): the <strong>{run.sample.scenario}</strong> scenario against Coffee Club with
+          its bugs switched on, so you can try the screen.
         </p>
       )}
 
       <section className="card controls" aria-label="Time control">
         <div className="clock">
           <span className="clock-label">Virtual date</span>
-          <strong className="clock-date">{fmtDateYear(new Date(value).toISOString())}</strong>
+          <strong className="clock-date">{mode === 'loading' ? '…' : fmtDateYear(new Date(value).toISOString())}</strong>
         </div>
         <div className="scrub">
           <input

@@ -83,6 +83,21 @@ describe('toTimeline', () => {
     expect(model.markers.map((m) => m.kind)).toEqual(['payment_ok', 'delivery_failed']);
   });
 
+  it('many failed attempts of one event make one delivery_failed marker, with the attempt count', () => {
+    const model = toTimeline(
+      [
+        event('E1', 'PAYMENT.SALE.COMPLETED', { id: 'S1', billing_agreement_id: 'I-MAYA' }),
+        delivery('E1', { status: null, ms: 10000, at: '2026-11-01T00:00:01.000Z' }),
+        delivery('E1', { attempt: 2, status: 500, at: '2026-11-01T00:01:01.000Z' }),
+        delivery('E1', { attempt: 3, status: null, at: '2026-11-01T00:03:01.000Z' }),
+        delivery('E1', { attempt: 4, status: 200, at: '2026-11-01T00:07:01.000Z' }),
+      ],
+      subs,
+    );
+    const failed = model.markers.filter((m) => m.kind === 'delivery_failed');
+    expect(failed).toEqual([{ row: 0, at: '2026-11-01T00:00:01.000Z', kind: 'delivery_failed', eventId: 'E1', count: 3 }]);
+  });
+
   it('failed delivery (status null) adds delivery_failed', () => {
     const model = toTimeline(
       [event('E1', 'PAYMENT.SALE.COMPLETED', { id: 'S1', billing_agreement_id: 'I-MAYA' }), delivery('E1', { status: null, ms: 10000 })],
@@ -121,8 +136,8 @@ describe('toTimeline', () => {
   });
 });
 
-describe('bad-month fixture', () => {
-  it('shows every marker kind the story promises', () => {
+describe('bad-month fixture (a real recorded run)', () => {
+  it('shows the marker kinds a buggy app produces under bad weather', () => {
     const kinds = new Set(toTimeline(badMonth.trace, badMonth.subscriptions).markers.map((m) => m.kind));
     for (const k of ['payment_ok', 'payment_failed', 'suspended', 'dispute', 'forged', 'duplicate', 'delivery_failed']) expect(kinds).toContain(k);
   });

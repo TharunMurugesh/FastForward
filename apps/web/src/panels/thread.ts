@@ -45,15 +45,16 @@ export function disputeThreads(trace: TraceEntry[], subscriptions: TimelineRow[]
     if (t.event.event_type === 'CUSTOMER.DISPUTE.CREATED') {
       const reason = str(r.reason);
       const due = str(r.seller_response_due_date);
+      const posted = Array.isArray(r.messages) ? (r.messages as { posted_by?: string; time_posted?: string; content?: string }[]) : [];
+      // The opening line comes first even when the buyer's message is stamped a moment before the event.
+      const openedAt = [t.at, ...posted.flatMap((m) => (m.time_posted ? [m.time_posted] : []))].sort((a, b) => Date.parse(a) - Date.parse(b))[0]!;
       thread.messages.push({
-        at: t.at,
+        at: openedAt,
         from: 'system',
         text: `Dispute opened${reason ? `: ${readable(reason)}` : ''}${due ? `. Seller must respond by ${due.slice(0, 10)}.` : '.'}`,
       });
-      if (Array.isArray(r.messages)) {
-        for (const m of r.messages as { posted_by?: string; time_posted?: string; content?: string }[]) {
-          if (m.content) thread.messages.push({ at: m.time_posted ?? t.at, from: m.posted_by === 'SELLER' ? 'seller' : 'buyer', text: m.content });
-        }
+      for (const m of posted) {
+        if (m.content) thread.messages.push({ at: m.time_posted ?? t.at, from: m.posted_by === 'SELLER' ? 'seller' : 'buyer', text: m.content });
       }
     } else if (t.event.event_type === 'CUSTOMER.DISPUTE.RESOLVED') {
       const outcome = str((r.dispute_outcome as { outcome_code?: unknown } | undefined)?.outcome_code);
