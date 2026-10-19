@@ -72,8 +72,9 @@ scratchpad). Worker B released (window PayPal 4 can be closed; worktree and bran
   event ids. Wording bug FIXED and verified on a real run (main 8a426c2 + re-recorded
   sample 025871f, 330 tests): STATE_MATCHES orders notices by `status_update_time`. **Running it against the real sandbox needs Vinay's yes** (`FF_FIDELITY=1 npm run fidelity`;
   creates 1 product, 1 plan, 1 subscription in his sandbox, cancels the subscription; ALLOWED_DIFFS starts empty,
-  so expect to resolve real differences, e.g. cancel of APPROVAL_PENDING, verify with a bad body). Then commit
-  fidelity/latest.json.
+  so expect to resolve real differences, e.g. cancel of APPROVAL_PENDING, verify with a bad body). Vinay said YES 19 Oct;
+  first live run 15:22 found 27 differences (file clean, NOT committed). Worker A is fixing the twin to match;
+  then Sara reruns `FF_FIDELITY=1 npm run fidelity` and commits fidelity/latest.json. Vinay's yes covers reruns.
 - Remaining after that: Task 16 MCP (fresh worker session), Task 17 (railway.json, start-hosted, README,
   devpost.md, video script; root `npm run demo`), Vinay's outward items below.
 - Dashboard: `npm run dev -w @fastforward/web` → http://localhost:5173; CLI run with `--keep-twin` to view live.
