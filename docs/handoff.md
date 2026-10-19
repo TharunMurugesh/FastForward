@@ -57,8 +57,9 @@ Merged to main and green (b7e3a4d, 262 tests pass, 2 todo): Tasks 0–10, 15, pl
 - **Worker A** now owns `run/**`, `control.ts`, `server.ts`: (1) DONE, merged 5bb8667 (269 tests): disputes in runs + dispute resource fields
   the dashboard reads (`dispute_id`, `reason`, `seller_response_due_date`,
   `disputed_transactions[].seller_transaction_id`, `messages[]`, `dispute_outcome.outcome_code`); (2) DONE, merged 2ae4883 (277 tests): weather in
-  runs (seeded; limits: reorder/burst act within one virtual instant, events delayed past the end are dropped, ids random); (3) control API: `GET /_ff/runs/current`, `start` on `GET /_ff/runs/:id`,
-  `GET /_ff/runs/:id/report`. Target 24 Oct.
+  runs (seeded; limits: reorder/burst act within one virtual instant, events delayed past the end are dropped, ids random); (3) DONE, merged acb2170 (284 tests): `GET /_ff/runs/current` (active or latest run),
+  `start` on `GET /_ff/runs/:id`, `GET /_ff/runs/:id/report` (404 until finished). Worker A is STANDING BY;
+  next job for A: restore full `bad-month.yaml` in the e2e once Task 11 lands.
 - **Worker C**: Task 11 (packages/cli, `fastforward` bin; e2e in `test/e2e`, run by `npm run test:e2e` only).
   Will send terminal output + a screenshot of a live run (`?run=<id>`) = the Phase 1 demo for Vinay. Target 25 Oct.
 - Dashboard notes: run with `npm run dev -w @fastforward/web`, open http://localhost:5173 (fixture "Sample run"
