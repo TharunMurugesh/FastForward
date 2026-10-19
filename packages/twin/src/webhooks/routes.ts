@@ -23,27 +23,28 @@ const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2}
 /**
  * The checks that make a request malformed rather than merely wrongly signed: a required field is missing, or a
  * field is not in the form PayPal sends (transmission id a UUID, signature base64, time ISO-8601, cert url a URL).
- * Which of these the real sandbox enforces is unverified; the first live fidelity run showed it answers 400 to
- * the suite's deliberately invalid body.
+ * Which of these the real sandbox enforces is unverified; the live fidelity runs showed it answers 400 INVALID_REQUEST
+ * to the suite's deliberately invalid body, with details that carry field, value, location and issue only.
  */
-function validate(body: VerifyBody): { field: string; value?: string; location: string; issue: string; description: string }[] {
-  const problems: { field: string; value?: string; location: string; issue: string; description: string }[] = [];
-  const bad = (key: string, issue: string, description: string) =>
-    problems.push({ field: `/${key}`, value: typeof body[key as keyof VerifyBody] === 'string' ? (body[key as keyof VerifyBody] as string) : '', location: 'body', issue, description });
+function validate(body: VerifyBody): { field: string; value?: string; location: string; issue: string }[] {
+  const problems: { field: string; value?: string; location: string; issue: string }[] = [];
+  // The sandbox's details carry no description, only where the problem is and what it is.
+  const bad = (key: string, issue: string) =>
+    problems.push({ field: `/${key}`, value: typeof body[key as keyof VerifyBody] === 'string' ? (body[key as keyof VerifyBody] as string) : '', location: 'body', issue });
   for (const key of REQUIRED) {
-    if (body[key] === undefined || body[key] === null) bad(key, 'MISSING_REQUIRED_PARAMETER', `A required field is missing: ${key}.`);
+    if (body[key] === undefined || body[key] === null) bad(key, 'MISSING_REQUIRED_PARAMETER');
   }
   const text = (key: keyof VerifyBody) => (typeof body[key] === 'string' ? (body[key] as string) : null);
-  const check = (key: keyof VerifyBody, ok: (v: string) => boolean, description: string) => {
+  const check = (key: keyof VerifyBody, ok: (v: string) => boolean) => {
     const v = text(key);
-    if (body[key] !== undefined && body[key] !== null && (v === null || !ok(v))) bad(key, 'INVALID_PARAMETER_VALUE', description);
+    if (body[key] !== undefined && body[key] !== null && (v === null || !ok(v))) bad(key, 'INVALID_PARAMETER_VALUE');
   };
-  check('transmission_id', (v) => UUID.test(v), 'transmission_id must be a UUID.');
-  check('transmission_sig', (v) => BASE64.test(v), 'transmission_sig must be base64.');
-  check('transmission_time', (v) => ISO_TIME.test(v) && !Number.isNaN(Date.parse(v)), 'transmission_time must be an ISO 8601 date-time.');
-  check('cert_url', (v) => URL.canParse(v), 'cert_url must be a URL.');
+  check('transmission_id', (v) => UUID.test(v));
+  check('transmission_sig', (v) => BASE64.test(v));
+  check('transmission_time', (v) => ISO_TIME.test(v) && !Number.isNaN(Date.parse(v)));
+  check('cert_url', (v) => URL.canParse(v));
   if (body.webhook_event !== undefined && body.webhook_event !== null && (typeof body.webhook_event !== 'object' || Array.isArray(body.webhook_event))) {
-    bad('webhook_event', 'INVALID_PARAMETER_VALUE', 'webhook_event must be the notice as a JSON object.');
+    bad('webhook_event', 'INVALID_PARAMETER_VALUE');
   }
   return problems;
 }
@@ -55,7 +56,7 @@ export function registerWebhookRoutes(app: FastifyInstance, deps: WebhookRouteDe
     const body = (req.body ?? {}) as VerifyBody;
     const problems = validate(body);
     if (problems.length > 0) {
-      return reply.code(400).send(new PayPalError(400, 'VALIDATION_ERROR', 'Request is not well formed, syntactically incorrect, or violates schema.', problems).body());
+      return reply.code(400).send(new PayPalError(400, 'INVALID_REQUEST', 'Request is not well formed, syntactically incorrect, or violates schema.', problems).body());
     }
     const transmissionId = String(body.transmission_id);
     deps.ledger()?.mark(transmissionId);

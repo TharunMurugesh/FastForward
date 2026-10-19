@@ -28,10 +28,13 @@ export const fidelity = {
   // Shapes copied from the first live fidelity run (2026-10-25, PayPal sandbox), all in subscriptions/resources.ts:
   // - verified: a subscription waiting for approval has no billing_info, plan, shipping_amount or update_time, and GET
   //   also has no status_update_time; the plan only comes with ?fields=plan (PayPal's documented query).
-  // - unverified: subscriber is echoed as {} when the request has none (the run saw the field but not its contents).
-  // - unverified: cancelling an APPROVAL_PENDING subscription answers 404 with name RESOURCE_NOT_FOUND (the run saw
-  //   404 and an error object, not the name; the next live run prints it).
-  // - unverified: verify-webhook-signature answers 400 VALIDATION_ERROR when transmission_id is not a UUID, the
+  // - unverified: the subscription POST response has subscriber {tenant: 'paypal'} when the request has no subscriber
+  //   (the run saw a tenant field, not its value); GET while APPROVAL_PENDING leaves subscriber out (verified).
+  // - cancelling an APPROVAL_PENDING subscription answers 404 with name RESOURCE_NOT_FOUND (verified by absence: the
+  //   second live run showed no mismatch for the name).
+  // - verified 2026-10-19 (live fidelity run): the error name for a malformed verify-webhook-signature body is
+  //   INVALID_REQUEST, and its details[] have no description. Error links carry a method.
+  // - unverified: verify-webhook-signature answers 400 INVALID_REQUEST when transmission_id is not a UUID, the
   //   signature is not base64, the time is not ISO-8601, cert_url is not a URL or a field is missing (the run saw 400
   //   for its invalid body without saying which field). A well-formed wrong signature answers 200 FAILURE.
   // - verified: the disputes list always has `items`, empty when there are none.
