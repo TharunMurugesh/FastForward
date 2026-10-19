@@ -115,6 +115,11 @@ describe('fastforward run', () => {
     expect(c.out).toContain('VERIFIES_SIGNATURES');
     expect(c.out).toMatch(/Fix:/);
     expect(c.out).toMatch(/http:\/\/localhost:5173\/\?run=run-[0-9a-f]{8}/);
+    expect(c.out).toContain('report.html');
+    const html = readFileSync(join(dir, 'out', 'report.html'), 'utf8');
+    expect(html).toContain('Simulated run');
+    expect(html).toContain('VERIFIES_SIGNATURES');
+    expect(html).toContain('2 of 6 checks failed'.replace('2', String((JSON.parse(readFileSync(join(dir, 'out', 'report.json'), 'utf8')) as Report).checks.filter((x) => x.status === 'fail').length)));
     const report = JSON.parse(readFileSync(join(dir, 'out', 'report.json'), 'utf8')) as Report;
     expect(report.checks.find((x) => x.id === 'VERIFIES_SIGNATURES')?.status).toBe('fail');
     expect(report.checks.find((x) => x.id === 'VERIFIES_SIGNATURES')?.findings[0]?.fix).toBeTruthy();
