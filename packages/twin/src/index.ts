@@ -6,3 +6,6 @@ export * from './time/scheduler.js';
 export * from './time/calendar.js';
 export * from './fidelity.js';
 export * from './subscriptions/events.js';
+export * from './subscriptions/engine.js';
+export { registerSubscriptionRoutes } from './subscriptions/routes.js';
+export { PayPalError } from './subscriptions/resources.js';
