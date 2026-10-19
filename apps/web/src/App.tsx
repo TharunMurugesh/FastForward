@@ -34,10 +34,12 @@ export function App() {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   const live = mode === 'live';
-  const min = Date.parse(live ? info.now : start);
+  const min = Date.parse(start);
   const max = Date.parse(info.end);
   const value = dragging ?? Date.parse(info.now);
-  const onScrub = (ms: number) => {
+  const onScrub = (raw: number) => {
+    // A live run's clock only moves forward.
+    const ms = live ? Math.max(raw, Date.parse(info.now)) : raw;
     setDragging(ms);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {

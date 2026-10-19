@@ -33,6 +33,11 @@ export class DecisionLock {
     return new DecisionLock(path, new Map(Object.entries(parsed.data)));
   }
 
+  /** How many decisions are held. A run with no AI decisions has nothing worth saving. */
+  get size(): number {
+    return this.decisions.size;
+  }
+
   get(key: string): CustomerDecision | undefined {
     return this.decisions.get(key);
   }
