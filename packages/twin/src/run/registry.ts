@@ -5,6 +5,8 @@ import type { Run } from './run.js';
 export interface RunRegistry {
   active(): Run | null;
   get(id: string): Run | undefined;
+  /** The most recently started run, active or finished. */
+  latest(): Run | undefined;
   /** Validates, starts and activates a run, or throws an Error with a message fit to show the caller. */
   create(scenario: unknown): Promise<Run>;
   /** Plays the run to its end and releases the twin for the next run. */
@@ -17,6 +19,7 @@ export function createRunRegistry(makeRun: (scenario: Scenario) => Run): RunRegi
   return {
     active: () => current,
     get: (id) => runs.get(id),
+    latest: () => [...runs.values()].at(-1),
     async create(body) {
       if (current) throw new Error('a run is already active; finish it first');
       const run = makeRun(checkScenario(body));
