@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -92,7 +92,7 @@ afterAll(() => {
 });
 
 /** Starts Coffee Club with the given bugs, runs bad-month against it, returns the report. */
-async function runAgainstCoffeeClub(bugs: string): Promise<Report & { trace: TraceEntry[] }> {
+async function runAgainstCoffeeClub(bugs: string, makeScenario: (appPort: number) => string = scenario, tag = 'phase1'): Promise<Report & { trace: TraceEntry[] }> {
   const appPort = await freePort();
   const twinPort = await freePort();
   child = spawn(process.execPath, ['--import', '@fastforward/register', 'examples/coffee-club/dist/server.js'], {
@@ -114,9 +114,10 @@ async function runAgainstCoffeeClub(bugs: string): Promise<Report & { trace: Tra
   });
   await waitUntilUp(`http://127.0.0.1:${appPort}/__ff/probe?subscription_id=none`, child);
 
-  const file = join(dir, `bad-month-${bugs.replace(/[^a-z-]+/g, '_')}.yaml`);
-  writeFileSync(file, scenario(appPort));
-  const result = await runScenarioFile(file, { twinPort, ai: null, reportDir: join(dir, `report-${bugs.replace(/[^a-z-]+/g, '_')}`) });
+  const key = `${tag}-${bugs.replace(/[^a-z-]+/g, '_')}`;
+  const file = join(dir, `bad-month-${key}.yaml`);
+  writeFileSync(file, makeScenario(appPort));
+  const result = await runScenarioFile(file, { twinPort, ai: null, reportDir: join(dir, `report-${key}`) });
   return { ...result.report, trace: result.trace };
 }
 
@@ -146,5 +147,63 @@ describe('Phase 1 acceptance: Coffee Club against the twin', () => {
       expect(c.findings[0]?.explanation, c.id).toBeTruthy();
       expect(c.findings[0]?.fix, c.id).toBeTruthy();
     }
+  });
+});
+
+/**
+ * Phase 2 acceptance: the committed bad-month.yaml exactly as it is (weather, Ana's dispute, 75 days, the
+ * default failure threshold of 2). Only the app's port is filled in, because the file points at 3000.
+ */
+const committedBadMonth = (appPort: number) =>
+  readFileSync(join(ROOT, 'examples/coffee-club/scenarios/bad-month.yaml'), 'utf8').replaceAll('127.0.0.1:3000', `127.0.0.1:${appPort}`);
+
+const eventsOf = (trace: TraceEntry[], type?: string) =>
+  trace.flatMap((t) => (t.kind === 'event' && (type === undefined || t.event.event_type === type) ? [t] : []));
+
+describe('Phase 2 acceptance: the full bad-month under bad weather', () => {
+  it('COFFEE_BUGS=all: five checks fail, NO_LIVE_CALLS passes', async () => {
+    const report = await runAgainstCoffeeClub('all', committedBadMonth, 'phase2');
+    for (const id of ['VERIFIES_SIGNATURES', 'FULFIL_ONCE', 'ACK_FAST', 'STATE_MATCHES', 'DISPUTE_ANSWERED'] as const) {
+      expect(statusOf(report, id), id).toBe('fail');
+    }
+    expect(statusOf(report, 'NO_LIVE_CALLS')).toBe('pass');
+    expect(report.checks.filter((c) => c.status === 'fail')).toHaveLength(5);
+    for (const c of report.checks.filter((x) => x.status === 'fail')) {
+      expect(c.findings[0]?.explanation, c.id).toBeTruthy();
+      expect(c.findings[0]?.fix, c.id).toBeTruthy();
+    }
+  });
+
+  it('COFFEE_BUGS=none: all six checks pass, and the run really exercised every hard case', async () => {
+    const report = await runAgainstCoffeeClub('none', committedBadMonth, 'phase2');
+    const failing = report.checks.filter((c) => c.status === 'fail');
+    expect(failing.map((c) => ({ id: c.id, findings: c.findings.slice(0, 3).map((f) => f.summary) }))).toEqual([]);
+    for (const c of report.checks) {
+      // A check may skip only with a stated reason; none of the six should need to here.
+      expect(c.status, `${c.id} ${c.note ?? ''}`).toBe('pass');
+    }
+
+    const { trace } = report;
+    // Leo was suspended on 1 Jan, after both December retries failed, and his access was off afterwards.
+    const suspended = eventsOf(trace, 'BILLING.SUBSCRIPTION.SUSPENDED').filter((e) => !e.forged);
+    expect(suspended.map((e) => e.at.slice(0, 10))).toEqual(['2027-01-01']);
+    const leoId = (suspended[0]!.event.resource as { id: string }).id;
+    expect(trace.some((t) => t.kind === 'probe' && t.subscriptionId === leoId && t.at >= '2027-01-01' && !t.expectedAccess && t.access === false)).toBe(true);
+    expect(trace.some((t) => t.kind === 'probe' && t.subscriptionId === leoId && t.at >= '2027-01-01' && t.access === true)).toBe(false);
+
+    // Ana's dispute was answered with evidence before its deadline, so it was never resolved against the seller.
+    expect(trace.some((t) => t.kind === 'dispute_action' && t.action === 'provide-evidence')).toBe(true);
+    expect(eventsOf(trace, 'CUSTOMER.DISPUTE.RESOLVED')).toEqual([]);
+
+    // Bad weather really happened: a duplicate (same event id delivered twice as first attempts) and a forged notice.
+    const firstAttempts = new Map<string, number>();
+    for (const t of trace) if (t.kind === 'delivery' && t.attempt === 1) firstAttempts.set(t.eventId, (firstAttempts.get(t.eventId) ?? 0) + 1);
+    expect([...firstAttempts.values()].some((n) => n >= 2)).toBe(true);
+    const forged = eventsOf(trace).filter((e) => e.forged);
+    expect(forged).toHaveLength(1);
+    const forgedDeliveries = trace.filter((t) => t.kind === 'delivery' && t.eventId === forged[0]!.event.id);
+    expect(forgedDeliveries.length).toBeGreaterThan(0);
+    // The fixed app rejected it: it answered the forged notice with an error after the twin said FAILURE.
+    expect(trace.some((t) => t.kind === 'verify_call' && t.result === 'FAILURE' && forgedDeliveries.some((d) => d.kind === 'delivery' && d.transmissionId === t.transmissionId))).toBe(true);
   });
 });
