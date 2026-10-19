@@ -1,6 +1,7 @@
 export * from './server.js';
 export * from './ids.js';
-export type { Run, RunRegistry } from './control.js';
+export { Run, NOT_REDIRECTED, type DecisionContext, type RunDeps } from './run/run.js';
+export { createRunRegistry, checkScenario, type RunRegistry } from './run/registry.js';
 export * from './time/clock.js';
 export * from './time/scheduler.js';
 export * from './time/calendar.js';
@@ -9,3 +10,7 @@ export * from './subscriptions/events.js';
 export * from './subscriptions/engine.js';
 export { registerSubscriptionRoutes } from './subscriptions/routes.js';
 export { PayPalError } from './subscriptions/resources.js';
+export * from './webhooks/sign.js';
+export * from './webhooks/envelope.js';
+export * from './webhooks/dispatcher.js';
+export * from './webhooks/routes.js';

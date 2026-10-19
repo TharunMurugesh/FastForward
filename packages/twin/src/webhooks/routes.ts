@@ -6,7 +6,16 @@ const REQUIRED = ['auth_algo', 'cert_url', 'transmission_id', 'transmission_sig'
 
 type VerifyBody = Partial<Record<(typeof REQUIRED)[number], unknown>>;
 
-export function registerWebhookRoutes(app: FastifyInstance, deps: { signer: Signer; ledger: () => VerifyLedger | null }): void {
+/** What the routes report to the active run's trace; the run stamps virtual time. */
+export type WebhookTraceEntry = { kind: 'verify_call'; transmissionId: string; result: 'SUCCESS' | 'FAILURE' } | { kind: 'cert_fetch' };
+
+export interface WebhookRouteDeps {
+  signer: Signer;
+  ledger: () => VerifyLedger | null;
+  record?: (entry: WebhookTraceEntry) => void;
+}
+
+export function registerWebhookRoutes(app: FastifyInstance, deps: WebhookRouteDeps): void {
   const { signer } = deps;
 
   app.post('/v1/notifications/verify-webhook-signature', async (req, reply) => {
@@ -28,7 +37,9 @@ export function registerWebhookRoutes(app: FastifyInstance, deps: { signer: Sign
       body.auth_algo === 'SHA256withRSA' &&
       body.cert_url === certUrl(signer.certId) &&
       signer.verify(signed, String(body.transmission_sig));
-    return { verification_status: ok ? 'SUCCESS' : 'FAILURE' };
+    const result = ok ? 'SUCCESS' : 'FAILURE';
+    deps.record?.({ kind: 'verify_call', transmissionId, result });
+    return { verification_status: result };
   });
 
   app.get<{ Params: { certId: string } }>('/v1/notifications/certs/:certId', async (req, reply) => {
@@ -36,6 +47,7 @@ export function registerWebhookRoutes(app: FastifyInstance, deps: { signer: Sign
       return reply.code(404).send({ name: 'RESOURCE_NOT_FOUND', message: 'The specified resource does not exist.' });
     }
     deps.ledger()?.markCertFetch();
+    deps.record?.({ kind: 'cert_fetch' });
     return reply.type('text/plain').send(signer.certPem);
   });
 }
