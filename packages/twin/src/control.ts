@@ -1,41 +1,18 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { TraceEntry } from '@fastforward/contracts';
-import { randomBytes } from 'node:crypto';
+import type { RunRegistry } from './run/registry.js';
+import type { Run } from './run/run.js';
 
-/**
- * The part of a run that the control routes need. Task 9 replaces the stub registry with the real
- * `Run` class, which implements this interface.
- */
-export interface Run {
-  id: string;
-  trace: TraceEntry[];
-  /** Virtual time. */
-  now(): Date;
-}
+const DAY_MS = 86_400_000;
 
-/** One active run per twin. Task 9 supplies the real implementation. */
-export interface RunRegistry {
-  active(): Run | null;
-  /** Starts a run from a scenario body, or throws an Error with a message fit to show the caller. */
-  create(scenario: unknown): Promise<Run>;
-}
-
-/** Placeholder until Task 9: a run that only holds a trace and a frozen virtual clock at the scenario start. */
-export function createStubRegistry(): RunRegistry {
-  let current: Run | null = null;
-  return {
-    active: () => current,
-    async create(scenario) {
-      const start = (scenario as { start?: unknown } | null)?.start;
-      if (typeof start !== 'string' || Number.isNaN(Date.parse(start))) throw new Error('scenario.start must be an ISO-8601 timestamp');
-      const at = new Date(start);
-      current = { id: `run-${randomBytes(4).toString('hex')}`, trace: [], now: () => at };
-      return current;
-    },
-  };
-}
-
+/** The control API (spec §9), under /_ff. */
 export function registerControlRoutes(app: FastifyInstance, registry: RunRegistry): void {
+  const runOr404 = (id: string, reply: FastifyReply): Run | null => {
+    const run = registry.get(id);
+    if (!run) void reply.code(404).send({ error: `no run ${id}` });
+    return run ?? null;
+  };
+
   app.post('/_ff/runs', async (req, reply) => {
     if (registry.active()) {
       return reply.code(409).send({ error: 'a run is already active; finish it first' });
@@ -52,12 +29,76 @@ export function registerControlRoutes(app: FastifyInstance, registry: RunRegistr
     }
   });
 
+  app.get<{ Params: { id: string } }>('/_ff/runs/:id', async (req, reply) => {
+    const run = runOr404(req.params.id, reply);
+    if (!run) return reply;
+    return { runId: run.id, now: run.now().toISOString(), end: run.end.toISOString(), finished: run.finished, subscriptions: run.subscriptions() };
+  });
+
+  app.post<{ Params: { id: string } }>('/_ff/runs/:id/advance', async (req, reply) => {
+    const run = runOr404(req.params.id, reply);
+    if (!run) return reply;
+    if (run.finished) return reply.code(409).send({ error: 'the run has finished' });
+    const { to, by } = (req.body ?? {}) as { to?: unknown; by?: unknown };
+    let target: Date;
+    if (typeof to === 'string' && by === undefined && !Number.isNaN(Date.parse(to))) {
+      target = new Date(to);
+    } else if (typeof by === 'string' && to === undefined && /^P[1-9]\d*D$/.test(by)) {
+      target = new Date(run.now().getTime() + Number(by.slice(1, -1)) * DAY_MS);
+    } else {
+      return reply.code(400).send({ error: 'body must be {"to": "<ISO timestamp>"} or {"by": "P<n>D"}' });
+    }
+    if (target.getTime() < run.now().getTime()) {
+      return reply.code(400).send({ error: `cannot move back in time; the run is at ${run.now().toISOString()}` });
+    }
+    await run.advance(target);
+    return { runId: run.id, now: run.now().toISOString() };
+  });
+
+  app.get<{ Params: { id: string } }>('/_ff/runs/:id/trace', async (req, reply) => {
+    const run = runOr404(req.params.id, reply);
+    if (!run) return reply;
+    return run.trace;
+  });
+
+  // Server-sent events: the trace so far, then each new entry as it happens; ends when the run finishes.
+  app.get<{ Params: { id: string } }>('/_ff/runs/:id/stream', (req, reply) => {
+    const run = runOr404(req.params.id, reply);
+    if (!run) return reply;
+    reply.hijack();
+    const res = reply.raw;
+    res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive' });
+    const write = (t: TraceEntry) => res.write(`data: ${JSON.stringify(t)}\n\n`);
+    for (const t of run.trace) write(t);
+    if (run.finished) {
+      res.end();
+      return reply;
+    }
+    const offTrace = run.onTrace(write);
+    const offFinish = run.onFinish(() => {
+      offTrace();
+      res.end();
+    });
+    req.raw.on('close', () => {
+      offTrace();
+      offFinish();
+    });
+    return reply;
+  });
+
+  app.post<{ Params: { id: string } }>('/_ff/runs/:id/finish', async (req, reply) => {
+    const run = runOr404(req.params.id, reply);
+    if (!run) return reply;
+    await registry.finish(run);
+    return { runId: run.id, now: run.now().toISOString(), end: run.end.toISOString() };
+  });
+
   app.post('/_ff/live-call', async (req, reply) => {
     const run = registry.active();
     if (!run) return reply.code(404).send({ error: 'no active run' });
     const url = (req.body as { url?: unknown } | undefined)?.url;
     if (typeof url !== 'string') return reply.code(400).send({ error: 'body must be {"url": string}' });
-    run.trace.push({ at: run.now().toISOString(), kind: 'live_call_blocked', url });
+    run.record({ at: run.now().toISOString(), kind: 'live_call_blocked', url });
     return reply.code(204).send();
   });
 }

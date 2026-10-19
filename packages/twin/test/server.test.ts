@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { createTwin, newId, type Twin } from '../src/index.js';
 
 interface Seen {
@@ -161,7 +161,27 @@ describe('safety', () => {
 });
 
 describe('runs', () => {
-  const scenario = { name: 'stub', start: '2026-11-01T00:00:00.000Z', durationDays: 30 };
+  // A run now really starts (subscriptions, first webhooks), so it needs a full scenario and an app that answers.
+  const webhookApp: Server = createServer((req, res) => {
+    req.resume();
+    req.on('end', () => res.end());
+  });
+  const scenario = {
+    name: 'stub',
+    seed: 1,
+    start: '2026-11-01T00:00:00.000Z',
+    durationDays: 30,
+    app: { webhookUrl: '', webhookId: 'WH-FF-LOCAL' },
+    plan: { name: 'Basic', price: '5.00', currency: 'USD', interval: 'MONTH', trialDays: 0, totalCycles: 0, paymentFailureThreshold: 2 },
+    customers: [{ name: 'Sam', email: 'sam@example.test', persona: '', card: { kind: 'ok' }, actions: [] }],
+    weather: { duplicates: 0, reorder: 0, delayMinutes: [0, 0], forged: 0, burst: false },
+    expect: { accessWhile: ['ACTIVE'] },
+  };
+  beforeAll(async () => {
+    await new Promise<void>((resolve) => webhookApp.listen(0, '127.0.0.1', resolve));
+    scenario.app.webhookUrl = `http://127.0.0.1:${(webhookApp.address() as AddressInfo).port}/webhooks/paypal`;
+  });
+  afterAll(() => new Promise<void>((resolve) => webhookApp.close(() => resolve())));
   const postRun = (twin: Twin, body: string) => fetch(`${twin.url}/_ff/runs`, { method: 'POST', headers: json, body });
 
   it('second run returns 409', async () => {
@@ -191,9 +211,11 @@ describe('runs', () => {
       body: JSON.stringify({ url: 'https://api-m.paypal.com/v1/billing/subscriptions' }),
     });
     expect(res.status).toBe(204);
-    expect(twin.activeRun()?.trace).toEqual([
-      { at: '2026-11-01T00:00:00.000Z', kind: 'live_call_blocked', url: 'https://api-m.paypal.com/v1/billing/subscriptions' },
-    ]);
+    expect(twin.activeRun()?.trace).toContainEqual({
+      at: '2026-11-01T00:00:00.000Z',
+      kind: 'live_call_blocked',
+      url: 'https://api-m.paypal.com/v1/billing/subscriptions',
+    });
   });
 
   it('live-call with no active run answers 404', async () => {
