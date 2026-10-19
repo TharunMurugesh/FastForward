@@ -51,26 +51,22 @@ Branch names no longer match the work (each worker reuses its worktree); that is
 and branches once Phase 3 is merged. Workers report to the lead session by name; tell them the new lead's
 listed name when you take over (send each a one-line message).
 
-## In flight (19 Oct ~14:00)
-Merged to main and green (b7e3a4d, 262 tests pass, 2 todo): Tasks 0–10, 15, plus Task 12 and 13 pure parts
-(disputes engine/routes, `webhooks/weather.ts`). Worker B (PayPal 4) is RELEASED: his window can be closed.
-- **Worker A** now owns `run/**`, `control.ts`, `server.ts`: (1) DONE, merged 5bb8667 (269 tests): disputes in runs + dispute resource fields
-  the dashboard reads (`dispute_id`, `reason`, `seller_response_due_date`,
-  `disputed_transactions[].seller_transaction_id`, `messages[]`, `dispute_outcome.outcome_code`); (2) DONE, merged 2ae4883 (277 tests): weather in
-  runs (seeded; limits: reorder/burst act within one virtual instant, events delayed past the end are dropped, ids random); (3) DONE, merged acb2170 (284 tests): `GET /_ff/runs/current` (active or latest run),
-  `start` on `GET /_ff/runs/:id`, `GET /_ff/runs/:id/report` (404 until finished). Worker A is STANDING BY;
-  next job for A: restore full `bad-month.yaml` in the e2e once Task 11 lands.
-- **Worker C**: Task 11 (packages/cli, `fastforward` bin; e2e in `test/e2e`, run by `npm run test:e2e` only).
-  Will send terminal output + a screenshot of a live run (`?run=<id>`) = the Phase 1 demo for Vinay. Target 25 Oct.
-- Dashboard notes: run with `npm run dev -w @fastforward/web`, open http://localhost:5173 (fixture "Sample run"
-  without `?run=`). AG Grid 36.2.0 Community only (checked: no enterprise import). Open: bundle 1.4 MB because of
-  AllCommunityModule (trim later); the fidelity panel shows sample data until Task 14 writes `fidelity/latest.json`
-  (format = `FidelityFile` in `apps/web/src/fidelity.ts`; hosting must serve `/fidelity/latest.json`).
+## In flight (19 Oct ~14:40) — PHASE 1 DONE
+Main 5eaae53: 296 unit tests + 2 e2e pass (Sara ran both). Tasks 0–13 and 15 done except the full-bad-month e2e.
+CLI: `fastforward run <scenario> [--keep-twin]` prints each bug with explanation and fix, plus a dashboard link.
+`bad-month.yaml` is now **P75D, threshold 2** (Leo: fails 12-01, retries 12-06/12-11, suspended 2027-01-01).
+Phase 1 live run shown to Vinay 19 Oct (scratchpad screenshots web-live-full.png, cli-final.log in worker C's
+scratchpad). Worker B released (window PayPal 4 can be closed; worktree and branch deleted).
+- **Worker A** (job 4): e2e on the unmodified bad-month: bugs=all fails 5 checks, bugs=none passes all six
+  (non-vacuous: Leo suspended 2027-01-01, dispute answered, duplicate + forged delivered and forged rejected).
+- **Worker C**: dashboard fixture replaced by a REAL recorded run plus a regenerate script; bundle trimmed to the
+  modules in use. Root `npm run demo` waits for Task 17.
+- Dashboard: `npm run dev -w @fastforward/web` → http://localhost:5173; CLI run with `--keep-twin` to view live.
 
 ## Next for Sara
 1. Review and merge each report (read the diff, check for attribution lines, `npm ci && npm test && npm run
    typecheck` on main yourself). Then reply with a review and the next job.
-2. After Task 11 lands: **show Vinay a live run** (Phase 1 gate) before Phase 2 polish.
+2. Phase 1 gate passed (live run shown). Collect Vinay's reactions as a user (Design score).
 3. Then: restore full `bad-month.yaml` in the e2e (weather + dispute; buggy fails, fixed passes all);
    Task 14 HTML report + fidelity suite + `fidelity/latest.json` (Sara; the real-sandbox run needs .env keys,
    tell Vinay first); Task 16 MCP (fresh worker session); Task 17 hosting/README/submission.
