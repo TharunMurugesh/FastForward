@@ -2,12 +2,16 @@ import type { CheckResult, Finding } from '@fastforward/contracts';
 import { fidelity } from '../fidelity.js';
 import { day, type CheckContext } from './context.js';
 
-/** ACK_FAST: every delivery attempt got a 2xx answer within the acknowledge window (fidelity.deliveryTimeoutMs). */
+/**
+ * ACK_FAST: every delivery attempt got a 2xx answer within the acknowledge window (fidelity.deliveryTimeoutMs).
+ * A forged event is the exception: a correct app rejects it with an error status, so only silence or
+ * slowness counts against the app there.
+ */
 export function ackFast(ctx: CheckContext): CheckResult {
   const findings: Finding[] = [];
   for (const d of ctx.deliveries) {
     const slow = d.ms > fidelity.deliveryTimeoutMs;
-    const failed = d.status === null || d.status >= 300;
+    const failed = d.status === null || (d.status >= 300 && !ctx.forgedIds.has(d.eventId));
     if (!failed && !slow) continue;
     const type = ctx.eventById.get(d.eventId)?.event_type ?? 'a';
     const tries = d.attempt > 1 ? ` (attempt ${d.attempt})` : '';

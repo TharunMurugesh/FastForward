@@ -7,6 +7,8 @@ export interface CheckContext {
   scenario: Scenario;
   events: Of<'event'>[];
   eventById: Map<string, WebhookEvent>;
+  /** Ids of events the twin forged on purpose (a correct app rejects these). */
+  forgedIds: Set<string>;
   deliveries: Of<'delivery'>[];
   /** Delivery attempts grouped by the event they carried, in trace order. */
   deliveriesByEvent: Map<string, Of<'delivery'>[]>;
@@ -35,6 +37,7 @@ export function buildContext(trace: TraceEntry[], scenario: Scenario): CheckCont
   const pick = <K extends TraceEntry['kind']>(kind: K): Of<K>[] => trace.filter((t): t is Of<K> => t.kind === kind);
   const events = pick('event');
   const eventById = new Map(events.map((e) => [e.event.id, e.event]));
+  const forgedIds = new Set(events.filter((e) => e.forged).map((e) => e.event.id));
 
   // custom_id on a subscription is what the app (or the twin) stored to say who the subscriber is.
   const customIds = new Map<string, string>();
@@ -74,6 +77,7 @@ export function buildContext(trace: TraceEntry[], scenario: Scenario): CheckCont
     scenario,
     events,
     eventById,
+    forgedIds,
     deliveries,
     deliveriesByEvent,
     salesBySubscription,
