@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "test": "vitest run --project=!e2e",
+    "test": "vitest run --project=!e2e --project=!fidelity",
     "test:e2e": "vitest run --project=e2e",
     "typecheck": "tsc -b",
     "fidelity": "vitest run --project fidelity",
