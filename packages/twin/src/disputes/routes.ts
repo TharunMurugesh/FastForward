@@ -46,12 +46,12 @@ export function registerDisputeRoutes(app: FastifyInstance, engineOf: () => Disp
     scope.get('/v1/customer/disputes', (_req, reply) =>
       guarded(reply, () => {
         const disputes = engineOf().list();
+        // `items` is always there, empty when there are no disputes (what the real sandbox does, although
+        // PayPal's schema says at least one).
         return {
-          ...(disputes.length > 0
-            ? { items: disputes.map(({ dispute_id, create_time, update_time, reason, status, dispute_amount, dispute_life_cycle_stage, dispute_channel, seller_response_due_date, links }) => ({
-                dispute_id, create_time, update_time, reason, status, dispute_amount, dispute_life_cycle_stage, dispute_channel, seller_response_due_date, links,
-              })) }
-            : {}),
+          items: disputes.map(({ dispute_id, create_time, update_time, reason, status, dispute_amount, dispute_life_cycle_stage, dispute_channel, seller_response_due_date, links }) => ({
+            dispute_id, create_time, update_time, reason, status, dispute_amount, dispute_life_cycle_stage, dispute_channel, seller_response_due_date, links,
+          })),
           links: [{ href: 'https://api.sandbox.paypal.com/v1/customer/disputes', rel: 'self', method: 'GET' }],
         };
       }),

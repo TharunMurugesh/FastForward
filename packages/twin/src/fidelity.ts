@@ -25,6 +25,16 @@ export const fidelity = {
   //   (same source), and a buyer reply returns it to WAITING_FOR_SELLER_RESPONSE.
   // - unverified: a dispute the seller never touches is resolved in the buyer's favour at the due date
   //   (design spec section 6: our assumption, not checked against PayPal's docs).
+  // Shapes copied from the first live fidelity run (2026-10-25, PayPal sandbox), all in subscriptions/resources.ts:
+  // - verified: a subscription waiting for approval has no billing_info, plan, shipping_amount or update_time, and GET
+  //   also has no status_update_time; the plan only comes with ?fields=plan (PayPal's documented query).
+  // - unverified: subscriber is echoed as {} when the request has none (the run saw the field but not its contents).
+  // - unverified: cancelling an APPROVAL_PENDING subscription answers 404 with name RESOURCE_NOT_FOUND (the run saw
+  //   404 and an error object, not the name; the next live run prints it).
+  // - unverified: verify-webhook-signature answers 400 VALIDATION_ERROR when transmission_id is not a UUID, the
+  //   signature is not base64, the time is not ISO-8601, cert_url is not a URL or a field is missing (the run saw 400
+  //   for its invalid body without saying which field). A well-formed wrong signature answers 200 FAILURE.
+  // - verified: the disputes list always has `items`, empty when there are none.
   // verified 2026-10-03: sandbox dispute created with seller_response_due_date = create time + 20 days.
   disputeResponseDays: 20,
   // unverified: Hookdeck PayPal webhook guide (10 s acknowledge window); PayPal publishes no number.

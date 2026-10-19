@@ -81,8 +81,10 @@ describe('open', () => {
 
   it('list returns summaries that match the spec', async () => {
     const h = harness();
+    // No disputes: `items` is an empty array, as in the real sandbox (PayPal's own schema says at least one, so
+    // the spec is not checked for this case).
     const empty = await h.app.inject({ method: 'GET', url: '/v1/customer/disputes' });
-    assertMatchesSpec(SPEC, '/v1/customer/disputes', 'GET', 200, empty.json());
+    expect(empty.json().items).toEqual([]);
     const a = h.open();
     const b = h.open('again');
     const res = await h.app.inject({ method: 'GET', url: '/v1/customer/disputes' });
