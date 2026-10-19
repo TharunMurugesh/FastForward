@@ -119,7 +119,7 @@ Checkpoints: after each virtual day in which at least one event was delivered, a
 - `writeScenario`: plain English → Scenario (validated; one retry on invalid output).
 - `decideCustomerAction`: at decision points (after a failed payment; when the seller messages in a dispute) a persona chooses `update_card | ignore | cancel | dispute | reply`. Decisions are saved to `<scenario>.lock.json` so reruns are identical; `--fresh` regenerates.
 - `narrate`: failure + trace excerpt → `{explanation, fix}` in plain language.
-- Models: `claude-sonnet-5-5` for writer and narrator, `claude-haiku-4-5-20251001` for customer decisions. Key in `.env` as `ANTHROPIC_API_KEY`.
+- Model: `claude-opus-5-5` for writer, customer decisions and narrator, with effort `medium`, `low`, `medium` respectively (one model, one prompt cache, tuned per job). Key in `.env` as `ANTHROPIC_API_KEY`.
 - `FF_AI=off` or no key: personas use scripted defaults, narration uses templates. Runs and tests never require a key.
 
 ## 9. Interfaces
@@ -152,7 +152,7 @@ Other PayPal products (orders checkout UI, payouts, invoicing), non-Node languag
 1. Final product name.
 2. Sponsor prize: **Bryntum** (timeline is the hero view; 3 × $1,000; meaningful use is natural) or **AG Studio** (larger purse; used for run-history dashboards). Max one sponsor prize. Recommendation: Bryntum for fit. Both are commercial licences; the hosted demo is the judges' primary path.
 3. Releasing early to other entrants (outward-facing).
-4. Creating the public GitHub repo and pushing; deploying to Render.
+4. Creating the public GitHub repo and pushing; deploying to Railway (hosting choice made 19 Oct).
 
 ## 14. Risks
 

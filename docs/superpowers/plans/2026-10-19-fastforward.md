@@ -19,7 +19,7 @@
 - Defaults: twin port `4010`, demo app port `3000`, webhook id `WH-FF-LOCAL`, delivery timeout `10000` ms (override `FF_DELIVERY_TIMEOUT_MS`), report dir `.fastforward/runs/<runId>/`.
 - All timestamps in contracts are ISO-8601 UTC strings (`2026-11-01T00:00:00.000Z`).
 - One active run per twin; a second `POST /_ff/runs` returns 409.
-- AI models: `claude-sonnet-5-5` (writer, narrator), `claude-haiku-4-5-20251001` (customer decisions). Read the `claude-api` skill before writing `packages/ai`.
+- AI model: `claude-opus-5-5` for all three jobs, tuned by effort: writer `medium`, customer decisions `low`, narrator `medium` (decided 19 Oct; Vinay has $1,500 credits). If decisions prove too slow for the demo, measure `claude-haiku-5-5` before switching. Read the `claude-api` skill before writing `packages/ai`.
 - Every run and test must work with `FF_AI=off` and no API key.
 - Commits: stage explicit paths only (never `git add -A`), no AI attribution lines of any kind, no push or deploy without Vinay's yes.
 - Licence MIT. PayPal spec files are Apache-2.0: credit them in `NOTICE`.
@@ -354,14 +354,14 @@ Sponsor decision (spec §13.2) decides the timeline renderer. Build the plain SV
 Deploying and pushing need Vinay's yes (spec §13.4).
 
 **Files:**
-- Create: `render.yaml`, `scripts/start-hosted.mjs`, `README.md`, `docs/submission/{devpost.md,video-script.md}`
+- Create: `railway.json`, `scripts/start-hosted.mjs`, `README.md`, `docs/submission/{devpost.md,video-script.md}`
 
 **Interfaces — Produces:** `start-hosted.mjs` starts the twin on 4010, Coffee Club on 3000 (add-on preloaded, `FASTFORWARD=1`, bugs from `COFFEE_BUGS`), and the web app on `$PORT` serving the built dashboard, proxying `/_ff/*` to the twin and `/demo/*` to Coffee Club. README opens with the revenue-first pitch (spec §1), then a 3-command quickstart (`npm install`, `npm run demo`, open the dashboard), the integration contract (spec §5), and the licence. `devpost.md` follows the hackathon's required sections (description, tools used and how). `video-script.md`: under 3 minutes, opening with the money problem, then the live bug-finding run, the coding-assistant fix, and the ask.
 
 - [ ] **Step 1:** `node scripts/start-hosted.mjs` locally with `PORT=8080` → dashboard loads, a demo run completes, `/demo/__ff/probe?subscription_id=...` answers. Expected: all three processes up within 10 s.
 - [ ] **Step 2:** Fresh-clone check: in a temporary folder, `git clone` the local repo, `npm install`, `npm run demo` works without `.env` (AI off, no sandbox keys).
-- [ ] **Step 3: Commit** `git add render.yaml scripts/start-hosted.mjs README.md docs/submission && git commit -m "docs: hosting, README, submission material"`
-- [ ] **Step 4 (Vinay's yes required):** create public GitHub repo with MIT licence visible, push, deploy on Render, add the URL to README and Devpost.
+- [ ] **Step 3: Commit** `git add railway.json scripts/start-hosted.mjs README.md docs/submission && git commit -m "docs: hosting, README, submission material"`
+- [ ] **Step 4 (Vinay's yes required):** create public GitHub repo with MIT licence visible, push, deploy on Railway, add the URL to README and Devpost.
 
 ---
 
@@ -379,7 +379,7 @@ Deploying and pushing need Vinay's yes (spec §13.4).
 | 4 | Worker A | 12 → 13 | `packages/twin/src/disputes/`, `webhooks/weather.ts` |
 | 4 | Worker B | 16 | `packages/mcp/` |
 | 4 | Sara | 14 | `html-report.ts`, `test/fidelity/` |
-| 5 | Sara | 17 | `render.yaml`, `scripts/`, `README.md`, `docs/submission/` |
+| 5 | Sara | 17 | `railway.json`, `scripts/`, `README.md`, `docs/submission/` |
 
 At most three workers at once (shared allowance). Workers run on Sonnet; Task 5 (signing) and Task 9 (orchestration) stay on the bigger model.
 
