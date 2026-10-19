@@ -21,22 +21,23 @@ export interface PlannedDelivery {
   forged: boolean;
 }
 
-const byTime = (a: { at: Date }, b: { at: Date }) => a.at.getTime() - b.at.getTime();
+/** Send order: by time, and for events at the very same time by `seq` (which reordering swaps too). */
+const byTime = (a: { at: Date; seq: number }, b: { at: Date; seq: number }) => a.at.getTime() - b.at.getTime() || a.seq - b.seq;
 
 /**
  * Turns the events the twin emitted (with the time each would ideally be sent) into what PayPal on a
  * bad day would actually send. Steps, always in this order so a seed gives one plan:
  *   1. delay: each event is late by a whole number of minutes in `delayMinutes` [min, max];
  *   2. burst: every renewal (PAYMENT.SALE.COMPLETED) of a UTC day is sent at that day's earliest renewal time;
- *   3. reorder: walking in send order, an event swaps send times with its neighbour with chance `reorder`
- *      (pairs never chain, so an event moves at most one place);
+ *   3. reorder: walking in send order, an event swaps send times (and its place among events sent at the
+ *      same instant) with its neighbour with chance `reorder`; pairs never chain, so an event moves at most one place;
  *   4. duplicates: with chance `duplicates` an event is sent a second time, 1 to 10 minutes later, with the
  *      same event id.
  * The input is not changed; the result is in send-time order. Forged events are not made here (see
  * `forgedEvents`), so every entry has `forged: false`.
  */
 export function planDeliveries(events: { event: WebhookEvent; at: Date }[], weather: Weather, rng: () => number): PlannedDelivery[] {
-  let plan = events.map((e) => ({ event: e.event, at: new Date(e.at.getTime()) })).sort(byTime);
+  const plan = events.map((e, seq) => ({ event: e.event, at: new Date(e.at.getTime()), seq })).sort(byTime);
 
   const [minDelay, maxDelay] = weather.delayMinutes;
   if (maxDelay > 0) {
@@ -66,23 +67,24 @@ export function planDeliveries(events: { event: WebhookEvent; at: Date }[], weat
         const a = plan[i]!;
         const b = plan[i + 1]!;
         [a.at, b.at] = [b.at, a.at];
+        [a.seq, b.seq] = [b.seq, a.seq]; // events emitted at one instant trade places too
         i += 1;
       }
     }
     plan.sort(byTime);
   }
 
-  const out: PlannedDelivery[] = plan.map((p) => ({ ...p, forged: false }));
+  const out = plan.map((p) => ({ event: p.event, at: p.at, seq: p.seq, forged: false }));
   if (weather.duplicates > 0) {
     for (const p of plan) {
       if (rng() < weather.duplicates) {
         const later = 1 + Math.floor(rng() * 10);
-        out.push({ event: p.event, at: new Date(p.at.getTime() + later * MINUTE), forged: false });
+        out.push({ event: p.event, at: new Date(p.at.getTime() + later * MINUTE), seq: p.seq, forged: false });
       }
     }
     out.sort(byTime);
   }
-  return out;
+  return out.map(({ event, at, forged }) => ({ event, at, forged }));
 }
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
