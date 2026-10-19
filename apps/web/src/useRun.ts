@@ -2,7 +2,7 @@ import type { CheckResult, Report, TraceEntry } from '@fastforward/contracts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type RunInfo } from './api.js';
 import type { FidelityFile } from './fidelity.js';
-import { badMonth } from './fixtures/bad-month.js';
+import type { RecordedRun } from './fixtures/bad-month.js';
 import { sampleFidelity } from './fixtures/fidelity.js';
 
 export type Mode = 'loading' | 'live' | 'sample';
@@ -11,6 +11,8 @@ export interface RunState {
   mode: Mode;
   /** Why the sample run is showing, when it is. */
   note: string | null;
+  /** Which recording the sample is, when it is showing. */
+  sample: { scenario: string; recordedAt: string } | null;
   info: RunInfo;
   start: string;
   trace: TraceEntry[];
@@ -21,48 +23,63 @@ export interface RunState {
 }
 
 const DAY_MS = 86_400_000;
+const EPOCH = '1970-01-01T00:00:00.000Z';
 
-/** The sample run, cut at virtual time `now`, so scrubbing it behaves like a live run. */
-function sampleAt(now: string): { trace: TraceEntry[]; report: Report } {
+/** The recorded run, cut at virtual time `now`, so scrubbing it behaves like a live run. */
+function sampleAt(run: RecordedRun, now: string): { trace: TraceEntry[]; report: Report } {
   const cut = Date.parse(now);
-  const trace = badMonth.trace.filter((t) => Date.parse(t.at) <= cut);
-  const checks: CheckResult[] = badMonth.report.checks.map((c) => {
+  const trace = run.trace.filter((t) => Date.parse(t.at) <= cut);
+  const checks: CheckResult[] = run.report.checks.map((c) => {
     const findings = c.findings.filter((f) => Date.parse(f.at) <= cut);
     return { ...c, findings, status: findings.length > 0 ? 'fail' : 'pass' };
   });
   return {
     trace,
     report: {
-      ...badMonth.report,
+      ...run.report,
       checks,
       counts: {
         events: trace.filter((t) => t.kind === 'event').length,
         deliveries: trace.filter((t) => t.kind === 'delivery').length,
-        customers: badMonth.subscriptions.length,
+        customers: run.subscriptions.length,
       },
     },
   };
 }
 
-const sampleInfo = (now: string): RunInfo => ({ runId: badMonth.runId, now, end: badMonth.end, subscriptions: badMonth.subscriptions });
+const sampleInfo = (run: RecordedRun, now: string): RunInfo => ({ runId: run.runId, now, end: run.end, subscriptions: run.subscriptions });
 
 export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (days: number) => void; toEnd: () => void } {
   const runId = new URLSearchParams(window.location.search).get('run');
   const [state, setState] = useState<RunState>(() => ({
     mode: 'loading',
     note: null,
-    info: sampleInfo(badMonth.end),
-    start: badMonth.start,
-    ...sampleAt(badMonth.end),
+    sample: null,
+    info: { runId: '', now: EPOCH, end: EPOCH, subscriptions: [] },
+    start: EPOCH,
+    trace: [],
+    report: null,
     fidelity: sampleFidelity,
     fidelityIsSample: true,
     busy: false,
   }));
   const live = useRef<{ id: string } | null>(null);
+  const recording = useRef<RecordedRun | null>(null);
 
-  const useSample = useCallback((note: string) => {
+  // The recording is a separate chunk: it is only downloaded when there is no live run to show.
+  const useSample = useCallback(async (note: string) => {
     live.current = null;
-    setState((s) => ({ ...s, mode: 'sample', note, info: sampleInfo(badMonth.end), start: badMonth.start, ...sampleAt(badMonth.end) }));
+    const { badMonth } = await import('./fixtures/bad-month.js');
+    recording.current = badMonth;
+    setState((s) => ({
+      ...s,
+      mode: 'sample',
+      note,
+      sample: { scenario: badMonth.scenario, recordedAt: badMonth.recordedAt },
+      info: sampleInfo(badMonth, badMonth.end),
+      start: badMonth.start,
+      ...sampleAt(badMonth, badMonth.end),
+    }));
   }, []);
 
   const refreshLive = useCallback(async (id: string) => {
@@ -78,7 +95,7 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
       if (f && !cancelled) setState((s) => ({ ...s, fidelity: f, fidelityIsSample: false }));
     });
     if (!runId) {
-      useSample('No run id in the address (add ?run=<id>), so this is a recorded sample run.');
+      void useSample('No run id in the address (add ?run=<id>), so this is a recorded sample run.');
       return () => {
         cancelled = true;
       };
@@ -104,7 +121,7 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
         };
       })
       .catch(() => {
-        if (!cancelled) useSample(`Could not reach the twin for run ${runId}, so this is a recorded sample run.`);
+        if (!cancelled) void useSample(`Could not reach the twin for run ${runId}, so this is a recorded sample run.`);
       });
     return () => {
       cancelled = true;
@@ -115,8 +132,9 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
   const moveTo = useCallback(
     (iso: string) => {
       const l = live.current;
+      const rec = recording.current;
       if (!l) {
-        setState((s) => ({ ...s, info: sampleInfo(iso), ...sampleAt(iso) }));
+        if (rec) setState((s) => ({ ...s, info: sampleInfo(rec, iso), ...sampleAt(rec, iso) }));
         return;
       }
       setState((s) => ({ ...s, busy: true }));

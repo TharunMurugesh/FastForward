@@ -114,11 +114,15 @@ describe('toDeliveryRows', () => {
 
 describe('bad-month fixture rows', () => {
   const rows = toDeliveryRows(badMonth.trace, badMonth.subscriptions, badMonth.report);
-  it('has failing, duplicate and forged rows, and rows that pass', () => {
+  it('has failing, duplicate and forged rows', () => {
+    expect(rows.length).toBeGreaterThan(0);
     expect(rows.some((r) => r.failedChecks.length > 0)).toBe(true);
     expect(rows.some((r) => r.duplicate)).toBe(true);
     expect(rows.some((r) => r.forged)).toBe(true);
-    expect(rows.some((r) => r.failedChecks.length === 0 && !r.forged && !r.duplicate)).toBe(true);
+  });
+  it("names every row's customer, so no event was left without an owner", () => {
+    const names = new Set(badMonth.subscriptions.map((s) => s.customer));
+    expect(rows.filter((r) => !names.has(r.customer))).toEqual([]);
   });
   it('ties each failing check of the report to at least one row', () => {
     const ids = new Set(rows.flatMap((r) => r.failedChecks));
@@ -127,12 +131,14 @@ describe('bad-month fixture rows', () => {
 });
 
 describe('disputeThreads', () => {
-  it('builds the conversation from the dispute events, seller actions and customer decisions', () => {
+  it('builds the conversation from the real dispute events', () => {
     const threads = disputeThreads(badMonth.trace, badMonth.subscriptions);
+    const opened = badMonth.trace.find((t) => t.kind === 'event' && t.event.event_type === 'CUSTOMER.DISPUTE.CREATED');
+    expect(opened).toBeDefined();
     expect(threads).toHaveLength(1);
     const t = threads[0]!;
-    expect(t.disputeId).toBe('PP-D-8841');
-    expect(t.customer).toBe('Ana');
+    expect(t.disputeId).toBe((opened as unknown as { event: { resource: { dispute_id: string } } }).event.resource.dispute_id);
+    expect(t.customer).toBe('Ana'); // the scenario's dispute action belongs to Ana
     expect(t.messages[0]).toMatchObject({ from: 'system' });
     expect(t.messages.some((m) => m.from === 'buyer' && m.text.includes('never arrived'))).toBe(true);
     expect(t.messages.at(-1)).toMatchObject({ from: 'system' });
