@@ -8,7 +8,7 @@ STATUS: taken over 2026-10-19
 
 ## Where things stand
 
-- **Hackathon:** PayPal AI Hackathon on Devpost, solo. **Deadline 12 Nov 2026 PT = 13 Nov 03:30 IST.**
+- **Hackathon:** PayPal AI Hackathon on Devpost, solo. **Deadline 12 Nov 2026 12:00 pm PST = 13 Nov 01:30 IST (corrected 19 Oct from the Official Rules).**
 - **Idea: Fastforward** (working name), a stand-in PayPal with a virtual clock, AI customers and
   bad-weather webhook delivery that finds billing bugs in a developer's app. Vinay said **GO** on 19 Oct
   after the money test (conditional go: sell it as revenue protection; LocalStack is the business model

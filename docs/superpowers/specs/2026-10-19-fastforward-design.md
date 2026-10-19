@@ -1,6 +1,6 @@
 # Fastforward: design spec
 
-**Date:** 2026-10-19 · **Hackathon:** PayPal AI Hackathon (Devpost) · **Deadline:** 12 Nov 2026 PT (13 Nov 03:30 IST)
+**Date:** 2026-10-19 · **Hackathon:** PayPal AI Hackathon (Devpost) · **Deadline:** 12 Nov 2026, 12:00 pm PST (13 Nov 01:30 IST)
 **Working name:** Fastforward (final name is Vinay's decision; "Time Machine" is taken by Chargebee).
 
 One line: *A month of customers, renewals and disputes plays out against your app in 30 seconds, with AI acting as the customers, and you get a plain-language list of the bugs that would have cost you money.*
