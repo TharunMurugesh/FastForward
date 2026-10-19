@@ -1,8 +1,9 @@
 import { randomBytes } from 'node:crypto';
 import type { Customer, CustomerAction, CustomerDecision, Scenario, SubscriptionStatus, TraceEntry } from '@fastforward/contracts';
+import { DisputeEngine } from '../disputes/engine.js';
 import { SubscriptionEngine } from '../subscriptions/engine.js';
 import type { DomainEvent } from '../subscriptions/events.js';
-import { PayPalError } from '../subscriptions/resources.js';
+import { PayPalError, type Money } from '../subscriptions/resources.js';
 import { VirtualClock } from '../time/clock.js';
 import { Scheduler } from '../time/scheduler.js';
 import { Dispatcher, VerifyLedger } from '../webhooks/dispatcher.js';
@@ -41,6 +42,7 @@ export class Run {
   readonly clock: VirtualClock;
   readonly scheduler: Scheduler;
   readonly engine: SubscriptionEngine;
+  readonly disputes: DisputeEngine;
   readonly ledger = new VerifyLedger();
   readonly end: Date;
   finished = false;
@@ -67,6 +69,13 @@ export class Run {
       scheduler: this.scheduler,
       emit: (e) => this.onDomainEvent(e),
       cardOutcome: (id, at) => this.book.cardOutcome(id, at),
+    });
+    this.disputes = new DisputeEngine({
+      clock: this.clock,
+      scheduler: this.scheduler,
+      emit: (e) => this.onDomainEvent(e),
+      record: (t) => this.record(t),
+      onSellerMessage: (disputeId, message) => this.onSellerMessage(disputeId, message),
     });
     this.dispatcher = new Dispatcher({
       scheduler: this.scheduler,
@@ -213,7 +222,8 @@ export class Run {
     this.record({ at: at.toISOString(), kind: 'customer_decision', customer: customer.name, decision });
     if (decision.action === 'update_card') this.book.updateCard(subscriptionId);
     else if (decision.action === 'cancel') this.cancel(subscriptionId);
-    // 'dispute' is applied by the dispute engine (Task 12); 'ignore' and 'reply' change nothing here.
+    else if (decision.action === 'dispute') this.openDispute(subscriptionId, decision.reason, decision.message);
+    // 'ignore' and 'reply' change nothing here.
   }
 
   private scheduleAction(customer: Customer, action: CustomerAction): void {
@@ -222,8 +232,50 @@ export class Run {
     this.scheduler.schedule(at, `${customer.name} ${action.do}`, async () => {
       if (action.do === 'cancel') this.cancel(subscriptionId);
       else if (action.do === 'update_card') this.book.updateCard(subscriptionId);
-      // 'dispute' arrives with the dispute engine (Task 12).
+      else this.openDispute(subscriptionId, action.reason, action.message ?? 'I am disputing this charge.');
     });
+  }
+
+  /** A customer disputes their latest sale. With no payment yet there is nothing to dispute, so nothing happens. */
+  private openDispute(subscriptionId: string, reason: Parameters<DisputeEngine['open']>[3], message: string): void {
+    const saleId = this.engine.latestSaleId(subscriptionId);
+    const amount = (this.engine.get(subscriptionId).billing_info as { last_payment?: { amount: Money } }).last_payment?.amount;
+    if (saleId && amount) this.disputes.open(subscriptionId, saleId, amount, reason, message);
+  }
+
+  /** The app wrote to a dispute: ask the customer how to answer, at the same virtual instant. */
+  private onSellerMessage(disputeId: string, message: string): void {
+    if (!this.deps.decide) return;
+    const subscriptionId = this.disputes.subscriptionOf(disputeId);
+    const customer = this.book.customerOf(subscriptionId);
+    if (!customer) return;
+    const n = this.book.noteSellerMessage(subscriptionId);
+    const now = this.clock.now();
+    this.scheduler.schedule(now, `reply ${customer.name}`, () => this.decideAfterMessage(customer, subscriptionId, disputeId, message, n, now));
+  }
+
+  private async decideAfterMessage(customer: Customer, subscriptionId: string, disputeId: string, message: string, n: number, at: Date): Promise<void> {
+    let decision: CustomerDecision;
+    try {
+      decision = await this.deps.decide!({
+        key: `${customer.name}:seller_message:${n}`,
+        customer,
+        point: 'seller_message',
+        at: at.toISOString(),
+        details: `The seller wrote to you about your dispute ${disputeId}: "${message}"`,
+      });
+    } catch {
+      return; // a broken decide function must not stop the run
+    }
+    this.record({ at: at.toISOString(), kind: 'customer_decision', customer: customer.name, decision });
+    if (decision.action === 'reply') {
+      try {
+        this.disputes.reply(disputeId, decision.message);
+      } catch (err) {
+        if (!(err instanceof PayPalError)) throw err; // the dispute was resolved in the meantime
+      }
+    } else if (decision.action === 'cancel') this.cancel(subscriptionId);
+    else if (decision.action === 'update_card') this.book.updateCard(subscriptionId);
   }
 
   private cancel(subscriptionId: string): void {

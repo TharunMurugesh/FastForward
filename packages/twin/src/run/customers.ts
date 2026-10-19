@@ -4,6 +4,7 @@ interface CustomerState {
   customer: Customer;
   cardUpdated: boolean;
   failures: number;
+  sellerMessages: number;
 }
 
 /** Which scenario customer owns which subscription, and what their card does. */
@@ -15,7 +16,7 @@ export class CustomerBook {
     if (this.bySubscription.has(subscriptionId)) {
       throw new Error(`your app answered subscription_id ${subscriptionId} for two customers; each subscribe must create a new subscription`);
     }
-    this.bySubscription.set(subscriptionId, { customer, cardUpdated: false, failures: 0 });
+    this.bySubscription.set(subscriptionId, { customer, cardUpdated: false, failures: 0, sellerMessages: 0 });
     this.order.push({ customer: customer.name, subscriptionId });
   }
 
@@ -45,5 +46,13 @@ export class CustomerBook {
     if (!state) return 0;
     state.failures += 1;
     return state.failures;
+  }
+
+  /** Counts a seller message in a dispute and returns its number for this customer (1, 2, …), for decision lock keys. */
+  noteSellerMessage(subscriptionId: string): number {
+    const state = this.bySubscription.get(subscriptionId);
+    if (!state) return 0;
+    state.sellerMessages += 1;
+    return state.sellerMessages;
   }
 }
