@@ -8,6 +8,10 @@ export interface CheckContext {
   events: Of<'event'>[];
   eventById: Map<string, WebhookEvent>;
   deliveries: Of<'delivery'>[];
+  /** Delivery attempts grouped by the event they carried, in trace order. */
+  deliveriesByEvent: Map<string, Of<'delivery'>[]>;
+  /** Genuine sale notices per subscription, in trace order. */
+  salesBySubscription: Map<string, Of<'event'>[]>;
   probes: Of<'probe'>[];
   disputeActions: Of<'dispute_action'>[];
   verifyCalls: Of<'verify_call'>[];
@@ -49,12 +53,30 @@ export function buildContext(trace: TraceEntry[], scenario: Scenario): CheckCont
     }
   }
 
+  const deliveries = pick('delivery');
+  const deliveriesByEvent = new Map<string, Of<'delivery'>[]>();
+  for (const d of deliveries) {
+    const list = deliveriesByEvent.get(d.eventId);
+    if (list) list.push(d);
+    else deliveriesByEvent.set(d.eventId, [d]);
+  }
+  const salesBySubscription = new Map<string, Of<'event'>[]>();
+  for (const e of events) {
+    const subId = e.event.resource.billing_agreement_id;
+    if (e.forged || e.event.event_type !== 'PAYMENT.SALE.COMPLETED' || typeof subId !== 'string') continue;
+    const list = salesBySubscription.get(subId);
+    if (list) list.push(e);
+    else salesBySubscription.set(subId, [e]);
+  }
+
   const lower = (s: string) => s.trim().toLowerCase();
   return {
     scenario,
     events,
     eventById,
-    deliveries: pick('delivery'),
+    deliveries,
+    deliveriesByEvent,
+    salesBySubscription,
     probes: pick('probe'),
     disputeActions: pick('dispute_action'),
     verifyCalls: pick('verify_call'),
@@ -74,3 +96,41 @@ export function buildContext(trace: TraceEntry[], scenario: Scenario): CheckCont
     },
   };
 }
+
+export interface Stretch<P> {
+  first: P;
+  last: P;
+  count: number;
+}
+
+/**
+ * Groups consecutive bad probes of one subscription that show the same wrong value into one stretch.
+ * `valueOf` returns null for a good probe and a key for a bad one; a good probe, or a different key,
+ * ends the stretch. Subscriptions are tracked separately. Stretches come out in the order they began.
+ */
+export function stretches<P extends { subscriptionId: string }>(probes: P[], valueOf: (p: P) => string | null): Stretch<P>[] {
+  const out: Stretch<P>[] = [];
+  const open = new Map<string, { key: string; stretch: Stretch<P> }>();
+  for (const p of probes) {
+    const key = valueOf(p);
+    const current = open.get(p.subscriptionId);
+    if (key === null) {
+      open.delete(p.subscriptionId);
+    } else if (current && current.key === key) {
+      current.stretch.last = p;
+      current.stretch.count += 1;
+    } else {
+      const stretch = { first: p, last: p, count: 1 };
+      out.push(stretch);
+      open.set(p.subscriptionId, { key, stretch });
+    }
+  }
+  return out;
+}
+
+/** "on 2026-12-01" for one day, "from 2026-12-01 to 2026-12-30" for a stretch (`single` is used for one check). */
+export function span(first: string, last: string, single = 'on'): string {
+  return day(first) === day(last) ? `${single} ${day(first)}` : `from ${day(first)} to ${day(last)}`;
+}
+
+export const checksNote = (count: number): string => (count > 1 ? ` (${count} checks)` : '');

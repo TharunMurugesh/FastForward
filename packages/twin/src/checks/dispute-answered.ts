@@ -8,12 +8,19 @@ export function disputeAnswered(ctx: CheckContext): CheckResult {
     return { id: 'DISPUTE_ANSWERED', status: 'skipped', findings: [], note: 'no customer opened a dispute' };
   }
 
+  const actionsByDispute = new Map<string, number[]>();
+  for (const a of ctx.disputeActions) {
+    const times = actionsByDispute.get(a.disputeId);
+    if (times) times.push(Date.parse(a.at));
+    else actionsByDispute.set(a.disputeId, [Date.parse(a.at)]);
+  }
+
   const findings: Finding[] = [];
   for (const { at, event } of disputes) {
     const disputeId = String(event.resource.dispute_id ?? event.resource.id ?? '');
     const dueRaw = event.resource.seller_response_due_date;
     const due = typeof dueRaw === 'string' ? Date.parse(dueRaw) : Number.POSITIVE_INFINITY;
-    const answered = ctx.disputeActions.some((a) => a.disputeId === disputeId && Date.parse(a.at) <= due);
+    const answered = (actionsByDispute.get(disputeId) ?? []).some((t) => t <= due);
     if (answered) continue;
     findings.push({
       at,

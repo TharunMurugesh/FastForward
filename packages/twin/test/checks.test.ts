@@ -320,6 +320,97 @@ describe('NO_LIVE_CALLS', () => {
   });
 });
 
+describe("lasting bugs collapse into one finding per stretch", () => {
+  const dayProbe = (sub: string, d: number, o: Partial<Extract<TraceEntry, { kind: "probe" }>> = {}) =>
+    probe(sub, { at: `2026-12-${String(d).padStart(2, "0")}T00:00:00.000Z`, ...o });
+  const leoSuspended: TraceEntry[] = [
+    event(subscribed(SUB_LEO, "leo@example.test")),
+    event(subscribed(SUB_LEO, "leo@example.test", "SUSPENDED", "WH-susp"), "2026-11-20T00:00:00.000Z"),
+  ];
+
+  it("STATE_MATCHES: 30 bad checks in a row are one finding with the date range and count", () => {
+    const probes = Array.from({ length: 30 }, (_, i) => dayProbe(SUB_LEO, i + 1, { access: true, expectedAccess: false }));
+    const r = check([...leoSuspended, ...probes], "STATE_MATCHES");
+    expect(r.status).toBe("fail");
+    expect(r.findings).toHaveLength(1);
+    expect(r.findings[0]!.summary).toBe("Leo still had access from 2026-12-01 to 2026-12-30 although PayPal had suspended the subscription (30 checks).");
+    expect(r.findings[0]!.at).toBe("2026-12-01T00:00:00.000Z");
+    expect(r.findings[0]!.eventIds).toEqual(["WH-susp"]);
+  });
+
+  it("STATE_MATCHES: a good check in between starts a new stretch", () => {
+    const bad = { access: true, expectedAccess: false };
+    const trace = [...leoSuspended, dayProbe(SUB_LEO, 1, bad), dayProbe(SUB_LEO, 2, bad), dayProbe(SUB_LEO, 3, { access: false, expectedAccess: false }), dayProbe(SUB_LEO, 4, bad)];
+    const r = check(trace, "STATE_MATCHES");
+    expect(r.findings.map((f) => f.summary)).toEqual([
+      "Leo still had access from 2026-12-01 to 2026-12-02 although PayPal had suspended the subscription (2 checks).",
+      "Leo still had access on 2026-12-04 although PayPal had suspended the subscription.",
+    ]);
+  });
+
+  it("STATE_MATCHES: a different wrong value starts a new stretch; subscriptions are tracked separately", () => {
+    const trace = [
+      ...leoSuspended,
+      event(subscribed(SUB_MAYA, "Maya")),
+      dayProbe(SUB_LEO, 1, { access: true, expectedAccess: false }),
+      dayProbe(SUB_MAYA, 1, { access: false, expectedAccess: true }),
+      dayProbe(SUB_LEO, 2, { access: true, expectedAccess: false }),
+      dayProbe(SUB_MAYA, 2, { access: false, expectedAccess: true }),
+      dayProbe(SUB_LEO, 3, { access: null, expectedAccess: false }),
+    ];
+    const r = check(trace, "STATE_MATCHES");
+    expect(r.findings.map((f) => f.summary)).toEqual([
+      "Leo still had access from 2026-12-01 to 2026-12-02 although PayPal had suspended the subscription (2 checks).",
+      "Maya had no access from 2026-12-01 to 2026-12-02 although the subscription was active and access should have been allowed (2 checks).",
+      expect.stringContaining("On 2026-12-03 your app did not answer"),
+    ]);
+  });
+
+  it("FULFIL_ONCE: the same wrong count over many checks is one finding; a changed count is another", () => {
+    const wrong = { fulfilments: 2, completedPayments: 1 };
+    const trace = [
+      event(subscribed(SUB_MAYA, "Maya")),
+      event(sale(SUB_MAYA, "WH-sale1")),
+      dayProbe(SUB_MAYA, 1, wrong),
+      dayProbe(SUB_MAYA, 2, wrong),
+      dayProbe(SUB_MAYA, 3, wrong),
+      dayProbe(SUB_MAYA, 4, { fulfilments: 3, completedPayments: 1 }),
+      dayProbe(SUB_MAYA, 5, { fulfilments: 2, completedPayments: 2 }),
+    ];
+    const r = check(trace, "FULFIL_ONCE");
+    expect(r.findings.map((f) => f.summary)).toEqual([
+      expect.stringContaining("Maya was given what they paid for 2 times from 2026-12-01 to 2026-12-03, but only 1 payment had completed (3 checks)"),
+      expect.stringContaining("Maya was given what they paid for 3 times by 2026-12-04, but only 1 payment had completed"),
+    ]);
+    expect(r.findings[0]!.eventIds).toEqual(["WH-sale1"]);
+  });
+
+  it("two checks on the same day read as one day, not a range", () => {
+    const bad = { access: true, expectedAccess: false };
+    const r = check([...leoSuspended, dayProbe(SUB_LEO, 1, bad), dayProbe(SUB_LEO, 1, bad)], "STATE_MATCHES");
+    expect(r.findings[0]!.summary).toBe("Leo still had access on 2026-12-01 although PayPal had suspended the subscription (2 checks).");
+  });
+});
+
+describe("speed", () => {
+  it("a 200-customer, 365-day trace is checked in well under a second", () => {
+    const trace: TraceEntry[] = [];
+    for (let c = 0; c < 200; c += 1) {
+      const sub = `I-PERF${String(c).padStart(8, "0")}`;
+      trace.push(event(subscribed(sub, `cust${c}`, "ACTIVE", `WH-act-${c}`)));
+      for (let d = 0; d < 365; d += 1) {
+        const id = `WH-${c}-${d}`;
+        const at = new Date(Date.UTC(2026, 10, 1 + d)).toISOString();
+        trace.push(event(sale(sub, id), at), delivery(id, { at, transmissionId: `T-${id}` }), probe(sub, { at, access: d % 2 === 0, expectedAccess: true, fulfilments: 1, completedPayments: 1 }));
+      }
+    }
+    trace.push({ at: "2026-11-02T00:00:00.000Z", kind: "cert_fetch" });
+    const started = performance.now();
+    runChecks(trace, scenario);
+    expect(performance.now() - started).toBeLessThan(1500);
+  });
+});
+
 describe('buildReport', () => {
   it('report counts events, deliveries, customers', () => {
     const a = ev('PAYMENT.SALE.COMPLETED', {}, 'WH-1');
