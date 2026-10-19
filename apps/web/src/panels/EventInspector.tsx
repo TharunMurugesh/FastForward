@@ -1,0 +1,116 @@
+import type { Report, TraceEntry } from '@fastforward/contracts';
+import { CHECK_TITLES, EVENT_LABELS, fmtDateTime } from '../format.js';
+import { eventOwners } from '../timeline/model.js';
+import { isSlowOrFailed } from '../grids/rows.js';
+
+interface Props {
+  eventId: string | null;
+  trace: TraceEntry[];
+  subscriptions: { customer: string; subscriptionId: string }[];
+  report: Report | null;
+}
+
+export function EventInspector({ eventId, trace, subscriptions, report }: Props) {
+  if (!eventId) {
+    return (
+      <div className="empty">
+        <p>
+          <strong>Nothing selected.</strong>
+        </p>
+        <p className="muted">Click a row in the deliveries table or a marker on the timeline to see the notice, how your app answered, and why a check failed.</p>
+      </div>
+    );
+  }
+
+  const entry = trace.find((t): t is Extract<TraceEntry, { kind: 'event' }> => t.kind === 'event' && t.event.id === eventId);
+  if (!entry) return <div className="empty muted">That event has not happened yet at this date.</div>;
+
+  const deliveries = trace.filter((t): t is Extract<TraceEntry, { kind: 'delivery' }> => t.kind === 'delivery' && t.eventId === eventId);
+  const transmissions = new Set(deliveries.map((d) => d.transmissionId));
+  const verifies = trace.filter((t): t is Extract<TraceEntry, { kind: 'verify_call' }> => t.kind === 'verify_call' && transmissions.has(t.transmissionId));
+  const owner = eventOwners(trace).get(eventId);
+  const customer = subscriptions.find((s) => s.subscriptionId === owner)?.customer ?? '—';
+  const findings = (report?.checks ?? []).flatMap((c) => c.findings.filter((f) => f.eventIds.includes(eventId)).map((f) => ({ check: c, finding: f })));
+
+  return (
+    <div className="inspector">
+      <h3>
+        {EVENT_LABELS[entry.event.event_type] ?? entry.event.event_type}
+        {entry.forged && <span className="chip warn">forged</span>}
+      </h3>
+      <dl className="facts">
+        <dt>Customer</dt>
+        <dd>{customer}</dd>
+        <dt>Event</dt>
+        <dd className="mono">{entry.event.event_type}</dd>
+        <dt>Event id</dt>
+        <dd className="mono">{entry.event.id}</dd>
+        <dt>Happened</dt>
+        <dd>{fmtDateTime(entry.at)} (virtual)</dd>
+        {entry.forged && (
+          <>
+            <dt>Signature</dt>
+            <dd>Deliberately invalid. A correct app refuses it.</dd>
+          </>
+        )}
+      </dl>
+
+      {findings.length > 0 && (
+        <div className="stack">
+          {findings.map(({ check, finding }, i) => (
+            <article className="finding bad" key={`${check.id}-${i}`}>
+              <h4>
+                <span className="chip bad">{check.id}</span> {CHECK_TITLES[check.id]}
+              </h4>
+              <p>{finding.summary}</p>
+              {finding.explanation && <p>{finding.explanation}</p>}
+              {finding.fix && (
+                <p>
+                  <strong>Fix:</strong> {finding.fix}
+                </p>
+              )}
+            </article>
+          ))}
+        </div>
+      )}
+
+      <h4>What your app did</h4>
+      {deliveries.length === 0 ? (
+        <p className="muted">Not delivered yet.</p>
+      ) : (
+        <table className="mini">
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Try</th>
+              <th>Answer</th>
+              <th>Took</th>
+              <th>Signature</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deliveries.map((d, i) => (
+              <tr key={i} className={isSlowOrFailed(d) && !entry.forged ? 'bad' : ''}>
+                <td>{fmtDateTime(d.at)}</td>
+                <td>{d.attempt}</td>
+                <td>{d.status === null ? 'timed out' : d.status}</td>
+                <td>{d.ms.toLocaleString('en-GB')} ms</td>
+                <td>{d.verifyCalled ? '✓ checked' : '✗ not checked'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {verifies.length > 0 && (
+        <p className="muted">
+          PayPal's verify endpoint answered {verifies.map((v) => v.result).join(', ')}.
+        </p>
+      )}
+
+      <details>
+        <summary>Notice payload</summary>
+        <pre>{JSON.stringify(entry.event, null, 2)}</pre>
+      </details>
+    </div>
+  );
+}
