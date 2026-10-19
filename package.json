@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "test": "vitest run",
-    "test:e2e": "vitest run --project e2e",
+    "test": "vitest run --project=!e2e",
+    "test:e2e": "vitest run --project=e2e",
     "typecheck": "tsc -b",
     "fidelity": "vitest run --project fidelity",
     "demo": "echo \"demo arrives in Task 11\" && exit 1"

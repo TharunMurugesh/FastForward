@@ -161,6 +161,7 @@ describe('DecisionLock', () => {
 
   it('treats a missing file as empty', () => {
     expect(DecisionLock.load(join(dir, 'none.lock.json')).get('x')).toBeUndefined();
+    expect(DecisionLock.load(join(dir, 'none.lock.json')).size).toBe(0);
   });
 
   it('refuses a damaged file instead of discarding it', () => {
