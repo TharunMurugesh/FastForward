@@ -1,6 +1,6 @@
 import { CHECK_IDS, type CheckId, type Report } from '@fastforward/contracts';
 
-const TITLES: Record<CheckId, string> = {
+export const CHECK_TITLES: Record<CheckId, string> = {
   ACK_FAST: 'App answers PayPal fast',
   VERIFIES_SIGNATURES: 'App verifies each notice is from PayPal',
   STATE_MATCHES: 'Access matches the subscription status',
@@ -32,6 +32,8 @@ const wrap = (text: string, indent: string, width = 92): string => {
 
 export interface PrintContext {
   reportDir: string;
+  /** Written next to report.json; shown when present. */
+  htmlReport?: string;
   dashboardLink: string;
   /** True when the twin stays up after the run, so the dashboard link will work. */
   twinKept: boolean;
@@ -47,7 +49,7 @@ export function formatReport(report: Report, ctx: PrintContext): string {
   for (const id of CHECK_IDS) {
     const c = report.checks.find((x) => x.id === id);
     if (!c) continue;
-    out.push(`  ${MARK[c.status]} ${id.padEnd(20)} ${TITLES[id]}${c.status === 'skipped' && c.note ? `  (${c.note})` : ''}`);
+    out.push(`  ${MARK[c.status]} ${id.padEnd(20)} ${CHECK_TITLES[id]}${c.status === 'skipped' && c.note ? `  (${c.note})` : ''}`);
     if (c.status !== 'fail') continue;
     const shown = c.findings.slice(0, SHOWN_PER_CHECK);
     for (const f of shown) out.push(wrap(f.summary, '      '));
@@ -60,6 +62,7 @@ export function formatReport(report: Report, ctx: PrintContext): string {
   out.push('');
   out.push(failed.length > 0 ? `${failed.length} of ${report.checks.length} checks failed.` : 'No checks failed.');
   out.push(`Report:    ${ctx.reportDir}/report.json`);
+  if (ctx.htmlReport) out.push(`           ${ctx.htmlReport.replaceAll('\\', '/')}  (open in a browser)`);
   out.push(`Dashboard: ${ctx.dashboardLink}${ctx.twinKept ? '' : '  (open it while the twin is running; use --keep-twin)'}`);
   return out.join('\n') + '\n';
 }
