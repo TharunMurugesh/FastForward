@@ -25,7 +25,7 @@ A flight simulator for PayPal subscriptions: skip a month ahead, let AI customer
 
 You describe a scenario in plain words, such as "a bad month for a coffee subscription." Then:
 
-1. **A twin of PayPal Subscriptions plays the month.** The twin is our stand-in for PayPal. It runs on a fast-forwarded clock, so a 75-day scenario takes about 30 seconds.
+1. **A twin of PayPal Subscriptions plays the month.** The twin is our stand-in for PayPal. It runs on a fast-forwarded clock, so a 75-day scenario plays in a few minutes of real time.
 2. **AI plays the customers.** One pays on time, one's card starts failing, one opens a dispute. At each decision point Claude chooses what that customer does next: update the card, ignore it, cancel, dispute, or reply to the seller.
 3. **The twin sends "bad weather."** Webhooks (the automatic messages PayPal sends to your app) arrive twice, late, out of order, or forged. Every message is signed like PayPal's.
 4. **Six checks judge your app.** Did it verify signatures? Fulfil an order only once? Answer fast enough? End up in the right subscription state? Answer the dispute? Stay away from the live PayPal API?
@@ -39,7 +39,7 @@ To prove it finds real bugs, we built a small coffee-subscription app, Coffee Cl
 
 Run the same 75-day month twice, changing nothing but the bugs:
 
-- **Bugs on:** five of the six checks fail, each with an explanation and a fix. (The sixth, "no live PayPal calls," passes.)
+- **Bugs on:** four of the six checks fail (signatures, access state, double fulfilment, unanswered dispute), each with an explanation and a fix. A sixth bug, slow replies, makes a fifth check fail but stretches the run to minutes, so the demo leaves it off.
 - **Bugs off:** all six checks pass.
 
 ## How PayPal is used
@@ -88,8 +88,8 @@ Video: [public YouTube URL]
 ## Checklist for Vinay (delete this section before pasting)
 
 - [ ] Fill in the three bracketed links: hosted demo URL, GitHub URL, YouTube URL.
-- [ ] Confirm the MCP server (Task 16) and `npm run demo` are merged before submitting; this text says both exist. Right now `npm run demo` is a placeholder and `packages/mcp` does not exist.
-- [ ] Confirm "five of six" matches your final run (bad-month with all bugs gives 5 failing checks in the e2e test; the shorter four-bug test gives 4).
+- [ ] Confirm `npm run demo` is merged before submitting; this text says it exists. The MCP server (Task 16) is merged.
+- [ ] Confirm "four of six" matches your final run (the demo bug set gave 4 failing checks when Sara ran it live on 20 Oct; adding the slow-reply bug gives 5).
 - [ ] Devpost "Tools used" field: Claude Opus 5.5, PayPal Subscriptions and Disputes APIs, PayPal Node SDK, AG Grid Community, Fastify, React, Vite.
 - [ ] The $39 price and the 9% figure are labelled as a target and as unverified. Keep it that way if you edit.
 - [ ] Rules: no third-party logos or copyrighted music in screenshots or the video. This text uses no logos.
