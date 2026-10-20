@@ -1,0 +1,20 @@
+# Runs on every push and pull request: build, then the unit tests. The slow end-to-end
+# tests and the live-PayPal fidelity suite stay manual (npm run test:e2e, npm run fidelity).
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high

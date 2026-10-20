@@ -9,13 +9,13 @@ able to install it, point their own app at it, trust what it says, and not be ha
 with accounts and billing comes later, after real people use the free tool.
 
 ## Phase 1: safe and trustworthy (do now, all local, small)
-1. **Lock the public demo to read-only.** Found 20 Oct: anyone on the internet can POST to the live site's
+1. **[done 20 Oct] Lock the public demo to read-only.** Found 20 Oct: anyone on the internet can POST to the live site's
    control API (`/_ff/runs`) and start runs on Tharun's server. Fix: the hosted proxy allows only GET/HEAD.
    Helps: everyone, because strangers cannot run up Tharun's bill or crash the demo before judging.
-2. **Automatic checks on every push (GitHub Actions):** build, typecheck and the 376 tests. The repo has none.
+2. **[written, runs once pushed] Automatic checks on every push (GitHub Actions):** build, typecheck and the 376 tests. The repo has none.
    Helps: any contributor or customer, who can see that main always passes.
-3. **Dependency and secret audit:** `npm audit`, a secret scan of the history, a pinned Node version in Docker.
-4. **Container hardening:** run as a non-root user, add a Docker health check, a small `.dockerignore` review.
+3. **[done: 0 vulnerabilities, history clean] Dependency and secret audit:** `npm audit`, a secret scan of the history, a pinned Node version in Docker.
+4. **[done, tested] Container hardening:** run as a non-root user, add a Docker health check, a small `.dockerignore` review.
 5. **Speed up the 4.5 minute e2e test** so the checks in step 2 stay quick.
 
 ## Phase 2: a stranger can install and use it (needs your decisions)
