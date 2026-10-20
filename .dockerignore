@@ -1,0 +1,8 @@
+node_modules
+**/node_modules
+.git
+.env
+.fastforward
+**/dist
+**/*.tsbuildinfo
+docs/details.txt
