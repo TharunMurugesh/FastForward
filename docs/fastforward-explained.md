@@ -24,8 +24,8 @@ A **flight simulator for PayPal payments**. A pilot trains for engine failure in
 a simulator, so the first failure never happens with passengers on board.
 
 You describe a scenario in plain words, like "a bad month". Then:
-1. A copy of PayPal's subscriptions (the **twin**) plays that month in about
-   30 seconds, using a fast-forwarded clock.
+1. A copy of PayPal's subscriptions (the **twin**) plays that month in a few minutes of real time,
+   using a fast-forwarded clock.
 2. AI plays the customers: one pays, one complains, one disputes.
 3. The twin also behaves badly on purpose (the "bad weather"): duplicate
    messages, late ones, out of order.
