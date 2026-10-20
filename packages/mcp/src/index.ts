@@ -85,7 +85,7 @@ export function createServer(opts: ServerOptions = {}): McpServer {
     'ff_run',
     {
       description:
-        "Play a scenario against the developer's PayPal-integrated app (already running with FASTFORWARD=1 node --import @fastforward/register) on a simulated PayPal and report billing bugs. Returns each check's status, the first finding with its explanation and fix, and a runId for ff_explain. Everything is simulated; no real PayPal call is made.",
+        "Play a scenario against the developer's PayPal-integrated app (already running with FASTFORWARD=1 node --import fastforward-register) on a simulated PayPal and report billing bugs. Returns each check's status, the first finding with its explanation and fix, and a runId for ff_explain. Everything is simulated; no real PayPal call is made.",
       inputSchema: { scenarioPath: z.string().min(1).describe('Path to the scenario YAML') },
     },
     ({ scenarioPath }) =>

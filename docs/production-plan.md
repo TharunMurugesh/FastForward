@@ -27,11 +27,11 @@ with accounts and billing comes later, after real people use the free tool.
 7. **[built and tested locally, NOT published] Installable packages** (decided 20 Oct: three packages, `fastforward-cli`, `fastforward-register`, `fastforward-mcp`, internals bundled; `npm run pack:check` installs the packed tarballs into an empty folder and runs the bad month, 4 of 6): make the CLI, register add-on and MCP server real npm packages (today they are
    private and only work inside this repo). Version numbers, a build that ships compiled files, a changelog.
    Publishing to npm is outward and needs your yes.
-8. **`fastforward init`:** one command that writes a starter scenario and shows how to start the user's app with
+8. **[done 20 Oct] `fastforward init`:** one command that writes a starter scenario and shows how to start the user's app with
    the register add-on. Today a user must read the README and write YAML by hand.
 9. **A second example app** that uses plain `fetch` instead of PayPal's SDK, to prove it works for apps that are
    not built like Coffee Club (the spike says both are redirectable; this makes it a tested fact).
-10. **Real docs:** how to use it on your own app, a reference for every scenario field and every check, and a
+10. **[done: docs/guide.md] Real docs:** how to use it on your own app, a reference for every scenario field and every check, and a
     troubleshooting page (port in use, app not redirected, no webhook received).
 11. **Clear errors:** every failure says what to do next, in plain words.
 

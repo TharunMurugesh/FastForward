@@ -1,4 +1,4 @@
-// Side-effect entry: `FASTFORWARD=1 node --import @fastforward/register app.js` (spec §5, §11).
+// Side-effect entry: `FASTFORWARD=1 node --import fastforward-register app.js` (spec §5, §11).
 // Inactive unless FASTFORWARD is exactly "1".
 import { installRedirect } from './redirect.js';
 

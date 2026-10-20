@@ -36,7 +36,7 @@ const USAGE = `Usage:
   fastforward new "<description>" [-o <file.yaml>]
   fastforward twin [--port <n>]
 
-run    plays the scenario against your app (started with FASTFORWARD=1 node --import @fastforward/register)
+run    plays the scenario against your app (started with FASTFORWARD=1 node --import fastforward-register)
        and reports billing bugs. Exit code 0 = all checks passed or skipped, 1 = a check failed, 2 = could not run.
 init   writes a starter scenario (fastforward.yaml) and prints the next steps. No AI, no key.
 new    asks Claude to write a scenario from a description (needs ANTHROPIC_API_KEY).
@@ -150,7 +150,7 @@ async function twinCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
     if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') throw new ToolError(`port ${port} is already in use. Is a twin already running?`);
     throw err;
   }
-  io.stdout(`Fastforward twin listening at ${twin.url}\nPoint your app at it with FASTFORWARD=1 node --import @fastforward/register, then run: fastforward run <scenario.yaml> --twin-url ${twin.url}\nPress Ctrl+C to stop.\n`);
+  io.stdout(`Fastforward twin listening at ${twin.url}\nPoint your app at it with FASTFORWARD=1 node --import fastforward-register, then run: fastforward run <scenario.yaml> --twin-url ${twin.url}\nPress Ctrl+C to stop.\n`);
   await (io.waitForInterrupt ?? waitForSigint)();
   if (lock.size > 0) lock.save();
   await twin.close();

@@ -32,7 +32,7 @@ STATUS: taken over 2026-10-19
 | 1 | Scaffold + contracts | `packages/contracts` (Sara owns; workers ask for changes) |
 | 2–4 | Twin server, virtual clock/scheduler, subscriptions engine + routes, `fidelity.ts`, PayPal OpenAPI specs | Retry rule verified from PayPal docs (5 days, twice per cycle); "suspend at once on reaching threshold" is inferred, marked unverified |
 | 5 | Signed webhooks, verify endpoint, delivery with retries | `createSigner` is async (approved). Retry conflict: doubling from 1 min hits the 3-day window at 13 attempts, so `deliveryMaxAttempts` 25 never applies. Open fidelity question |
-| 6 | `@fastforward/register` add-on | Blocks live PayPal before any socket opens; undici pinned 8.12.2 |
+| 6 | `fastforward-register` add-on | Blocks live PayPal before any socket opens; undici pinned 8.12.2 |
 | 7 | Coffee Club demo app | Official SDK; re-fetches subscription status on every event (fixed); bugs: no-verify, no-dedupe, slow-ack, ignores-suspend, ignores-disputes, **trusts-event-order** |
 | 8 | `@fastforward/ai` | Fake AiClient in all tests; only real model decisions are locked |
 | — | Contract change 5c815df | Trace kinds `verify_call` and `cert_fetch`; VERIFIES_SIGNATURES judges from these |

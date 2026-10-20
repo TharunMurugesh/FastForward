@@ -59,7 +59,7 @@ process.env.FF_DELIVERY_TIMEOUT_MS = '500';
 const { runScenarioFile } = await import('@fastforward/cli');
 const { parseScenario } = await import('@fastforward/contracts');
 
-const app = spawn(process.execPath, ['--import', '@fastforward/register', 'examples/coffee-club/dist/server.js'], {
+const app = spawn(process.execPath, ['--import', 'fastforward-register', 'examples/coffee-club/dist/server.js'], {
   cwd: root,
   stdio: ['ignore', 'ignore', 'inherit'],
   env: {

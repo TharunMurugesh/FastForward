@@ -54,7 +54,7 @@ Plain checks, not the AI, decide pass or fail, so the AI cannot talk a bug into 
 - The twin is built from PayPal's **official OpenAPI specifications** (Subscriptions, Disputes, webhooks) and
   its responses are validated against them.
 - The demo app uses PayPal's **official Node SDK** (`@paypal/paypal-server-sdk`), unmodified. A small add-on
-  (`@fastforward/register`) redirects its sandbox calls to the twin and blocks any call to live PayPal before a
+  (`fastforward-register`) redirects its sandbox calls to the twin and blocks any call to live PayPal before a
   socket opens.
 - Webhooks are **signed and verified the way PayPal does it**: the twin signs events, serves the certificate and
   implements the verify-webhook-signature endpoint.
@@ -66,11 +66,14 @@ Plain checks, not the AI, decide pass or fail, so the AI cannot talk a bug into 
 
 ## Use it on your own app
 
+Full guide, with the scenario reference, the six checks and troubleshooting: [docs/guide.md](docs/guide.md). Short version:
+
 Start your app with the add-on, then run a scenario:
 
 ```
-FASTFORWARD=1 node --import @fastforward/register app.js
-npx fastforward run my-scenario.yaml
+FASTFORWARD=1 node --import fastforward-register app.js
+npx fastforward init
+npx fastforward run fastforward.yaml
 ```
 
 Your app needs only a webhook handler. Two optional touchpoints unlock more checks:

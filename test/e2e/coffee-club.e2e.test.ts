@@ -11,7 +11,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 /**
  * Phase 1 acceptance: the real Coffee Club app, started the way a user would start their own
- * (`FASTFORWARD=1 node --import @fastforward/register`), against the real twin, driven by the real CLI runner.
+ * (`FASTFORWARD=1 node --import fastforward-register`), against the real twin, driven by the real CLI runner.
  * Nothing here touches live PayPal or the Anthropic API: the register add-on sends the app's PayPal
  * calls to the twin, and the run uses no AI (scripted customers, template narration).
  */
@@ -95,7 +95,7 @@ afterAll(() => {
 async function runAgainstCoffeeClub(bugs: string, makeScenario: (appPort: number) => string = scenario, tag = 'phase1'): Promise<Report & { trace: TraceEntry[] }> {
   const appPort = await freePort();
   const twinPort = await freePort();
-  child = spawn(process.execPath, ['--import', '@fastforward/register', 'examples/coffee-club/dist/server.js'], {
+  child = spawn(process.execPath, ['--import', 'fastforward-register', 'examples/coffee-club/dist/server.js'], {
     cwd: ROOT,
     stdio: ['ignore', 'ignore', 'inherit'],
     env: {

@@ -17,7 +17,7 @@ const DAY_MS = 86_400_000;
 const SUBSCRIBE_TIMEOUT_MS = 30_000;
 
 /** Spec §11: the run aborts with this when the app's subscribe step never reaches the twin. */
-export const NOT_REDIRECTED = "your app isn't redirected — start it with `FASTFORWARD=1 node --import @fastforward/register`";
+export const NOT_REDIRECTED = "your app isn't redirected — start it with `FASTFORWARD=1 node --import fastforward-register`";
 
 /** Same shape as `@fastforward/ai`'s DecisionContext; the twin takes a function and never imports the AI package. */
 export interface DecisionContext {

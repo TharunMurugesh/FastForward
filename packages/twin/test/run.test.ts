@@ -93,7 +93,7 @@ describe('run start', { timeout: 30_000 }, () => {
     expect(res.status).toBe(400);
     const { error } = (await res.json()) as { error: string };
     expect(error).toContain("your app isn't redirected");
-    expect(error).toContain('FASTFORWARD=1 node --import @fastforward/register');
+    expect(error).toContain('FASTFORWARD=1 node --import fastforward-register');
     expect(twin.activeRun()).toBeNull();
   });
 

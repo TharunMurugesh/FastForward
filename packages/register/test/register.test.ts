@@ -55,13 +55,13 @@ interface Outcome {
   json: Record<string, unknown>;
 }
 
-/** Runs `node --import @fastforward/register <fixture>` the way an app under test is started. */
+/** Runs `node --import fastforward-register <fixture>` the way an app under test is started. */
 function runFixture(name: string, env: Record<string, string | undefined>): Promise<Outcome> {
   const base = { ...process.env };
   delete base.FASTFORWARD;
   delete base.FF_TWIN_URL;
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['--import', '@fastforward/register', fixture(name)], {
+    const child = spawn(process.execPath, ['--import', 'fastforward-register', fixture(name)], {
       cwd: packageDir,
       env: { ...base, ...env },
     });

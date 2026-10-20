@@ -64,7 +64,7 @@ Runs are held in memory and exported as JSON. No database.
 
 ## 5. Integration contract for the app under test
 
-The app is started with `FASTFORWARD=1 node --import @fastforward/register app.js`. It exposes:
+The app is started with `FASTFORWARD=1 node --import fastforward-register app.js`. It exposes:
 
 | Touchpoint | Required | Contract |
 |---|---|---|
@@ -141,7 +141,7 @@ Checkpoints: after each virtual day in which at least one event was delivered, a
 
 - Register is inactive unless `FASTFORWARD=1`. While active, any request to `api-m.paypal.com` or `api.paypal.com` throws `FastforwardLiveCallError`.
 - Passthrough only ever targets `https://api-m.sandbox.paypal.com`.
-- If the app makes no calls to the twin during the subscribe step, the run aborts: "your app isn't redirected — start it with `FASTFORWARD=1 node --import @fastforward/register`".
+- If the app makes no calls to the twin during the subscribe step, the run aborts: "your app isn't redirected — start it with `FASTFORWARD=1 node --import fastforward-register`".
 - Every simulated webhook carries `X-Fastforward-Run`; the UI and reports label all data as simulated.
 
 ## 12. Non-goals

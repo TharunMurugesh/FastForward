@@ -164,7 +164,7 @@ for (const [port, name] of [[TWIN_PORT, 'the twin'], [COFFEE_PORT, 'Coffee Club'
 const bugs = process.env.COFFEE_BUGS ?? DEFAULT_BUGS;
 start('twin', ['packages/cli/dist/bin.js', 'twin', '--port', String(TWIN_PORT)]);
 await waitForPort(TWIN_PORT, 'twin').catch((e) => fail(e.message));
-start('coffee-club', ['--import', '@fastforward/register', 'examples/coffee-club/dist/server.js'], {
+start('coffee-club', ['--import', 'fastforward-register', 'examples/coffee-club/dist/server.js'], {
   FASTFORWARD: '1',
   PORT: String(COFFEE_PORT),
   FF_TWIN_URL: `http://127.0.0.1:${TWIN_PORT}`,
