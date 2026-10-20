@@ -3,6 +3,7 @@ import { parseArgs } from 'node:util';
 import { AiUnavailableError, DecisionLock, aiFromEnv, decideCustomerAction, writeScenario, type AiClient } from '@fastforward/ai';
 import { createTwin } from '@fastforward/twin';
 import { ToolError } from './errors.js';
+import { DEFAULT_WEBHOOK_URL, writeStarter } from './init.js';
 import { formatReport } from './print.js';
 import { runScenarioFile } from './runner.js';
 import { scenarioToYaml } from './yaml.js';
@@ -31,11 +32,13 @@ const defaultIo: CliIo = {
 const USAGE = `Usage:
   fastforward run <scenario.yaml> [--report-dir <dir>] [--fresh] [--keep-twin]
                                   [--twin-url <url>] [--twin-port <n>] [--dashboard-url <url>]
+  fastforward init [-o <file.yaml>] [--webhook-url <url>]
   fastforward new "<description>" [-o <file.yaml>]
   fastforward twin [--port <n>]
 
 run    plays the scenario against your app (started with FASTFORWARD=1 node --import @fastforward/register)
        and reports billing bugs. Exit code 0 = all checks passed or skipped, 1 = a check failed, 2 = could not run.
+init   writes a starter scenario (fastforward.yaml) and prints the next steps. No AI, no key.
 new    asks Claude to write a scenario from a description (needs ANTHROPIC_API_KEY).
 twin   starts the stand-in PayPal on its own, default port 4010.
 `;
@@ -49,6 +52,8 @@ export async function main(argv: string[], io: CliIo = defaultIo): Promise<0 | 1
     switch (command) {
       case 'run':
         return await runCommand(rest, io);
+      case 'init':
+        return await initCommand(rest, io);
       case 'new':
         return await newCommand(rest, io);
       case 'twin':
@@ -103,6 +108,12 @@ async function runCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
     await result.twin.close();
   }
   return result.exitCode;
+}
+
+async function initCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
+  const { values } = parse(args, { output: { type: 'string', short: 'o' }, 'webhook-url': { type: 'string' } });
+  io.stdout(writeStarter({ output: values.output ?? 'fastforward.yaml', webhookUrl: values['webhook-url'] ?? DEFAULT_WEBHOOK_URL }));
+  return 0;
 }
 
 async function newCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
