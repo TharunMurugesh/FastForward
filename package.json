@@ -17,7 +17,7 @@
     "test:e2e": "vitest run --project=e2e",
     "typecheck": "tsc -b",
     "fidelity": "vitest run --project fidelity",
-    "demo": "echo \"demo arrives in Task 11\" && exit 1"
+    "demo": "npm run build && npm run build -w @fastforward/web && node scripts/start-hosted.mjs --run"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
