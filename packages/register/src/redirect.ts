@@ -15,7 +15,7 @@ export class FastforwardLiveCallError extends Error {
   readonly url: string;
 
   constructor(url: string) {
-    super(`Fastforward blocked a call to live PayPal (${url}). Only the sandbox is allowed while FASTFORWARD=1.`);
+    super(`Fastforward blocked a call to live PayPal (${url}). Only the sandbox is allowed while FASTFORWARD=1. Point your app's PayPal base URL at the sandbox (api-m.sandbox.paypal.com), or leave it unset so the add-on redirects it to the simulator.`);
     this.url = url;
   }
 }

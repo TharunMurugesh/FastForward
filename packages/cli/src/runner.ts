@@ -75,7 +75,7 @@ export async function runScenarioFile(path: string, opts: RunOptions = {}): Prom
   try {
     text = readFileSync(path, 'utf8');
   } catch (err) {
-    throw new ToolError(`can't read ${path}: ${(err as NodeJS.ErrnoException).code === 'ENOENT' ? 'no such file' : (err as Error).message}`);
+    throw new ToolError(`can't read ${path}: ${(err as NodeJS.ErrnoException).code === 'ENOENT' ? 'no such file. Check the path, or create a starter with: fastforward init' : (err as Error).message}`);
   }
   let scenario: Scenario;
   try {

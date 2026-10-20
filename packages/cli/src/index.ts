@@ -147,7 +147,7 @@ async function twinCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
       deps: { decide: (ctx) => decideCustomerAction(ctx, ai, lock) },
     });
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') throw new ToolError(`port ${port} is already in use. Is a twin already running?`);
+    if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') throw new ToolError(`port ${port} is already in use. Is a twin already running? Stop it, or pick another port with --port.`);
     throw err;
   }
   io.stdout(`Fastforward twin listening at ${twin.url}\nPoint your app at it with FASTFORWARD=1 node --import fastforward-register, then run: fastforward run <scenario.yaml> --twin-url ${twin.url}\nPress Ctrl+C to stop.\n`);

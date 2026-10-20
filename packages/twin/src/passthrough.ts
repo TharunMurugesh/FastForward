@@ -47,7 +47,7 @@ class SandboxToken {
       headers: { authorization: `Basic ${basic}`, 'content-type': 'application/x-www-form-urlencoded' },
       body: 'grant_type=client_credentials',
     });
-    if (!res.ok) throw new Error(`sandbox rejected the twin's credentials (HTTP ${res.status})`);
+    if (!res.ok) throw new Error(`sandbox rejected the twin's credentials (HTTP ${res.status}). Check that PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET are SANDBOX credentials for a REST app.`);
     const body = (await res.json()) as { access_token?: string; expires_in?: number };
     if (!body.access_token) throw new Error('sandbox token response had no access_token');
     const lifetimeMs = (body.expires_in ?? 300) * 1000;

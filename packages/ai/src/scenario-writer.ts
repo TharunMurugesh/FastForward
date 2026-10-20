@@ -12,7 +12,7 @@ export async function writeScenario(description: string, ai: AiClient | null): P
     try {
       return stripCodeFence(await ai.complete({ model: MODEL, system: SCENARIO_SYSTEM, prompt, effort: 'medium' }));
     } catch (err) {
-      throw new AiUnavailableError(`could not reach the model: ${err instanceof Error ? err.message : String(err)}`);
+      throw new AiUnavailableError(`could not reach the model: ${err instanceof Error ? err.message : String(err)}. Check your network and that ANTHROPIC_API_KEY is valid.`);
     }
   };
 

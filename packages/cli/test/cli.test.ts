@@ -90,6 +90,23 @@ function capture(): Out & { io: { stdout: (s: string) => void; stderr: (s: strin
   return c;
 }
 
+describe('fastforward errors say what to do next', () => {
+  it('a missing scenario file points at `fastforward init`', async () => {
+    const c = capture();
+    expect(await main(['run', join(dir, 'nope.yaml')], c.io)).toBe(2);
+    expect(c.err).toContain('no such file');
+    expect(c.err).toContain('fastforward init');
+  });
+
+  it('a busy twin port says how to pick another', async () => {
+    const port = await listen((_req, res) => res.end());
+    const c = capture();
+    expect(await main(['twin', '--port', String(port)], c.io)).toBe(2);
+    expect(c.err).toContain(`port ${port} is already in use`);
+    expect(c.err).toContain('--port');
+  });
+});
+
 describe('fastforward run', () => {
   it("exits 2 with can't reach your app when nothing listens (within 5 s)", async () => {
     const url = `http://127.0.0.1:${await closedPort()}/webhooks/paypal`;
@@ -100,6 +117,9 @@ describe('fastforward run', () => {
     const code = await main(['run', file, '--twin-port', '0', '--report-dir', join(dir, 'out')], c.io);
     expect(code).toBe(2);
     expect(c.err).toContain(`can't reach your app at ${url}`);
+    // The message says what to do next, not just what is wrong.
+    expect(c.err).toContain('fastforward-register');
+    expect(c.err).toContain('app.webhookUrl');
     expect(Date.now() - t0).toBeLessThan(5000);
     expect(existsSync(join(dir, 'out'))).toBe(false); // no report full of failed checks
   });

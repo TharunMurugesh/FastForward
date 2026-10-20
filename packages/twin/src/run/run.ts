@@ -193,12 +193,12 @@ export class Run {
         signal: AbortSignal.timeout(SUBSCRIBE_TIMEOUT_MS),
       });
     } catch (err) {
-      throw new Error(`can't reach your app's subscribe endpoint at ${url}: ${(err as Error).message}`);
+      throw new Error(`can't reach your app's subscribe endpoint at ${url}: ${(err as Error).message}. Is the app running, and is app.subscribeUrl right? Remove subscribeUrl from the scenario to let the simulator create subscriptions itself.`);
     }
     const text = await res.text();
     // Checked before the status: an app talking to the real sandbox usually fails too, and this is the real cause.
     if (this.subscriptionCreates === before) throw new Error(NOT_REDIRECTED);
-    if (!res.ok) throw new Error(`subscribe for ${customer.name} answered ${res.status}: ${text.slice(0, 200)}`);
+    if (!res.ok) throw new Error(`subscribe for ${customer.name} answered ${res.status}: ${text.slice(0, 200)}. Your app's subscribe endpoint failed; look at your app's own log for the cause.`);
     let id: unknown;
     try {
       id = (JSON.parse(text) as { subscription_id?: unknown }).subscription_id;
@@ -209,7 +209,7 @@ export class Run {
     try {
       this.engine.get(id);
     } catch {
-      throw new Error(`your app answered subscription_id ${id} for ${customer.name}, but the twin never created it`);
+      throw new Error(`your app answered subscription_id ${id} for ${customer.name}, but the simulator never created it. Your app must create the subscription through PayPal's API, started with fastforward-register so the call reaches the simulator, and return that id.`);
     }
     return id;
   }

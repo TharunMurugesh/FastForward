@@ -8,6 +8,6 @@ export async function checkReachable(url: string, timeoutMs: number): Promise<vo
   try {
     await fetch(url, { method: 'GET', signal: AbortSignal.timeout(timeoutMs) });
   } catch {
-    throw new ToolError(`can't reach your app at ${url}`);
+    throw new ToolError(`can't reach your app at ${url}. Start your app first (FASTFORWARD=1 node --import fastforward-register your-app.js), and check that app.webhookUrl in your scenario matches the address it listens on.`);
   }
 }
