@@ -21,7 +21,8 @@ your billing bugs before real money does.
 ## Quickstart (three commands, no `.env`, no PayPal login)
 
 ```
-git clone <this repository>
+git clone https://github.com/VinayG759/FastForward.git
+cd FastForward
 npm install
 npm run demo
 ```
