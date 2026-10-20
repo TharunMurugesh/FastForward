@@ -58,9 +58,16 @@ each, per the method).
   Honest limit: the suite covers the APPROVAL_PENDING path (cancel → 404); approved/active subscriptions need a
   buyer approval in the sandbox and are not compared. Remaining guesses are in `packages/twin/src/fidelity.ts`,
   each marked verified/unverified. Each live run leaves 1 product + 1 plan + 1 pending subscription in his sandbox.
-- `bad-month.yaml`: P75D, threshold 2; bugs=all → exactly 5 checks fail; bugs=none → all 6 pass.
+- `bad-month.yaml`: P75D, threshold 2; bugs=all (incl. slow-ack) → 5 checks fail; the demo set (no slow-ack) → **4 fail** (verified live 20 Oct); bugs=none → all 6 pass. A live run takes a few minutes, not 30 s.
 - Demo bug set: no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order.
 - Notes: every retry has its own transmission id; STATE_MATCHES orders notices by `status_update_time`.
+
+## Update 20 Oct (Sara)
+- Task 16 MCP merged (376 tests pass). Worker C's `docs/submission/{devpost,video-script}.md` merged and corrected (4 of 6, minutes).
+- Price decided by Vinay: target $39 per developer per month, free for one developer; framed as a target, no revenue claimed.
+- Discord question to PayPal CANCELLED by Vinay (will not reveal the idea). Do not raise it again.
+- Worker B (`paypal-hackathon-be`, folder ../PayPal-Hackathon-host, branch ff/host) is on railway.json, start-hosted, `npm run demo`, README.
+- Still open: manual MCP check with a real assistant (plan Task 16 step 4), Vinay's teach-back of docs/fastforward-explained.md.
 
 ## Next for Sara (Phase 3)
 1. **Task 16 MCP server** (packages/mcp: ff_write_scenario, ff_run, ff_explain): fresh worker.
