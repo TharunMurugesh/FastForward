@@ -3,6 +3,8 @@
 **A flight simulator for PayPal subscriptions.** Skip a month ahead, let AI customers misbehave, and find
 your billing bugs before real money does.
 
+**Live demo:** https://fastforward-production.up.railway.app/ (a recorded bad month, no login needed)
+
 ## Who pays, how much, why now
 
 - **Customer:** a developer or small team whose app takes recurring payments through PayPal Subscriptions.

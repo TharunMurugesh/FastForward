@@ -78,7 +78,7 @@ TypeScript (strict), Node 24, Fastify, zod, React and Vite, **AG Grid Community*
 
 ## Try it
 
-Setup and run instructions are in the repository README. Judges can use [hosted demo URL] or run it locally in three commands. The demo needs no PayPal login. To run your own AI scenarios, set `ANTHROPIC_API_KEY` in a `.env` file; without it, the scripted fallback runs. The hosted demo stays up until the judging period ends on 15 December 2026.
+Setup and run instructions are in the repository README. Judges can use https://fastforward-production.up.railway.app/ or run it locally in three commands. The demo needs no PayPal login. To run your own AI scenarios, set `ANTHROPIC_API_KEY` in a `.env` file; without it, the scripted fallback runs. The hosted demo stays up until the judging period ends on 15 December 2026.
 
 Repository: https://github.com/VinayG759/FastForward (MIT licence)
 Video: [public YouTube URL]
@@ -87,7 +87,7 @@ Video: [public YouTube URL]
 
 ## Checklist for Vinay (delete this section before pasting)
 
-- [ ] Fill in the two bracketed links: hosted demo URL and YouTube URL (GitHub is done).
+- [ ] Fill in the one bracketed link: the YouTube URL (GitHub and the hosted demo are done).
 - [ ] Confirm `npm run demo` is merged before submitting; this text says it exists. The MCP server (Task 16) is merged.
 - [ ] Confirm "four of six" matches your final run (the demo bug set gave 4 failing checks when Sara ran it live on 20 Oct; adding the slow-reply bug gives 5).
 - [ ] Devpost "Tools used" field: Claude Opus 5.5, PayPal Subscriptions and Disputes APIs, PayPal Node SDK, AG Grid Community, Fastify, React, Vite.
