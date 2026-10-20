@@ -66,7 +66,9 @@ each, per the method).
 - Task 16 MCP merged (376 tests pass). Worker C's `docs/submission/{devpost,video-script}.md` merged and corrected (4 of 6, minutes).
 - Price decided by Vinay: target $39 per developer per month, free for one developer; framed as a target, no revenue claimed.
 - Discord question to PayPal CANCELLED by Vinay (will not reveal the idea). Do not raise it again.
-- Worker B (`paypal-hackathon-be`, folder ../PayPal-Hackathon-host, branch ff/host) is on railway.json, start-hosted, `npm run demo`, README.
+- Worker B's session ended with partial work; Sara finished it: `railway.json`, `scripts/start-hosted.mjs`, `npm run demo`, `README.md` merged (59df8e8). Verified: fresh clone, no `.env`, `npm install` then `npm run demo` brings up twin, Coffee Club and dashboard on 8080; demo run = 4 of 6 failing, about 3 s.
+- MCP verified over real stdio (tools list, ff_run 4 of 6, ff_explain, unknown run gives an error result). Not yet tried inside a real assistant.
+- All workers released; worktrees removed. Phase 3 code is DONE. What is left is outward (Vinay's yes): public GitHub repo + push, Railway deploy (tell him the cost; stays up until 15 Dec; Anthropic spend cap), recruit 3-5 PayPal developers, film the video (from ~5 Nov), fill the 3 links in devpost.md, Devpost submission by 12 Nov. Optional: e2e speed, print check of report.html.
 - Still open: manual MCP check with a real assistant (plan Task 16 step 4), Vinay's teach-back of docs/fastforward-explained.md.
 
 ## Next for Sara (Phase 3)
