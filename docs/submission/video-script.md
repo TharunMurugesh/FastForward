@@ -30,7 +30,7 @@ So your code meets its first bad day with real money. Fastforward fixes that. It
 
 **Say:**
 "Here is a small coffee subscription app. It uses PayPal's official SDK. It has bugs that I put in on purpose.
-I run one command, and Fastforward plays seventy-five days in minutes, not months. AI plays three customers. Maya pays on time. Leo's card starts failing. Ana opens a dispute. And the webhooks arrive twice, late, out of order, and one is forged.
+I run one command, and Fastforward plays seventy-five days in a few seconds. AI plays three customers. Maya pays on time. Leo's card starts failing. Ana opens a dispute. And the webhooks arrive twice, late, out of order, and one is forged.
 Now the report. Four of six checks fail. It did not verify signatures. It fulfilled an order twice. It ended in the wrong state. It ignored the dispute. Each failure has a plain explanation and a fix."
 
 ## 4. Same month, bugs off [1:25 to 1:45]

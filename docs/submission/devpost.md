@@ -25,7 +25,7 @@ A flight simulator for PayPal subscriptions: skip a month ahead, let AI customer
 
 You describe a scenario in plain words, such as "a bad month for a coffee subscription." Then:
 
-1. **A twin of PayPal Subscriptions plays the month.** The twin is our stand-in for PayPal. It runs on a fast-forwarded clock, so a 75-day scenario plays in a few minutes of real time.
+1. **A twin of PayPal Subscriptions plays the month.** The twin is our stand-in for PayPal. It runs on a fast-forwarded clock, so a 75-day scenario plays in seconds (about 3 seconds on our machine with the demo bugs).
 2. **AI plays the customers.** One pays on time, one's card starts failing, one opens a dispute. At each decision point Claude chooses what that customer does next: update the card, ignore it, cancel, dispute, or reply to the seller.
 3. **The twin sends "bad weather."** Webhooks (the automatic messages PayPal sends to your app) arrive twice, late, out of order, or forged. Every message is signed like PayPal's.
 4. **Six checks judge your app.** Did it verify signatures? Fulfil an order only once? Answer fast enough? End up in the right subscription state? Answer the dispute? Stay away from the live PayPal API?
@@ -39,7 +39,7 @@ To prove it finds real bugs, we built a small coffee-subscription app, Coffee Cl
 
 Run the same 75-day month twice, changing nothing but the bugs:
 
-- **Bugs on:** four of the six checks fail (signatures, access state, double fulfilment, unanswered dispute), each with an explanation and a fix. A sixth bug, slow replies, makes a fifth check fail but stretches the run to minutes, so the demo leaves it off.
+- **Bugs on:** four of the six checks fail (signatures, access state, double fulfilment, unanswered dispute), each with an explanation and a fix. A sixth bug, slow replies, makes a fifth check fail but slows the run a lot, so the demo leaves it off.
 - **Bugs off:** all six checks pass.
 
 ## How PayPal is used
