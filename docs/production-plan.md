@@ -19,8 +19,11 @@ with accounts and billing comes later, after real people use the free tool.
 5. **Speed up the 4.5 minute e2e test** so the checks in step 2 stay quick.
 
 ## Phase 2: a stranger can install and use it (needs your decisions)
-6. **Final product name.** "Time Machine" is taken (Chargebee); "Fastforward" is the working name. Check the name
-   is free on npm, GitHub and as a domain before anything is published. **Yours to decide.**
+6. **[decided 20 Oct: the name stays Fastforward] Name check.** Found 20 Oct: the plain npm name `fastforward` is TAKEN by
+   an unrelated package (v0.3.10), so `npx fastforward` outside this repo would run someone else's code. The
+   scoped names `@fastforward/cli`, `/register`, `/mcp` are not published, but we do not yet know who owns the
+   `@fastforward` npm scope; Vinay must check that on npmjs.com before publishing. Until packages are published,
+   the README commands only work inside a clone, where the local copy runs first.
 7. **Installable packages:** make the CLI, register add-on and MCP server real npm packages (today they are
    private and only work inside this repo). Version numbers, a build that ships compiled files, a changelog.
    Publishing to npm is outward and needs your yes.
