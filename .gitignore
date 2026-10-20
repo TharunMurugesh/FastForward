@@ -5,3 +5,4 @@ dist/
 *.tsbuildinfo
 # Decision lock files (*.lock.json) are committed on purpose so reruns match.
 .gstack/
+publish/

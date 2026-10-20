@@ -17,10 +17,13 @@
     "test:e2e": "vitest run --project=e2e",
     "typecheck": "tsc -b",
     "fidelity": "vitest run --project fidelity",
-    "demo": "npm run build && npm run build -w @fastforward/web && node scripts/start-hosted.mjs --run"
+    "demo": "npm run build && npm run build -w @fastforward/web && node scripts/start-hosted.mjs --run",
+    "bundle": "node scripts/bundle.mjs",
+    "pack:check": "node scripts/pack-check.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
   }
