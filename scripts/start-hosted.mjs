@@ -66,9 +66,9 @@ function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-/** Resolves when something accepts connections on the port; gives up after ten seconds. */
+/** Resolves when something accepts connections on the port; gives up after thirty seconds (a busy host starts slowly). */
 function waitForPort(port, name) {
-  const deadline = Date.now() + 10_000;
+  const deadline = Date.now() + 30_000;
   return new Promise((done, reject) => {
     const attempt = () => {
       const socket = connect(port, '127.0.0.1');
@@ -78,7 +78,7 @@ function waitForPort(port, name) {
       });
       socket.once('error', () => {
         socket.destroy();
-        if (Date.now() > deadline) reject(new Error(`${name} did not come up on port ${port} within 10 s`));
+        if (Date.now() > deadline) reject(new Error(`${name} did not come up on port ${port} within 30 s`));
         else setTimeout(attempt, 100);
       });
     };
@@ -118,6 +118,13 @@ const server = createServer((req, res) => {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const path = url.pathname;
 
+  // The public site only reads. The twin's control API can start and advance runs, and Coffee Club
+  // accepts subscriptions, so anything that is not GET or HEAD is refused before it reaches them.
+  const readOnly = req.method === 'GET' || req.method === 'HEAD';
+  if ((path === '/_ff' || path.startsWith('/_ff/') || path === '/demo' || path.startsWith('/demo/')) && !readOnly) {
+    res.writeHead(405, { 'content-type': 'text/plain', allow: 'GET, HEAD' });
+    return res.end('this demo is read-only');
+  }
   if (path === '/_ff' || path.startsWith('/_ff/')) return proxy(req, res, TWIN_PORT, req.url);
   if (path === '/demo' || path.startsWith('/demo/')) return proxy(req, res, COFFEE_PORT, (req.url ?? '').slice('/demo'.length) || '/');
 
