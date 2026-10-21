@@ -3,6 +3,9 @@
 Written 20 Oct 2026 for Vinay. Principle: fewer things, deeper foundations. Each item says who it helps.
 Nothing here is pushed or published without his yes.
 
+**To implement this, use [production-implementation-plan.md](production-implementation-plan.md)**: it has the files, tests,
+order and done-criteria. This page is the why and the status.
+
 ## What "shippable" means here
 Fastforward is a developer tool (a CLI, an MCP server and a stand-in PayPal), not a website. A stranger must be
 able to install it, point their own app at it, trust what it says, and not be harmed by it. A hosted team product
