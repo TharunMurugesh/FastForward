@@ -32,8 +32,7 @@ with accounts and billing comes later, after real people use the free tool.
    Publishing to npm is outward and needs your yes.
 8. **[done 20 Oct] `fastforward init`:** one command that writes a starter scenario and shows how to start the user's app with
    the register add-on. Today a user must read the README and write YAML by hand.
-9. **A second example app** that uses plain `fetch` instead of PayPal's SDK, to prove it works for apps that are
-   not built like Coffee Club (the spike says both are redirectable; this makes it a tested fact).
+9. **[done, tested] A second example app** (`examples/plain-fetch-shop`) that uses plain global `fetch` instead of PayPal's SDK, to prove it works for apps that are not built like Coffee Club (the spike says both are redirectable; this makes it a tested fact).
 10. **[done: docs/guide.md] Real docs:** how to use it on your own app, a reference for every scenario field and every check, and a
     troubleshooting page (port in use, app not redirected, no webhook received).
 11. **Clear errors:** every failure says what to do next, in plain words.
