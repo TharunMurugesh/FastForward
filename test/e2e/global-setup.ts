@@ -1,6 +1,5 @@
 import { execSync } from 'node:child_process';
-import { existsSync, statSync } from 'node:fs';
-import { globSync } from 'node:fs';
+import { existsSync, globSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));

@@ -1,20 +1,22 @@
-# Fastforward: flight simulator for PayPal subscriptions
+# Fastforward
 
-Play months of renewals, failed payments, disputes and misbehaving webhooks against your app in seconds. Six
-deterministic checks tell you whether you handle subscriptions safely; AI explains the failures and proposes
-the fixes.
+**A flight simulator for PayPal subscriptions.** Skip a month ahead, let AI customers misbehave, and find
+your billing bugs before real money does.
 
-- **What Fastforward is:** a developer tool you run against your own Node app. It stands in for PayPal's sandbox,
-  advances time, injects realistic payment failures and messy webhook deliveries, and reports what your app got wrong.
-- **What it is not:** a billing engine, a database, or a hosted service. No accounts, no credentials stored.
-- **The honest target:** single-developer to small-team SaaS ($39/mo or $299/yr, per seat). Not enterprise billing.
-- **What works today:** the stand-in twin (subscriptions, disputes, webhooks, OpenAPI-verified), six deterministic
-  checks, bad-weather webhook injection (duplicates, delay, reordering, forged signatures), an AI narrator (lock-file
-  cached for zero cost on replay), a CLI, a web dashboard with an AG Grid delivery trace, and a stdio MCP server for
-  Claude.
-- **The known gap:** the comparison with PayPal's real sandbox covers the `APPROVAL_PENDING` path (7 of 7 endpoints
-  match). Active subscriptions need a buyer approval in the sandbox, which requires a browser step we have not yet
-  automated.
+**Live demo:** https://fastforward-production.up.railway.app/ (a recorded bad month, no login needed)
+
+## Who pays, how much, why now
+
+- **Customer:** a developer or small team whose app takes recurring payments through PayPal Subscriptions.
+- **The pain, in money:** the code that handles a failed payment, a duplicate webhook, a suspended
+  subscription or a dispute meets its first test with real money, because PayPal's sandbox has no clock and no
+  misbehaving customers. Get one wrong and you keep serving people who stopped paying, or cut off people who
+  would have paid.
+- **Price (a target, not revenue):** free for one developer running it locally. Team plan target:
+  **$39 per developer per month**, in line with similar tools (LocalStack $39 to $89, Hookdeck about $39).
+  No one has paid yet, and Fastforward has no revenue today.
+- **Why now:** PayPal has no test clock. Stripe's test clocks cover Stripe billing only and have no AI
+  customers. We found nothing that gives PayPal Subscriptions this.
 - **What we do not know:** the market size. Nobody publishes how many teams use PayPal Subscriptions directly.
   Path to scale: PayPal first, then other processors.
 
@@ -52,9 +54,9 @@ Plain checks, not the AI, decide pass or fail, so the AI cannot talk a bug into 
 - The twin is built from PayPal's **official OpenAPI specifications** (Subscriptions, Disputes, webhooks) and
   its responses are validated against them.
 - Two example apps are included: **Coffee Club** (`examples/coffee-club`), which uses PayPal's official Node SDK
-  (`@paypal/paypal-server-sdk`), and **Plain Fetch Shop** (`examples/plain-fetch-shop`), which uses Node's global `fetch`
-  with no SDK. A small add-on (`fastforward-register`) redirects their sandbox calls to the twin and blocks any call to
-  live PayPal before a socket opens.
+  (`@paypal/paypal-server-sdk`), unmodified, and **Plain Fetch Shop** (`examples/plain-fetch-shop`), which uses Node's
+  global `fetch` with no SDK. A small add-on (`fastforward-register`) redirects their sandbox calls to the twin and
+  blocks any call to live PayPal before a socket opens.
 - Webhooks are **signed and verified the way PayPal does it**: the twin signs events, serves the certificate and
   implements the verify-webhook-signature endpoint.
 - Calls the twin does not implement can pass through to the **real PayPal sandbox** (sandbox host only).
@@ -75,20 +77,42 @@ npx fastforward init
 npx fastforward run fastforward.yaml
 ```
 
-## Architecture
+Your app needs only a webhook handler. Two optional touchpoints unlock more checks:
+
+| Touchpoint | Required | Contract |
+|---|---|---|
+| Webhook URL | yes | Your existing PayPal webhook handler. The test environment sets `PAYPAL_WEBHOOK_ID=WH-FF-LOCAL`. |
+| Subscribe endpoint | no | `POST {subscribeUrl}` with `{"name": string, "email": string}` returns 2xx `{"subscription_id": "I-..."}`. Without it, the twin creates subscriptions directly. |
+| Probe | no | `GET {probeUrl}?subscription_id=I-...` returns `{"access": boolean, "fulfilments"?: number}`. Test-only. Checks that need it are reported `skipped` without it. |
+
+Other commands: `fastforward new "<description>"` writes a scenario from plain words (needs
+`ANTHROPIC_API_KEY`), and `fastforward twin` starts the stand-in PayPal on its own (default port 4010).
+
+## From a coding assistant (MCP)
+
+`packages/mcp` is a stdio MCP server with three tools: `ff_write_scenario`, `ff_run` and `ff_explain`. Add it to
+Claude Code with:
 
 ```
-fastforward run
-  ├── twin: stand-in PayPal (time travel, webhook signer, bad weather)
-  ├── register: node --import add-on, redirects sandbox calls to twin
-  ├── checks: 6 deterministic rules (signatures, dedupe, speed, state, disputes, safety)
-  └── ai: customer personas and explanation generation (lock file cache)
+claude mcp add fastforward -- node packages/mcp/dist/server.js
 ```
 
-No database exists or is planned. Scenarios, runs and reports are plain YAML and JSON.
+The assistant can then write a scenario, run it against your app, read why a check failed, fix the bug, and run
+it again. `ff_write_scenario` needs an Anthropic key; the other two do not.
 
-## Documentation
+## Known limits
 
-- [User guide](docs/guide.md): five steps on your own app, scenario reference, six checks, troubleshooting.
-- [Production plan](docs/production-plan.md): the post-hackathon roadmap and the shippable bar.
-- [Handoff](docs/handoff.md): where everything is and how to run it.
+- **The fidelity check covers the pending-approval path.** Approved, active subscriptions need a buyer's
+  approval in the sandbox, so they are not compared. Remaining guesses are marked verified or unverified in
+  `packages/twin/src/fidelity.ts`.
+- **One rule is inferred.** PayPal's retry schedule for failed payments (5 days, twice per cycle) is verified
+  from its documentation. Suspending a subscription at once when it reaches the failure threshold is inferred
+  and marked unverified.
+- **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and
+  events delayed past the end of the run are never delivered. Event ids are random, so a rerun has the same
+  shape and timing but not the same ids.
+- **Scope is narrow:** six checks, two example apps, Subscriptions and Disputes only.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE). PayPal's OpenAPI specifications are Apache-2.0; see [NOTICE](NOTICE).

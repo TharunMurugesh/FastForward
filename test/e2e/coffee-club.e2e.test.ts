@@ -104,7 +104,7 @@ async function runAgainstCoffeeClub(bugs: string, makeScenario: (appPort: number
       FF_TWIN_URL: `http://127.0.0.1:${twinPort}`,
       PORT: String(appPort),
       COFFEE_BUGS: bugs,
-      COFFEE_SLOW_MS: '100',
+      COFFEE_SLOW_MS: '1000',
       FF_AI: 'off',
       // Placeholders: the twin accepts any credentials, and these keep any real ones out of the child.
       PAYPAL_CLIENT_ID: 'ff-e2e',
