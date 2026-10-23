@@ -45,3 +45,27 @@ only checked against the spec. After B, that sentence shrinks to "recorded once,
 - For A and B: a live run against his sandbox (his keys in `.env`; one product, one plan, one or two subscriptions are
   created and left there, as in the earlier runs). For B: 5 minutes to approve one subscription as the sandbox buyer.
 - Nothing is run until he says so.
+
+## Result of option A (run 23 Oct 2026, real sandbox)
+
+**The card route works, and it needs no buyer approval.** One scripted run against the sandbox (host
+`api-m.sandbox.paypal.com` only, keys from `.env`, nothing printed but statuses and shapes):
+
+- `POST /v1/billing/subscriptions` with the card in `subscriber.payment_source.card` (a generic non-3DS sandbox
+  test card, US billing address) answered **201 with `status: ACTIVE`** and no `approve` link. The response has only
+  `status`, `id`, `create_time` and `links`.
+- `GET` on it: **200, ACTIVE**, with the full active shape: `billing_info` (`last_payment`, `next_billing_time`,
+  `cycle_executions`, `failed_payments_count`, `outstanding_balance`, `current_cycle_sequence`), `plan_id`,
+  `plan_overridden`, `quantity`, `shipping_amount`, `start_time`, `status_update_time`, `update_time` and
+  `subscriber.payment_source.card` (billing address, brand, expiry, last digits, name). The first payment had
+  already been taken.
+- `suspend` 204, then `SUSPENDED`; `activate` 204, then `ACTIVE`; `cancel` 204, then `CANCELLED`.
+- `cancel` again, and `suspend` on a cancelled subscription, each answered **422** with PayPal's usual error body.
+- `GET .../transactions` answered 200.
+
+So the whole active path can be compared automatically. **Option B (recording one by hand) is not needed.** The
+limit that remains: this is the card-funded path (US merchant, non-3DS card). A subscription approved with a PayPal
+wallet follows the same states, but is not what we recorded.
+
+The probe scripts were throwaway and live outside the repo. They left one product, one plan and cancelled
+subscriptions in the sandbox.
