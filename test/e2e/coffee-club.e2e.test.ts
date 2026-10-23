@@ -76,7 +76,7 @@ const saved = { timeout: process.env.FF_DELIVERY_TIMEOUT_MS };
 
 beforeAll(() => {
   dir = mkdtempSync(join(tmpdir(), 'ff-e2e-'));
-  process.env.FF_DELIVERY_TIMEOUT_MS = '500'; // read by the in-process twin's dispatcher
+  process.env.FF_DELIVERY_TIMEOUT_MS = String(NORMAL.deliveryTimeoutMs);
 });
 afterEach(async () => {
   if (child && child.exitCode === null) {
@@ -91,8 +91,27 @@ afterAll(() => {
   rmSync(dir, { recursive: true, force: true });
 });
 
+/**
+ * Real-time knobs for one run. The twin waits `deliveryTimeoutMs` for each answer; with the slow-ack bug Coffee Club
+ * answers after `slowMs`, so every attempt times out and the twin retries the event about 13 times, one after another.
+ * That retry storm is almost all of this suite's time, so the two slow-ack tests use a shorter wait. Their
+ * assertions are unchanged because the app still always answers slower than the twin waits. The other tests keep a
+ * generous timeout so a busy machine cannot make an honest app look slow.
+ */
+interface Timing {
+  deliveryTimeoutMs: number;
+  slowMs: number;
+}
+const NORMAL: Timing = { deliveryTimeoutMs: 500, slowMs: 1000 };
+const SLOW_ACK: Timing = { deliveryTimeoutMs: 100, slowMs: 300 };
+
 /** Starts Coffee Club with the given bugs, runs bad-month against it, returns the report. */
-async function runAgainstCoffeeClub(bugs: string, makeScenario: (appPort: number) => string = scenario, tag = 'phase1'): Promise<Report & { trace: TraceEntry[] }> {
+async function runAgainstCoffeeClub(
+  bugs: string,
+  makeScenario: (appPort: number) => string = scenario,
+  tag = 'phase1',
+  timing: Timing = NORMAL,
+): Promise<Report & { trace: TraceEntry[] }> {
   const appPort = await freePort();
   const twinPort = await freePort();
   child = spawn(process.execPath, ['--import', 'fastforward-register', 'examples/coffee-club/dist/server.js'], {
@@ -104,7 +123,7 @@ async function runAgainstCoffeeClub(bugs: string, makeScenario: (appPort: number
       FF_TWIN_URL: `http://127.0.0.1:${twinPort}`,
       PORT: String(appPort),
       COFFEE_BUGS: bugs,
-      COFFEE_SLOW_MS: '1000',
+      COFFEE_SLOW_MS: String(timing.slowMs),
       FF_AI: 'off',
       // Placeholders: the twin accepts any credentials, and these keep any real ones out of the child.
       PAYPAL_CLIENT_ID: 'ff-e2e',
@@ -117,8 +136,13 @@ async function runAgainstCoffeeClub(bugs: string, makeScenario: (appPort: number
   const key = `${tag}-${bugs.replace(/[^a-z-]+/g, '_')}`;
   const file = join(dir, `bad-month-${key}.yaml`);
   writeFileSync(file, makeScenario(appPort));
-  const result = await runScenarioFile(file, { twinPort, ai: null, reportDir: join(dir, `report-${key}`) });
-  return { ...result.report, trace: result.trace };
+  process.env.FF_DELIVERY_TIMEOUT_MS = String(timing.deliveryTimeoutMs); // read when the in-process twin is created
+  try {
+    const result = await runScenarioFile(file, { twinPort, ai: null, reportDir: join(dir, `report-${key}`) });
+    return { ...result.report, trace: result.trace };
+  } finally {
+    process.env.FF_DELIVERY_TIMEOUT_MS = String(NORMAL.deliveryTimeoutMs);
+  }
 }
 
 const statusOf = (report: Report, id: CheckId) => report.checks.find((c) => c.id === id)?.status;
@@ -137,7 +161,7 @@ describe('Phase 1 acceptance: Coffee Club against the twin', () => {
   });
 
   it('COFFEE_BUGS=no-verify,no-dedupe,slow-ack,ignores-suspend: the four matching checks fail', async () => {
-    const report = await runAgainstCoffeeClub('no-verify,no-dedupe,slow-ack,ignores-suspend');
+    const report = await runAgainstCoffeeClub('no-verify,no-dedupe,slow-ack,ignores-suspend', scenario, 'phase1', SLOW_ACK);
     for (const id of ['VERIFIES_SIGNATURES', 'FULFIL_ONCE', 'ACK_FAST', 'STATE_MATCHES'] as const) {
       expect(statusOf(report, id), id).toBe('fail');
     }
@@ -162,7 +186,7 @@ const eventsOf = (trace: TraceEntry[], type?: string) =>
 
 describe('Phase 2 acceptance: the full bad-month under bad weather', () => {
   it('COFFEE_BUGS=all: five checks fail, NO_LIVE_CALLS passes', async () => {
-    const report = await runAgainstCoffeeClub('all', committedBadMonth, 'phase2');
+    const report = await runAgainstCoffeeClub('all', committedBadMonth, 'phase2', SLOW_ACK);
     for (const id of ['VERIFIES_SIGNATURES', 'FULFIL_ONCE', 'ACK_FAST', 'STATE_MATCHES', 'DISPUTE_ANSWERED'] as const) {
       expect(statusOf(report, id), id).toBe('fail');
     }

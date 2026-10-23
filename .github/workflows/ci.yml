@@ -1,5 +1,5 @@
-# Runs on every push and pull request: build, then the unit tests. The slow end-to-end
-# tests and the live-PayPal fidelity suite stay manual (npm run test:e2e, npm run fidelity).
+# Runs on every push and pull request: build, unit tests, the package check and the end-to-end tests (about a
+# minute). The live-PayPal fidelity suite stays manual (npm run fidelity): it needs real sandbox keys.
 name: ci
 on:
   push:
@@ -18,4 +18,5 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm run pack:check
+      - run: npm run test:e2e
       - run: npm audit --omit=dev --audit-level=high
