@@ -9,6 +9,10 @@ How to run Fastforward against your own PayPal Subscriptions app. For what it is
 - A Node app that receives PayPal webhooks. Any framework works. It can use PayPal's SDK or plain `fetch`.
 - Nothing from PayPal: no sandbox keys, no login. Fastforward never calls live PayPal.
 
+Two example apps are included to borrow from:
+- `examples/coffee-club`: uses PayPal's official Node SDK (`@paypal/paypal-server-sdk`).
+- `examples/plain-fetch-shop`: uses plain global `fetch` with no SDK.
+
 ## Install
 
 Fastforward is not on npm yet. Until it is, use a clone:
@@ -67,7 +71,7 @@ Unlock more checks by adding the two optional addresses (see "What your app can 
 | `weather.burst` | `true`: every customer renews at the same instant. |
 | `expect.accessWhile` | Subscription statuses in which a customer should have access. Default `[ACTIVE]`. |
 
-The scenario file is checked before anything runs, and every problem is listed with its path.
+The scenario file is checked before anything runs, and every problem is listed with its field path.
 
 ## The six checks
 

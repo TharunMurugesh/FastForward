@@ -15,7 +15,7 @@ with accounts and billing comes later, after real people use the free tool.
 1. **[done 20 Oct] Lock the public demo to read-only.** Found 20 Oct: anyone on the internet can POST to the live site's
    control API (`/_ff/runs`) and start runs on Tharun's server. Fix: the hosted proxy allows only GET/HEAD.
    Helps: everyone, because strangers cannot run up Tharun's bill or crash the demo before judging.
-2. **[written, runs once pushed] Automatic checks on every push (GitHub Actions):** build, typecheck and the 376 tests. The repo has none.
+2. **[written, pack:check added, runs once pushed] Automatic checks on every push (GitHub Actions):** build, typecheck, unit tests, and the package check (`npm run pack:check`). The repo has none.
    Helps: any contributor or customer, who can see that main always passes.
 3. **[done: 0 vulnerabilities, history clean] Dependency and secret audit:** `npm audit`, a secret scan of the history, a pinned Node version in Docker.
 4. **[done, tested] Container hardening:** run as a non-root user, add a Docker health check, a small `.dockerignore` review.
@@ -32,8 +32,7 @@ with accounts and billing comes later, after real people use the free tool.
    Publishing to npm is outward and needs your yes.
 8. **[done 20 Oct] `fastforward init`:** one command that writes a starter scenario and shows how to start the user's app with
    the register add-on. Today a user must read the README and write YAML by hand.
-9. **A second example app** that uses plain `fetch` instead of PayPal's SDK, to prove it works for apps that are
-   not built like Coffee Club (the spike says both are redirectable; this makes it a tested fact).
+9. **[done, tested] A second example app** (`examples/plain-fetch-shop`) that uses plain global `fetch` instead of PayPal's SDK, to prove it works for apps that are not built like Coffee Club (the spike says both are redirectable; this makes it a tested fact).
 10. **[done: docs/guide.md] Real docs:** how to use it on your own app, a reference for every scenario field and every check, and a
     troubleshooting page (port in use, app not redirected, no webhook received).
 11. **Clear errors:** every failure says what to do next, in plain words.

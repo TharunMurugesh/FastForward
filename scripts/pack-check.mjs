@@ -14,8 +14,12 @@ import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { encoding: 'utf8', shell: process.platform === 'win32' && cmd === npm, ...opts });
+const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { encoding: 'utf8', ...opts });
+const runNpm = (args, opts = {}) => {
+  if (process.env.npm_execpath) return run(process.execPath, [process.env.npm_execpath, ...args], opts);
+  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  return execFileSync(npm, args, { encoding: 'utf8', shell: process.platform === 'win32', ...opts });
+};
 const inUse = (port) => new Promise((done) => { const s = connect(port, '127.0.0.1'); s.once('connect', () => (s.destroy(), done(true))); s.once('error', () => (s.destroy(), done(false))); });
 async function waitFor(port, what) {
   for (let i = 0; i < 100; i++) { if (await inUse(port)) return; await new Promise((r) => setTimeout(r, 300)); }
@@ -24,18 +28,18 @@ async function waitFor(port, what) {
 
 for (const port of [3000, 4010]) if (await inUse(port)) throw new Error(`port ${port} is in use; stop it first`);
 console.log('bundling...');
-run('node', [join(root, 'scripts/bundle.mjs')], { cwd: root, stdio: 'inherit' });
+run(process.execPath, [join(root, 'scripts/bundle.mjs')], { cwd: root, stdio: 'inherit' });
 
 const dir = mkdtempSync(join(tmpdir(), 'ff-pack-'));
 const children = [];
 let failed = null;
 try {
-  for (const name of readdirSync(join(root, 'publish'))) run(npm, ['pack', '--pack-destination', dir], { cwd: join(root, 'publish', name) });
+  for (const name of readdirSync(join(root, 'publish'))) runNpm(['pack', '--pack-destination', dir], { cwd: join(root, 'publish', name) });
   const tarballs = readdirSync(dir).filter((f) => f.endsWith('.tgz'));
   console.log('packed:', tarballs.join(', '));
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'consumer', private: true, type: 'module' }));
   console.log('installing into an empty folder...');
-  run(npm, ['install', '--no-audit', '--no-fund', ...tarballs.map((t) => join(dir, t))], { cwd: dir, stdio: 'pipe' });
+  runNpm(['install', '--no-audit', '--no-fund', ...tarballs.map((t) => join(dir, t))], { cwd: dir, stdio: 'pipe' });
 
   const cli = join(dir, 'node_modules/fastforward-cli/bin.js');
   const registerUrl = pathToFileURL(join(dir, 'node_modules/fastforward-register/index.js')).href;
@@ -54,7 +58,7 @@ try {
 
   let out = '';
   try {
-    out = run('node', [cli, 'run', join(root, 'examples/coffee-club/scenarios/bad-month.yaml'), '--twin-url', 'http://127.0.0.1:4010', '--report-dir', join(dir, 'report')], { cwd: dir, env: { ...env, FF_DELIVERY_TIMEOUT_MS: '500' } });
+    out = run(process.execPath, [cli, 'run', join(root, 'examples/coffee-club/scenarios/bad-month.yaml'), '--twin-url', 'http://127.0.0.1:4010', '--report-dir', join(dir, 'report')], { cwd: dir, env: { ...env, FF_DELIVERY_TIMEOUT_MS: '500' } });
   } catch (err) {
     out = String(err.stdout ?? ''); // exit code 1 means "a check failed", which is the expected result here
   }

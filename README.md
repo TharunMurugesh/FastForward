@@ -53,9 +53,10 @@ Plain checks, not the AI, decide pass or fail, so the AI cannot talk a bug into 
 
 - The twin is built from PayPal's **official OpenAPI specifications** (Subscriptions, Disputes, webhooks) and
   its responses are validated against them.
-- The demo app uses PayPal's **official Node SDK** (`@paypal/paypal-server-sdk`), unmodified. A small add-on
-  (`fastforward-register`) redirects its sandbox calls to the twin and blocks any call to live PayPal before a
-  socket opens.
+- Two example apps are included: **Coffee Club** (`examples/coffee-club`), which uses PayPal's official Node SDK
+  (`@paypal/paypal-server-sdk`), unmodified, and **Plain Fetch Shop** (`examples/plain-fetch-shop`), which uses Node's
+  global `fetch` with no SDK. A small add-on (`fastforward-register`) redirects their sandbox calls to the twin and
+  blocks any call to live PayPal before a socket opens.
 - Webhooks are **signed and verified the way PayPal does it**: the twin signs events, serves the certificate and
   implements the verify-webhook-signature endpoint.
 - Calls the twin does not implement can pass through to the **real PayPal sandbox** (sandbox host only).
@@ -110,7 +111,7 @@ it again. `ff_write_scenario` needs an Anthropic key; the other two do not.
 - **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and
   events delayed past the end of the run are never delivered. Event ids are random, so a rerun has the same
   shape and timing but not the same ids.
-- **Scope is narrow:** six checks, one example app, Subscriptions and Disputes only.
+- **Scope is narrow:** six checks, two example apps, Subscriptions and Disputes only.
 
 ## Licence
 
