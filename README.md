@@ -118,8 +118,8 @@ it again. `ff_write_scenario` needs an Anthropic key; the other two do not.
   after that cycle's retries. We follow PayPal's worked example (suspend on the first attempt), and the sandbox has
   no clock to test it.
 - **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and
-  events delayed past the end of the run are never delivered. Event ids are random, so a rerun has the same
-  shape and timing but not the same ids.
+  events delayed past the end of the run are never delivered. Ids follow the scenario seed, so a rerun has the same
+  shape, timing and ids (run ids and signature transmission ids are still random).
 - **Scope is narrow:** six checks, two example apps, Subscriptions and Disputes only.
 
 ## Contributing and security

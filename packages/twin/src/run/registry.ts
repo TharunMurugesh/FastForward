@@ -1,4 +1,5 @@
 import { DISPUTE_REASONS, SUBSCRIPTION_STATUSES, type Scenario } from '@fastforward/contracts';
+import { seedIds } from '../ids.js';
 import type { Run } from './run.js';
 
 /** One active run per twin; finished runs stay readable (trace, report) until the twin closes. */
@@ -22,7 +23,9 @@ export function createRunRegistry(makeRun: (scenario: Scenario) => Run): RunRegi
     latest: () => [...runs.values()].at(-1),
     async create(body) {
       if (current) throw new Error('a run is already active; finish it first');
-      const run = makeRun(checkScenario(body));
+      const scenario = checkScenario(body);
+      seedIds(scenario.seed); // ids follow the scenario seed, so a replay matches its recording
+      const run = makeRun(scenario);
       // Active before start(): the app's subscribe calls during start() must reach this run's engine.
       current = run;
       try {

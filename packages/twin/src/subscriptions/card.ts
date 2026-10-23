@@ -1,4 +1,4 @@
-import { randomInt } from 'node:crypto';
+import { pickIndex } from '../ids.js';
 
 /**
  * A card in `subscriber.payment_source.card` on a create-subscription request. PayPal's sandbox activates such a
@@ -56,6 +56,6 @@ const PAYER_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 /** A PayPal-style payer id: 13 characters from the alphabet above. */
 export function newPayerId(): string {
   let out = '';
-  for (let i = 0; i < 13; i += 1) out += PAYER_ALPHABET[randomInt(PAYER_ALPHABET.length)];
+  for (let i = 0; i < 13; i += 1) out += PAYER_ALPHABET[pickIndex(PAYER_ALPHABET.length)];
   return out;
 }

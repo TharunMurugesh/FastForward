@@ -1,0 +1,11 @@
+{
+  "Leo:payment_failed:1": {
+    "action": "ignore"
+  },
+  "Leo:payment_failed:2": {
+    "action": "ignore"
+  },
+  "Leo:payment_failed:3": {
+    "action": "update_card"
+  }
+}

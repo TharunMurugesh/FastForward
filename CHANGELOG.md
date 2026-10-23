@@ -20,6 +20,8 @@ First version. Not published to npm yet; until then it runs from a clone of the 
 - **`fastforward-mcp`:** a stdio MCP server with `ff_write_scenario`, `ff_run` and `ff_explain`.
 - **AI (optional):** Claude plays the customers, writes scenarios and explains failures. Without a key, customers
   follow scripted defaults and everything else works. Decisions are saved to a lock file so reruns match.
+- **Seeded ids:** ids follow the scenario seed, so a rerun has the same event, subscription, sale and dispute ids, which is
+  what lets a recording of the model's explanations (they quote ids) match its replay.
 - **Recording and replay of the model:** the customer decisions and the failure explanations Claude writes are saved next
   to the scenario, so a run with no key (and the hosted demo) replays them. Reports label each explanation "Written by
   Claude" or "Built-in text" and say how many decisions and explanations the model wrote and how many model calls

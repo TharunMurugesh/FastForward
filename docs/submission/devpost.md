@@ -60,6 +60,8 @@ Claude Opus 5.5 does three jobs:
 
 Without an API key, Fastforward still runs: customers follow a scripted default and failures use template explanations. The deterministic checks, not the AI, decide pass or fail, so the AI cannot talk a bug into passing.
 
+**The hosted demo replays one real recorded run.** The customer decisions and the failure explanations on the page were written once by Claude Opus 5.5 (a recording of 10 model calls, about 16 thousand tokens) and saved; the report labels them "Written by Claude" and says it is a replay. The page does not call a model while you look at it, so it costs nothing and cannot fail because of an API outage.
+
 A coding-assistant server (MCP) lets an assistant such as Claude Code write a scenario, run it, and read the explanations, then fix the bug in your code and run it again.
 
 ## Built with
@@ -72,7 +74,7 @@ TypeScript (strict), Node 24, Fastify, zod, React and Vite, **AG Grid Community*
 
 - **The real-sandbox comparison uses card-funded subscriptions** (US merchant, non-3DS test card), the only way to get an active subscription without a person approving it in a browser. Subscriptions approved with a PayPal wallet follow the same states but were not compared. Just after creation the sandbox lists no transactions yet, while the twin lists the payment at once; that difference is recorded. Remaining guesses are marked verified or unverified in `packages/twin/src/fidelity.ts`.
 - **One timing is a guess.** PayPal's retry schedule (5 days, twice per cycle), how failures are counted and the suspension threshold are verified from its documentation and API spec. PayPal does not say whether the final failure suspends on its first attempt or only after that cycle's retries; we follow its worked example, and the sandbox has no clock to test it.
-- **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and events delayed past the end of the run are never delivered. Event ids are random, so a rerun has the same shape and timing but not the same ids.
+- **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and events delayed past the end of the run are never delivered. Ids follow the scenario seed, so a rerun has the same shape, timing and ids (run ids and signature transmission ids are still random).
 - **Scope is narrow.** Six checks, two example apps, subscriptions and disputes only. Other PayPal products are out of scope.
 - **Market and price are unproven**, as stated above.
 

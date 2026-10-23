@@ -76,10 +76,9 @@ Everything below the "Update 20 Oct" heading is older; this section is current.
   scenario and replayed with no key; reports label what is Claude's; `FF_AI_MAX_CALLS` caps spend; the twin now
   hands explanations to the dashboard's report (before, the live dashboard had none). The REAL recording is not done.
 - **Vinay's items (nothing here is blocked on code):**
-  1. Put `ANTHROPIC_API_KEY` in `.env` (there is none now), then `npm run build && npm run record:ai -- --yes`
-     (capped at 60 calls, a few dollars at most), review the two new files in `examples/coffee-club/scenarios/`
-     (`bad-month.lock.json`, `bad-month.narration.lock.json`) and commit them. Then push to Tharun's fork so the live demo
-     replays Claude's run.
+  1. DONE 23 Oct: Claude's run was recorded (10 model calls, 15,985 tokens) and committed as
+     `examples/coffee-club/scenarios/bad-month.lock.json` and `bad-month.narration.lock.json`. Push `main` to Tharun's fork so
+     the live demo replays it. Re-record with `npm run record:ai -- --yes` (needs the key in `.env`).
   2. DONE 23 Oct: main pushed to Tharun's fork; the live site is on the new build (17 steps, read-only, explanations shown).
   3. DONE 23 Oct: Private vulnerability reporting enabled (SECURITY.md points at it).
   4. npm: publish `fastforward-register`, `fastforward-cli`, `fastforward-mcp` (see production-implementation-plan.md
