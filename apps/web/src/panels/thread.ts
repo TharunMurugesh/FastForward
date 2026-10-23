@@ -5,6 +5,8 @@ export interface ThreadMessage {
   at: string;
   from: 'buyer' | 'seller' | 'system';
   text: string;
+  /** The model decided and wrote this customer message (live, or replayed from a recording). */
+  byModel?: boolean;
 }
 
 export interface DisputeThread {
@@ -68,7 +70,7 @@ export function disputeThreads(trace: TraceEntry[], subscriptions: TimelineRow[]
       threads.get(t.disputeId)?.messages.push({ at: t.at, from: 'seller', text: SELLER_ACTION_TEXT[t.action] ?? t.action });
     } else if (t.kind === 'customer_decision' && (t.decision.action === 'reply' || t.decision.action === 'dispute')) {
       const thread = [...threads.values()].find((th) => th.customer === t.customer);
-      thread?.messages.push({ at: t.at, from: 'buyer', text: t.decision.message });
+      thread?.messages.push({ at: t.at, from: 'buyer', text: t.decision.message, ...(t.by === 'model' ? { byModel: true } : {}) });
     }
   }
 

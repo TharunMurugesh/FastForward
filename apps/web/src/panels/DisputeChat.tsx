@@ -33,6 +33,14 @@ export function DisputeChat({ trace, subscriptions }: Props) {
               <li key={i} className={`bubble ${m.from}`}>
                 <div className="who">
                   {WHO[m.from]} · <span className="muted">{fmtDateTime(m.at)}</span>
+                  {m.byModel && (
+                    <>
+                      {' '}
+                      <span className="chip neutral" title="The model decided what this customer says">
+                        Written by Claude
+                      </span>
+                    </>
+                  )}
                 </div>
                 <div>{m.text}</div>
               </li>

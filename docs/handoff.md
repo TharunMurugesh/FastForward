@@ -63,6 +63,34 @@ each, per the method).
 - Demo bug set: no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order.
 - Notes: every retry has its own transmission id; STATE_MATCHES orders notices by `status_update_time`.
 
+## State on 23 Oct (Sara): READ THIS FIRST
+Everything below the "Update 20 Oct" heading is older; this section is current.
+- **Built and pushed (main, CI green):** twin, checks, CLI (`run`, `new`, `twin`, `init`), MCP server, dashboard, two example apps
+  (Coffee Club, Plain Fetch Shop), hosted demo (Docker, read-only), three publishable packages (`npm run pack:check`),
+  user guide, CHANGELOG, SECURITY, CONTRIBUTING, CI (build, unit, pack check, e2e in about 1 minute, version check).
+- **Real-sandbox comparison: 17 of 17 steps match** (pending path and the active path via card-funded subscriptions;
+  docs/approved-subscriptions-findings.md). Known honest limits: wallet-approved subscriptions not compared; one
+  understood difference (transactions just after creation); one unverified timing (suspension on the first failed
+  attempt of the final cycle vs after its retries).
+- **AI recording and replay: built and tested with a fake model.** Decisions and explanations are saved next to the
+  scenario and replayed with no key; reports label what is Claude's; `FF_AI_MAX_CALLS` caps spend; the twin now
+  hands explanations to the dashboard's report (before, the live dashboard had none). The REAL recording is not done.
+- **Vinay's items (nothing here is blocked on code):**
+  1. Put `ANTHROPIC_API_KEY` in `.env` (there is none now), then `npm run build && npm run record:ai -- --yes`
+     (capped at 60 calls, a few dollars at most), review the two new files in `examples/coffee-club/scenarios/`
+     (`bad-month.lock.json`, `bad-month.narration.lock.json`) and commit them. Then push to Tharun's fork so the live demo
+     replays Claude's run.
+  2. Push main to Tharun's fork (`git push tharun main`): the live site is still on the 20 Oct build.
+  3. GitHub: Settings, Code security, turn on Private vulnerability reporting (SECURITY.md points at it).
+  4. npm: publish `fastforward-register`, `fastforward-cli`, `fastforward-mcp` (see production-implementation-plan.md
+     section E), then switch the install lines (plan item D6). 2FA must be on. The org `fastforward-mcp` is reserved.
+  5. Film the video from about 5 Nov (docs/submission/video-script.md; numbers there: 4 of 6 checks, 17 of 17 steps),
+     fill the one YouTube link in devpost.md, submit by 12 Nov (13 Nov 01:30 IST).
+  6. Recruit a few real PayPal developers to try it (message drafts available from Sara; no idea revealed to entrants).
+- **Standing rules from Vinay (23 Oct):** only Vinay and Sara write code (Tharun does non-coding jobs); come to Vinay only
+  for major decisions; pushing tested work to origin main is pre-approved; spending money, publishing, deploying and
+  legal text are his.
+
 ## Update 20 Oct (Sara)
 - Task 16 MCP merged (376 tests pass). Worker C's `docs/submission/{devpost,video-script}.md` merged and corrected (4 of 6, minutes).
 - Price decided by Vinay: target $39 per developer per month, free for one developer; framed as a target, no revenue claimed.
