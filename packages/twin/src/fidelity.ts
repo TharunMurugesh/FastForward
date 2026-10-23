@@ -10,13 +10,17 @@ export const fidelity = {
   // verified 2026-10-19: same page as retryIntervalDays.
   maxRetries: 2,
   // Rules built on the two values above, implemented in subscriptions/engine.ts (no values to tune):
-  // - unverified: inferred from the docs example (the March 1 charge fails and "reaches the payment
-  //   failure threshold. The subscription is suspended." with no retries mentioned). When a failed
-  //   attempt would reach payment_failure_threshold, the twin suspends at once instead of retrying.
-  // - unverified: the docs say a failure is "counted" once the second retry fails, but never name
-  //   failed_payments_count. The twin raises failed_payments_count and outstanding_balance once per
-  //   cycle, when retries are exhausted. Each failed attempt still emits
-  //   BILLING.SUBSCRIPTION.PAYMENT.FAILED (the docs are silent on the webhook).
+  // - verified 2026-10-23 (the same docs page, "Last updated: October 14, 2026", plus the official OpenAPI spec in
+  //   packages/twin/spec): a failure is "counted" only once the second retry fails; failed_payments_count is "the
+  //   number of consecutive payment failures" and "If this reaches the payment_failure_threshold value, the
+  //   subscription updates to the SUSPENDED state"; threshold 2 means two consecutive failed payments suspend.
+  //   The twin raises failed_payments_count and outstanding_balance once per cycle, when retries are exhausted.
+  // - unverified (the one open point): WHEN the final failure suspends. The docs' worked example says the March 1
+  //   charge fails, "reaches the payment failure threshold. The subscription is suspended.", and lists no March
+  //   retries, so the twin suspends on the first failed attempt of that cycle instead of retrying. Read the other
+  //   way (retries on 5 and 10 March, then suspend) it would be March 10. PayPal never says, and the sandbox cannot
+  //   settle it (it has no clock). Changing it would move every suspension date in a run by up to 10 days.
+  // - unverified: each failed attempt emits BILLING.SUBSCRIPTION.PAYMENT.FAILED (the docs are silent on webhooks).
   // Dispute rules below, implemented in disputes/engine.ts (no values to tune), all unverified:
   // - unverified: after the seller provides evidence the dispute is UNDER_REVIEW (status enum in
   //   customer_disputes_v1.json; PayPal publishes no transition table) and it stays there; the twin never rules
@@ -25,7 +29,7 @@ export const fidelity = {
   //   (same source), and a buyer reply returns it to WAITING_FOR_SELLER_RESPONSE.
   // - unverified: a dispute the seller never touches is resolved in the buyer's favour at the due date
   //   (design spec section 6: our assumption, not checked against PayPal's docs).
-  // Shapes copied from the first live fidelity run (2026-10-25, PayPal sandbox), all in subscriptions/resources.ts:
+  // Shapes copied from the first live fidelity run (2026-10-19, PayPal sandbox), all in subscriptions/resources.ts:
   // - verified: a subscription waiting for approval has no billing_info, plan, shipping_amount or update_time, and GET
   //   also has no status_update_time; the plan only comes with ?fields=plan (PayPal's documented query).
   // - unverified: the subscription POST response has subscriber {tenant: 'paypal'} when the request has no subscriber

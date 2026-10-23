@@ -71,9 +71,9 @@ TypeScript (strict), Node 24, Fastify, zod, React and Vite, **AG Grid Community*
 ## Honest known limits
 
 - **The fidelity check covers the pending-approval path.** Subscriptions that are approved and active need a buyer's approval in the sandbox, so we do not compare those. Remaining guesses are marked verified or unverified in `packages/twin/src/fidelity.ts`.
-- **One rule is inferred.** PayPal's retry schedule for failed payments (5 days, twice per cycle) is verified from its documentation. Suspending a subscription at once when it reaches the failure threshold is inferred and marked unverified.
+- **One timing is a guess.** PayPal's retry schedule (5 days, twice per cycle), how failures are counted and the suspension threshold are verified from its documentation and API spec. PayPal does not say whether the final failure suspends on its first attempt or only after that cycle's retries; we follow its worked example, and the sandbox has no clock to test it.
 - **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and events delayed past the end of the run are never delivered. Event ids are random, so a rerun has the same shape and timing but not the same ids.
-- **Scope is narrow.** Six checks, one example app, subscriptions and disputes only. Other PayPal products are out of scope.
+- **Scope is narrow.** Six checks, two example apps, subscriptions and disputes only. Other PayPal products are out of scope.
 - **Market and price are unproven**, as stated above.
 
 ## Try it

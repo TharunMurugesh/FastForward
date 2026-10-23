@@ -40,7 +40,7 @@ with accounts and billing comes later, after real people use the free tool.
 ## Phase 3: honest coverage (depth, not breadth)
 12. **Approved, active subscriptions in the real-sandbox comparison.** Our known gap; needs a buyer approval in
     the sandbox. I will test how far it can be automated, and say so if it cannot.
-13. **Verify the inferred rule** (suspend at the failure threshold) against PayPal's docs or the sandbox.
+13. **[done 23 Oct, partly verified] Verify the inferred rule** (suspend at the failure threshold) against PayPal's docs or the sandbox. Verified from the docs (updated 14 Oct 2026) and the official API spec: failure counting and the threshold. Still a guess, and untestable without a clock: whether the final failure suspends on its first attempt (twin, matches PayPal's worked example) or after that cycle's retries.
 14. **Show the AI in the product:** one recorded real AI run, replayable with no key (see earlier proposal).
 
 ## Phase 4: the business, only after real users

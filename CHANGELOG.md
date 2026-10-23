@@ -31,5 +31,7 @@ First version. Not published to npm yet; until then it runs from a clone of the 
 ### Known limits
 - The comparison with PayPal's real sandbox covers the pending-approval path (7 of 7 endpoints match), not
   approved, active subscriptions.
-- Suspending a subscription the moment it reaches the failure threshold is inferred, not verified.
+- The retry schedule, failure counting and the suspension threshold are verified against PayPal's documentation
+  and API spec. One timing is a guess: whether the final failure suspends on its first attempt (as PayPal's worked
+  example reads) or after that cycle's retries.
 - Node apps only. Subscriptions and Disputes only.

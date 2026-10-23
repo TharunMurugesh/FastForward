@@ -105,9 +105,11 @@ it again. `ff_write_scenario` needs an Anthropic key; the other two do not.
 - **The fidelity check covers the pending-approval path.** Approved, active subscriptions need a buyer's
   approval in the sandbox, so they are not compared. Remaining guesses are marked verified or unverified in
   `packages/twin/src/fidelity.ts`.
-- **One rule is inferred.** PayPal's retry schedule for failed payments (5 days, twice per cycle) is verified
-  from its documentation. Suspending a subscription at once when it reaches the failure threshold is inferred
-  and marked unverified.
+- **One timing is a guess.** From PayPal's documentation and API spec we verified: failed payments are retried
+  every 5 days, twice per cycle; a failure counts once the second retry fails; and reaching the failure threshold
+  suspends the subscription. PayPal does not say whether the final failure suspends on its first attempt or only
+  after that cycle's retries. We follow PayPal's worked example (suspend on the first attempt), and the sandbox has
+  no clock to test it.
 - **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and
   events delayed past the end of the run are never delivered. Event ids are random, so a rerun has the same
   shape and timing but not the same ids.

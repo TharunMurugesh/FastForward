@@ -93,8 +93,10 @@ Exit codes: `0` all checks passed or were skipped, `1` at least one check failed
 - **Verified against PayPal's real sandbox:** statuses, response shapes and the official OpenAPI specs for the
   subscription paths we compare (see `fidelity/latest.json`). Failed-payment retries (5 days, twice per cycle)
   follow PayPal's documentation.
-- **Inferred, not verified:** suspending a subscription at once when it reaches the failure threshold. Every
-  such guess is marked in `packages/twin/src/fidelity.ts`.
+- **One timing is a guess:** whether the failure that reaches the threshold suspends on its first attempt (what
+  PayPal's worked example shows) or only after that cycle's retries (up to 10 days later). PayPal does not say and
+  the sandbox cannot test it. The counting rule and the threshold itself are verified. Every guess is marked in
+  `packages/twin/src/fidelity.ts`.
 - **Not covered:** approved, active subscriptions in the real-sandbox comparison; other PayPal products; apps
   that are not Node.
 - **Bad weather limits:** reordering and bursts happen among events at the same simulated instant, and events
