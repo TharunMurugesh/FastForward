@@ -31,8 +31,10 @@ npm run demo
 
 Then open <http://localhost:8080>. `npm run demo` builds the project, starts the stand-in PayPal (the twin),
 the demo shop app (Coffee Club, with deliberate bugs) and the dashboard, plays a 75-day "bad month" once in a
-few seconds, and opens the dashboard on the result: 4 of 6 checks fail, each with an explanation and a fix.
-Needs Node 24. The AI is off in the demo; customers follow scripted defaults.
+few seconds, and opens the dashboard on the result: 3 of 6 checks fail, each with an explanation and a fix. Needs
+Node 24 and no API key: the customers' decisions and the explanations replay a recorded run of Claude, and the report
+labels them "Written by Claude". (With scripted customers a fourth check fails: the scripted customer lets his card keep
+failing until he is suspended, while Claude's customer updated his card in time.)
 
 Change one thing to see the checks go quiet: `COFFEE_BUGS=none npm run demo` plays the same month with the
 bugs off, and all 6 checks pass.
@@ -124,7 +126,7 @@ it again. `ff_write_scenario` needs an Anthropic key; the other two do not.
 
 ## Contributing and security
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) to set up and run the tests, and [SECURITY.md](SECURITY.md) to report a
+To try the live demo and a local install step by step, see [docs/testing-guide.md](docs/testing-guide.md). See [CONTRIBUTING.md](CONTRIBUTING.md) to set up and run the tests, and [SECURITY.md](SECURITY.md) to report a
 vulnerability privately. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence

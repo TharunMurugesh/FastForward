@@ -39,7 +39,7 @@ To prove it finds real bugs, we built a small coffee-subscription app, Coffee Cl
 
 Run the same 75-day month twice, changing nothing but the bugs:
 
-- **Bugs on:** four of the six checks fail (signatures, access state, double fulfilment, unanswered dispute), each with an explanation and a fix. A sixth bug, slow replies, makes a fifth check fail but slows the run a lot, so the demo leaves it off.
+- **Bugs on:** three of the six checks fail with the recorded Claude customers (signatures, double fulfilment, unanswered dispute), each with an explanation and a fix. With scripted customers a fourth fails (access state): the scripted customer keeps a failing card until he is suspended, and the app ignores the suspension. Claude's customer updated his card in time, so that bug was never triggered, which is a real difference an AI customer makes. A sixth bug, slow replies, would make another check fail but slows the run a lot, so the demo leaves it off.
 - **Bugs off:** all six checks pass.
 
 ## How PayPal is used
@@ -91,7 +91,7 @@ Video: [public YouTube URL]
 
 - [ ] Fill in the one bracketed link: the YouTube URL (GitHub and the hosted demo are done).
 - [ ] Confirm `npm run demo` is merged before submitting; this text says it exists. The MCP server (Task 16) is merged.
-- [ ] Confirm "four of six" matches your final run (the demo bug set gave 4 failing checks when Sara ran it live on 20 Oct; adding the slow-reply bug gives 5).
+- [ ] Confirm "three of six" matches the live page when you film (the recorded Claude customers give 3; scripted customers give 4; adding the slow-reply bug adds one more).
 - [ ] Devpost "Tools used" field: Claude Opus 5.5, PayPal Subscriptions and Disputes APIs, PayPal Node SDK, AG Grid Community, Fastify, React, Vite.
 - [ ] The $39 price and the 9% figure are labelled as a target and as unverified. Keep it that way if you edit.
 - [ ] Rules: no third-party logos or copyrighted music in screenshots or the video. This text uses no logos.

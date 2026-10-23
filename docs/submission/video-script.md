@@ -31,7 +31,7 @@ So your code meets its first bad day with real money. Fastforward fixes that. It
 **Say:**
 "Here is a small coffee subscription app. It uses PayPal's official SDK. It has bugs that I put in on purpose.
 I run one command, and Fastforward plays seventy-five days in a few seconds. AI plays three customers. Maya pays on time. Leo's card starts failing. Ana opens a dispute. And the webhooks arrive twice, late, out of order, and one is forged.
-Now the report. Four of six checks fail. It did not verify signatures. It fulfilled an order twice. It ended in the wrong state. It ignored the dispute. Each failure has a plain explanation and a fix."
+Now the report. Three of six checks fail. It did not verify signatures. It fulfilled an order twice. It ignored the dispute. Each failure has a plain explanation, and a fix, written by Claude. Notice Leo: with scripted customers he keeps a failing card until he is suspended, and this app would have kept serving him. But Claude's Leo updated his card in time. An AI customer behaves like a person, so it tests your app in ways a script never would."
 
 ## 4. Same month, bugs off [1:25 to 1:45]
 
@@ -65,7 +65,7 @@ Now the report. Four of six checks fail. It did not verify signatures. It fulfil
 
 ## Notes for Vinay (not spoken)
 
-- **Check the number on screen.** The script says "four of six" for the bad-month scenario with the demo bug set (no slow-reply bug); Sara ran it live and got four. If your take shows a different number, say what the screen shows.
+- **Check the number on screen.** The script says "three of six": the live page and `npm run demo` replay the recorded Claude customers, which give three. With scripted customers (no recording, no key) it is four. If your take shows a different number, say what the screen shows.
 - **Section 6:** the MCP server is merged. Rehearse it once before filming.
 - **Claim nothing the repo does not show.** No customer numbers, no revenue, no market size. The price is a target.
 - The spoken text is roughly 400 words, about 2 minutes 40 seconds at a calm pace. If a take runs over, trim section 2 first.

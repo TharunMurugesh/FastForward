@@ -83,7 +83,7 @@ Everything below the "Update 20 Oct" heading is older; this section is current.
   3. DONE 23 Oct: Private vulnerability reporting enabled (SECURITY.md points at it).
   4. npm: publish `fastforward-register`, `fastforward-cli`, `fastforward-mcp` (see production-implementation-plan.md
      section E), then switch the install lines (plan item D6). 2FA must be on. The org `fastforward-mcp` is reserved.
-  5. Film the video from about 5 Nov (docs/submission/video-script.md; numbers there: 4 of 6 checks, 17 of 17 steps),
+  5. Film the video from about 5 Nov (docs/submission/video-script.md; numbers there: 3 of 6 checks with the recorded Claude customers (4 with scripted), 17 of 17 steps),
      fill the one YouTube link in devpost.md, submit by 12 Nov (13 Nov 01:30 IST).
   6. Recruit a few real PayPal developers to try it (message drafts available from Sara; no idea revealed to entrants).
 - **Standing rules from Vinay (23 Oct):** only Vinay and Sara write code (Tharun does non-coding jobs); come to Vinay only
