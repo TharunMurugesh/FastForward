@@ -15,7 +15,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(root, 'publish');
-const VERSION = process.env.FF_VERSION ?? '0.1.0';
+// One version for everything: the VERSION file at the repo root (FF_VERSION overrides it for a trial build).
+const VERSION = process.env.FF_VERSION ?? readFileSync(join(root, 'VERSION'), 'utf8').trim();
 const REPO = 'https://github.com/VinayG759/FastForward';
 
 const workspaceDeps = {};

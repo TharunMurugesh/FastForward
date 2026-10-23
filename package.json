@@ -1,5 +1,6 @@
 {
   "name": "fastforward",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -19,7 +20,8 @@
     "fidelity": "vitest run --project fidelity",
     "demo": "npm run build && npm run build -w @fastforward/web && node scripts/start-hosted.mjs --run",
     "bundle": "node scripts/bundle.mjs",
-    "pack:check": "node scripts/pack-check.mjs"
+    "pack:check": "node scripts/pack-check.mjs",
+    "check:version": "node scripts/check-version.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
