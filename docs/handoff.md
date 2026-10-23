@@ -80,8 +80,8 @@ Everything below the "Update 20 Oct" heading is older; this section is current.
      (capped at 60 calls, a few dollars at most), review the two new files in `examples/coffee-club/scenarios/`
      (`bad-month.lock.json`, `bad-month.narration.lock.json`) and commit them. Then push to Tharun's fork so the live demo
      replays Claude's run.
-  2. Push main to Tharun's fork (`git push tharun main`): the live site is still on the 20 Oct build.
-  3. GitHub: Settings, Code security, turn on Private vulnerability reporting (SECURITY.md points at it).
+  2. DONE 23 Oct: main pushed to Tharun's fork; the live site is on the new build (17 steps, read-only, explanations shown).
+  3. DONE 23 Oct: Private vulnerability reporting enabled (SECURITY.md points at it).
   4. npm: publish `fastforward-register`, `fastforward-cli`, `fastforward-mcp` (see production-implementation-plan.md
      section E), then switch the install lines (plan item D6). 2FA must be on. The org `fastforward-mcp` is reserved.
   5. Film the video from about 5 Nov (docs/submission/video-script.md; numbers there: 4 of 6 checks, 17 of 17 steps),
