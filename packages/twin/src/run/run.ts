@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
-import type { Customer, CustomerAction, CustomerDecision, Scenario, SubscriptionStatus, TraceEntry, Weather, WebhookEvent } from '@fastforward/contracts';
+import type { Customer, CustomerAction, CustomerDecision, DecisionBy, Scenario, SubscriptionStatus, TraceEntry, Weather, WebhookEvent } from '@fastforward/contracts';
 import { DisputeEngine } from '../disputes/engine.js';
+import type { ExplanationsPayload } from '../explanations.js';
 import { SubscriptionEngine } from '../subscriptions/engine.js';
 import type { DomainEvent } from '../subscriptions/events.js';
 import { PayPalError, type Money } from '../subscriptions/resources.js';
@@ -29,8 +30,14 @@ export interface DecisionContext {
   details: string;
 }
 
+/** A decision and who made it. A `decide` function may return just the decision when it does not know. */
+export interface DecisionWithSource {
+  decision: CustomerDecision;
+  by: DecisionBy;
+}
+
 export interface RunDeps {
-  decide?: (ctx: DecisionContext) => Promise<CustomerDecision>;
+  decide?: (ctx: DecisionContext) => Promise<CustomerDecision | DecisionWithSource>;
 }
 
 /**
@@ -47,6 +54,8 @@ export class Run {
   readonly ledger = new VerifyLedger();
   readonly end: Date;
   finished = false;
+  /** Explanations the command-line tool attached after the run (see explanations.ts); the report merges them in. */
+  explanations: ExplanationsPayload | undefined;
 
   private readonly dispatcher: Dispatcher;
   private readonly book: CustomerBook;
@@ -255,18 +264,20 @@ export class Run {
   private async decideAfterFailure(customer: Customer, subscriptionId: string, n: number, at: Date): Promise<void> {
     const { plan } = this.scenario;
     let decision: CustomerDecision;
+    let by: DecisionBy | undefined;
     try {
-      decision = await this.deps.decide!({
+      const out = await this.deps.decide!({
         key: `${customer.name}:payment_failed:${n}`,
         customer,
         point: 'payment_failed',
         at: at.toISOString(),
         details: `Your ${plan.price} ${plan.currency} payment for "${plan.name}" was declined (failure ${n}).`,
       });
+      ({ decision, by } = 'decision' in out ? out : { decision: out, by: undefined });
     } catch {
       return; // a broken decide function must not stop the run; the customer simply does nothing
     }
-    this.record({ at: at.toISOString(), kind: 'customer_decision', customer: customer.name, decision });
+    this.record({ at: at.toISOString(), kind: 'customer_decision', customer: customer.name, decision, ...(by ? { by } : {}) });
     if (decision.action === 'update_card') this.book.updateCard(subscriptionId);
     else if (decision.action === 'cancel') this.cancel(subscriptionId);
     else if (decision.action === 'dispute') this.openDispute(subscriptionId, decision.reason, decision.message);
@@ -303,18 +314,20 @@ export class Run {
 
   private async decideAfterMessage(customer: Customer, subscriptionId: string, disputeId: string, message: string, n: number, at: Date): Promise<void> {
     let decision: CustomerDecision;
+    let by: DecisionBy | undefined;
     try {
-      decision = await this.deps.decide!({
+      const out = await this.deps.decide!({
         key: `${customer.name}:seller_message:${n}`,
         customer,
         point: 'seller_message',
         at: at.toISOString(),
         details: `The seller wrote to you about your dispute ${disputeId}: "${message}"`,
       });
+      ({ decision, by } = 'decision' in out ? out : { decision: out, by: undefined });
     } catch {
       return; // a broken decide function must not stop the run
     }
-    this.record({ at: at.toISOString(), kind: 'customer_decision', customer: customer.name, decision });
+    this.record({ at: at.toISOString(), kind: 'customer_decision', customer: customer.name, decision, ...(by ? { by } : {}) });
     if (decision.action === 'reply') {
       try {
         this.disputes.reply(disputeId, decision.message);

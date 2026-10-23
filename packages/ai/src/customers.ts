@@ -1,4 +1,4 @@
-import type { Customer, CustomerDecision } from '@fastforward/contracts';
+import type { Customer, CustomerDecision, DecisionBy } from '@fastforward/contracts';
 import { MODEL, stripCodeFence, type AiClient } from './client.js';
 import { DecisionSchema, type DecisionLock } from './lock.js';
 import { CUSTOMER_SYSTEM } from './prompts.js';
@@ -20,22 +20,27 @@ function scripted(point: DecisionContext['point']): CustomerDecision {
 /**
  * Lock hit: return it. Otherwise ask the model; no model, a failure or junk output gives the scripted
  * default. Only real model decisions are saved, so a scripted fallback during an outage does not stick
- * to the lock and block the model's decision on the next run.
+ * to the lock and block the model's decision on the next run. `by` says which of the two decided.
  */
-export async function decideCustomerAction(ctx: DecisionContext, ai: AiClient | null, lock: DecisionLock): Promise<CustomerDecision> {
+export async function decideWithSource(ctx: DecisionContext, ai: AiClient | null, lock: DecisionLock): Promise<{ decision: CustomerDecision; by: DecisionBy }> {
   const saved = lock.get(ctx.key);
-  if (saved) return saved;
-  if (!ai) return scripted(ctx.point);
+  if (saved) return { decision: saved, by: 'model' };
+  if (!ai) return { decision: scripted(ctx.point), by: 'scripted' };
 
   try {
     const reply = await ai.complete({ model: MODEL, system: CUSTOMER_SYSTEM, prompt: describe(ctx), json: true, effort: 'low' });
     const parsed = DecisionSchema.safeParse(JSON.parse(stripCodeFence(reply)));
-    if (!parsed.success) return scripted(ctx.point);
+    if (!parsed.success) return { decision: scripted(ctx.point), by: 'scripted' };
     lock.set(ctx.key, parsed.data);
-    return parsed.data;
+    return { decision: parsed.data, by: 'model' };
   } catch {
-    return scripted(ctx.point);
+    return { decision: scripted(ctx.point), by: 'scripted' };
   }
+}
+
+/** The decision alone; see decideWithSource. */
+export async function decideCustomerAction(ctx: DecisionContext, ai: AiClient | null, lock: DecisionLock): Promise<CustomerDecision> {
+  return (await decideWithSource(ctx, ai, lock)).decision;
 }
 
 function describe(ctx: DecisionContext): string {

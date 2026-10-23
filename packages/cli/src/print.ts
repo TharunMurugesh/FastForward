@@ -1,4 +1,4 @@
-import { CHECK_IDS, type CheckId, type Report } from '@fastforward/contracts';
+import { CHECK_IDS, describeAi, type CheckId, type Report } from '@fastforward/contracts';
 
 export const CHECK_TITLES: Record<CheckId, string> = {
   ACK_FAST: 'App answers PayPal fast',
@@ -45,6 +45,7 @@ export function formatReport(report: Report, ctx: PrintContext): string {
   const out: string[] = [];
   out.push(`Fastforward run ${report.runId}: ${report.scenario}, ${day(report.start)} to ${day(report.end)}`);
   out.push(`${report.counts.customers} customers, ${report.counts.events} events, ${report.counts.deliveries} deliveries (all simulated)`);
+  if (report.ai) out.push(`AI: ${describeAi(report.ai)}`);
   out.push('');
   for (const id of CHECK_IDS) {
     const c = report.checks.find((x) => x.id === id);
@@ -66,3 +67,4 @@ export function formatReport(report: Report, ctx: PrintContext): string {
   out.push(`Dashboard: ${ctx.dashboardLink}${ctx.twinKept ? '' : '  (open it while the twin is running; use --keep-twin)'}`);
   return out.join('\n') + '\n';
 }
+

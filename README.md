@@ -40,7 +40,9 @@ bugs off, and all 6 checks pass.
 ## What it does
 
 1. **A twin of PayPal Subscriptions plays the month** on a fast-forwarded clock.
-2. **AI plays the customers** (one pays, one's card fails, one opens a dispute), when an Anthropic key is set.
+2. **AI plays the customers** (one pays, one's card fails, one opens a dispute), when an Anthropic key is set. What
+   Claude decided and wrote is saved, so a run with no key can replay the same words, and the report labels which
+   words are Claude's and which are built-in text.
 3. **The twin sends "bad weather":** webhooks arrive twice, late, out of order, or forged, signed like PayPal's.
 4. **Six checks judge your app:** it verifies signatures, fulfils once per payment, answers fast, ends in the
    right subscription state, answers disputes in time, and never calls live PayPal.

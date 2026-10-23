@@ -41,7 +41,7 @@ with accounts and billing comes later, after real people use the free tool.
 12. **[done 23 Oct: 17 of 17 steps match the real sandbox, see docs/approved-subscriptions-findings.md] Approved, active subscriptions in the real-sandbox comparison.** Our known gap; needs a buyer approval in
     the sandbox. I will test how far it can be automated, and say so if it cannot.
 13. **[done 23 Oct, partly verified] Verify the inferred rule** (suspend at the failure threshold) against PayPal's docs or the sandbox. Verified from the docs (updated 14 Oct 2026) and the official API spec: failure counting and the threshold. Still a guess, and untestable without a clock: whether the final failure suspends on its first attempt (twin, matches PayPal's worked example) or after that cycle's retries.
-14. **Show the AI in the product:** one recorded real AI run, replayable with no key (see earlier proposal).
+14. **[built 23 Oct; the real recording waits for Vinay] Show the AI in the product:** one recorded real AI run, replayable with no key. Built and tested with a fake model: saved explanations, labels, spend guard, the hosted demo replaying a recording. To finish: put `ANTHROPIC_API_KEY` in `.env`, then `npm run record:ai -- --yes` (a few dollars at most, capped at 60 calls), review and commit the two lock files.
 
 ## Phase 4: the business, only after real users
 15. **A one-page site and waitlist** (who pays, the $39 target, install command) to collect the first customers.

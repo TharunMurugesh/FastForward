@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { TraceEntry } from '@fastforward/contracts';
 import { buildReport } from './checks/index.js';
+import { applyExplanations, parseExplanations } from './explanations.js';
 import type { RunRegistry } from './run/registry.js';
 import type { Run } from './run/run.js';
 
@@ -76,7 +77,19 @@ export function registerControlRoutes(app: FastifyInstance, registry: RunRegistr
     const run = runOr404(req.params.id, reply);
     if (!run) return reply;
     if (!run.finished) return reply.code(404).send({ error: 'the run has not finished; the report needs the whole run' });
-    return buildReport({ runId: run.id, scenario: run.scenario, start: run.scenario.start, end: run.end.toISOString(), trace: run.trace });
+    const report = buildReport({ runId: run.id, scenario: run.scenario, start: run.scenario.start, end: run.end.toISOString(), trace: run.trace });
+    return run.explanations ? applyExplanations(report, run.explanations) : report;
+  });
+
+  // The command-line tool explains a run's failures (with the model, a saved recording or templates) and hands the words
+  // back, so the dashboard's report shows them too. Replaces any earlier set.
+  app.put<{ Params: { id: string } }>('/_ff/runs/:id/explanations', async (req, reply) => {
+    const run = runOr404(req.params.id, reply);
+    if (!run) return reply;
+    const parsed = parseExplanations(req.body);
+    if (typeof parsed === 'string') return reply.code(400).send({ error: parsed });
+    run.explanations = parsed;
+    return { stored: parsed.items.length };
   });
 
   app.get<{ Params: { id: string } }>('/_ff/runs/:id/trace', async (req, reply) => {

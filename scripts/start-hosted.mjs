@@ -162,7 +162,9 @@ for (const [port, name] of [[TWIN_PORT, 'the twin'], [COFFEE_PORT, 'Coffee Club'
 }
 
 const bugs = process.env.COFFEE_BUGS ?? DEFAULT_BUGS;
-start('twin', ['packages/cli/dist/bin.js', 'twin', '--port', String(TWIN_PORT)]);
+// The twin decides what the customers do. Pointed at the scenario's recorded decisions, a demo with no API key repeats
+// exactly the recorded run (bad-month.lock.json is committed once someone has recorded it with `npm run record:ai`).
+start('twin', ['packages/cli/dist/bin.js', 'twin', '--port', String(TWIN_PORT), '--decisions', SCENARIO.replace(/\.ya?ml$/, '.lock.json')]);
 await waitForPort(TWIN_PORT, 'twin').catch((e) => fail(e.message));
 start('coffee-club', ['--import', 'fastforward-register', 'examples/coffee-club/dist/server.js'], {
   FASTFORWARD: '1',

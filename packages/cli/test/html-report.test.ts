@@ -144,3 +144,30 @@ describe('renderHtmlReport', () => {
     });
   });
 });
+
+describe('who wrote the words', () => {
+  const withSource = (source: 'model' | 'template') =>
+    report([{ id: 'FULFIL_ONCE', status: 'fail', findings: [finding(1, { explanation: 'Words about the duplicate.', explanationSource: source })] }]);
+
+  it('labels an explanation as written by the model or as built-in text', () => {
+    expect(renderHtmlReport(withSource('model'))).toContain('Written by Claude');
+    expect(renderHtmlReport(withSource('template'))).toContain('Built-in text');
+    expect(renderHtmlReport(withSource('template'))).not.toContain('Written by Claude');
+  });
+
+  it('adds a line saying how much the model did when the run used it, and none otherwise', () => {
+    const ai = { model: 'claude-opus-5-5', customerDecisions: { model: 2, total: 3 }, explanations: { model: 1, total: 1 } };
+    const html = renderHtmlReport({ ...withSource('model'), ai });
+    expect(html).toContain('claude-opus-5-5 wrote 2 of 3 customer decisions and 1 of 1 explanations');
+    expect(renderHtmlReport(withSource('template'))).not.toContain('customer decisions');
+  });
+
+  it('escapes the model name and the text, so nothing the model says can inject markup', () => {
+    const html = renderHtmlReport({
+      ...withSource('model'),
+      ai: { model: '<script>x</script>', customerDecisions: { model: 0, total: 0 }, explanations: { model: 1, total: 1 } },
+    });
+    expect(html).not.toContain('<script>x</script>');
+    expect(html).toContain('&lt;script&gt;');
+  });
+});

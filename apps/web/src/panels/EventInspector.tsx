@@ -1,5 +1,5 @@
 import type { Report, TraceEntry } from '@fastforward/contracts';
-import { CHECK_TITLES, EVENT_LABELS, fmtDateTime } from '../format.js';
+import { CHECK_TITLES, EVENT_LABELS, fmtDateTime, explanationLabel } from '../format.js';
 import { eventOwners } from '../timeline/model.js';
 import { isSlowOrFailed } from '../grids/rows.js';
 
@@ -69,6 +69,7 @@ export function EventInspector({ eventId, trace, subscriptions, report }: Props)
                   <strong>Fix:</strong> {finding.fix}
                 </p>
               )}
+              {explanationLabel(finding.explanationSource) && <p className="muted small">{explanationLabel(finding.explanationSource)}</p>}
             </article>
           ))}
         </div>

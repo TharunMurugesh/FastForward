@@ -1,6 +1,6 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { AiUnavailableError, DecisionLock, aiFromEnv, decideCustomerAction, writeScenario, type AiClient } from '@fastforward/ai';
+import { AiUnavailableError, DecisionLock, aiFromEnv, decideWithSource, writeScenario, type AiClient } from '@fastforward/ai';
 import { createTwin } from '@fastforward/twin';
 import { ToolError } from './errors.js';
 import { DEFAULT_WEBHOOK_URL, writeStarter } from './init.js';
@@ -12,7 +12,7 @@ export { ToolError } from './errors.js';
 export { checkReachable } from './reachability.js';
 export { formatReport } from './print.js';
 export { renderHtmlReport, type HtmlReportOptions } from './html-report.js';
-export { runScenarioFile, lockPathFor, type RunOptions, type RunResult } from './runner.js';
+export { runScenarioFile, lockPathFor, narrationLockPathFor, type RunOptions, type RunResult } from './runner.js';
 export { scenarioToYaml } from './yaml.js';
 
 export interface CliIo {
@@ -34,13 +34,14 @@ const USAGE = `Usage:
                                   [--twin-url <url>] [--twin-port <n>] [--dashboard-url <url>]
   fastforward init [-o <file.yaml>] [--webhook-url <url>]
   fastforward new "<description>" [-o <file.yaml>]
-  fastforward twin [--port <n>]
+  fastforward twin [--port <n>] [--decisions <file.lock.json>]
 
 run    plays the scenario against your app (started with FASTFORWARD=1 node --import fastforward-register)
        and reports billing bugs. Exit code 0 = all checks passed or skipped, 1 = a check failed, 2 = could not run.
 init   writes a starter scenario (fastforward.yaml) and prints the next steps. No AI, no key.
 new    asks Claude to write a scenario from a description (needs ANTHROPIC_API_KEY).
-twin   starts the stand-in PayPal on its own, default port 4010.
+twin   starts the stand-in PayPal on its own, default port 4010. --decisions replays the customer decisions saved in a
+       scenario's lock file (for example bad-month.lock.json), so a twin without an API key repeats a recorded run.
 `;
 
 const waitForSigint = (): Promise<void> => new Promise((resolve) => process.once('SIGINT', () => resolve()));
@@ -131,12 +132,12 @@ async function newCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
 }
 
 async function twinCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
-  const { values } = parse(args, { port: { type: 'string' } });
+  const { values } = parse(args, { port: { type: 'string' }, decisions: { type: 'string' } });
   const port = values.port === undefined ? 4010 : Number(values.port);
   if (!Number.isInteger(port)) throw new ToolError('--port must be a whole number');
 
   const ai = io.ai === undefined ? aiFromEnv() : io.ai;
-  const lock = DecisionLock.load('.fastforward/twin.lock.json');
+  const lock = DecisionLock.load(values.decisions ?? '.fastforward/twin.lock.json');
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
   let twin;
@@ -144,7 +145,7 @@ async function twinCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
     twin = await createTwin({
       port,
       ...(clientId && clientSecret ? { sandboxCreds: { clientId, clientSecret } } : {}),
-      deps: { decide: (ctx) => decideCustomerAction(ctx, ai, lock) },
+      deps: { decide: (ctx) => decideWithSource(ctx, ai, lock) },
     });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') throw new ToolError(`port ${port} is already in use. Is a twin already running? Stop it, or pick another port with --port.`);

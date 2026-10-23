@@ -5,8 +5,16 @@ export const MODEL = 'claude-opus-5-5';
 
 export type Effort = 'low' | 'medium' | 'high';
 
+export interface AiUsage {
+  calls: number;
+  inputTokens: number;
+  outputTokens: number;
+}
+
 export interface AiClient {
   complete(opts: { model: string; system: string; prompt: string; json?: boolean; effort?: Effort }): Promise<string>;
+  /** What this client has used so far, when it keeps count. */
+  usage?(): AiUsage;
 }
 
 /** Thrown when a job needs the model and there is none (no key, FF_AI=off) or it cannot be reached. */
@@ -29,7 +37,9 @@ export function stripCodeFence(text: string): string {
  * `sdk` is injectable so tests never touch the network.
  */
 export function anthropicClient(apiKey: string, sdk: Anthropic = new Anthropic({ apiKey, timeout: 90_000, maxRetries: 1 })): AiClient {
+  const used: AiUsage = { calls: 0, inputTokens: 0, outputTokens: 0 };
   return {
+    usage: () => ({ ...used }),
     async complete({ model, system, prompt, json, effort }) {
       const response = await sdk.beta.messages.create({
         model,
@@ -40,6 +50,9 @@ export function anthropicClient(apiKey: string, sdk: Anthropic = new Anthropic({
         system: json ? system + JSON_ONLY : system,
         messages: [{ role: 'user', content: prompt }],
       });
+      used.calls += 1;
+      used.inputTokens += response.usage?.input_tokens ?? 0;
+      used.outputTokens += response.usage?.output_tokens ?? 0;
       if (response.stop_reason === 'refusal') {
         throw new Error(`the model declined this request (${response.stop_details?.category ?? 'no category given'})`);
       }
@@ -51,9 +64,38 @@ export function anthropicClient(apiKey: string, sdk: Anthropic = new Anthropic({
   };
 }
 
-/** null when `FF_AI=off` or there is no key: every job then uses its offline fallback. */
+/** The most model calls one run may make unless FF_AI_MAX_CALLS says otherwise: a guard against runaway spend. */
+const DEFAULT_MAX_CALLS = 100;
+
+export function callLimitFromEnv(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = env.FF_AI_MAX_CALLS;
+  if (raw === undefined) return DEFAULT_MAX_CALLS;
+  if (!/^[1-9][0-9]*$/.test(raw)) throw new Error(`FF_AI_MAX_CALLS must be a whole number of at least 1, got "${raw}"`);
+  return Number(raw);
+}
+
+/**
+ * Stops after `max` calls with an AiUnavailableError, which every AI job already treats as "no model": customers fall
+ * back to scripted decisions and explanations to templates. A hard cap on what one run can spend.
+ */
+export function withCallLimit(ai: AiClient, max: number): AiClient {
+  let made = 0;
+  return {
+    async complete(opts) {
+      if (made >= max) throw new AiUnavailableError(`stopped after ${max} model calls (FF_AI_MAX_CALLS); raise it to allow more`);
+      made += 1;
+      return ai.complete(opts);
+    },
+    usage: () => {
+      const inner = ai.usage?.();
+      return inner ? { ...inner, calls: made } : { calls: made, inputTokens: 0, outputTokens: 0 };
+    },
+  };
+}
+
+/** null when `FF_AI=off` or there is no key: every job then uses its offline fallback. Capped by FF_AI_MAX_CALLS. */
 export function aiFromEnv(env: NodeJS.ProcessEnv = process.env): AiClient | null {
   if (env.FF_AI === 'off') return null;
   const key = env.ANTHROPIC_API_KEY?.trim();
-  return key ? anthropicClient(key) : null;
+  return key ? withCallLimit(anthropicClient(key), callLimitFromEnv(env)) : null;
 }

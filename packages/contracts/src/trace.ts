@@ -1,5 +1,8 @@
 import type { CustomerDecision, WebhookEvent } from './events.js';
 
+/** Who decided what a customer does: the model (live or from a recording) or the scripted default. */
+export type DecisionBy = 'model' | 'scripted';
+
 export type DisputeAction = 'provide-evidence' | 'accept-claim' | 'send-message' | 'make-offer';
 
 /** One line of a run's history. Checks are pure functions of these. `at` is virtual time. */
@@ -14,4 +17,5 @@ export type TraceEntry =
   | { at: string; kind: 'verify_call'; transmissionId: string; result: 'SUCCESS' | 'FAILURE' }
   /** The app downloaded the signing certificate, so it can verify offline (and may cache it). */
   | { at: string; kind: 'cert_fetch' }
-  | { at: string; kind: 'customer_decision'; customer: string; decision: CustomerDecision };
+  /** `by` says whether the model made the decision (live, or replayed from a recording) or the scripted default did. */
+  | { at: string; kind: 'customer_decision'; customer: string; decision: CustomerDecision; by?: DecisionBy };

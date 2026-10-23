@@ -142,7 +142,7 @@ Needs his sandbox keys; he runs the live suite.
 **F2. Verify the inferred rule** (suspend at once when the failure threshold is reached) against PayPal's docs or
 the sandbox. Update the rule and its marker in `packages/twin/src/fidelity.ts` and the "inferred" lines in
 `README.md` and `docs/guide.md`. Never claim verified without a source or a sandbox observation.
-**F3. A recorded real AI run.** Run the bad month once with real Claude (Vinay supplies the key in `.env`, tells
+**F3. [BUILT 23 Oct, only the real recording is left: `npm run record:ai -- --yes` with a key in `.env`] A recorded real AI run.** Run the bad month once with real Claude (Vinay supplies the key in `.env`, tells
 you the budget first; expect a few dollars at most), save the decisions with the existing lock file mechanism
 (`packages/ai/src/lock.ts`), and add a replay mode so the hosted demo can show real model decisions and
 explanations with no key. Show it in the dashboard. Done when the demo page clearly marks which text was written

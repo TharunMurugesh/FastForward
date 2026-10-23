@@ -14,6 +14,9 @@ export const DecisionSchema = z.discriminatedUnion('action', [
 
 /** Saved customer decisions, so a rerun of a scenario behaves identically. Keyed by `<customer>:<point>:<n>`. */
 export class DecisionLock {
+  /** Keys this run used, whether replayed from the file or newly decided: how many decisions the model made. */
+  private readonly used = new Set<string>();
+
   private constructor(
     private readonly path: string | null,
     private readonly decisions: Map<string, CustomerDecision>,
@@ -38,12 +41,19 @@ export class DecisionLock {
     return this.decisions.size;
   }
 
+  get touched(): number {
+    return this.used.size;
+  }
+
   get(key: string): CustomerDecision | undefined {
-    return this.decisions.get(key);
+    const found = this.decisions.get(key);
+    if (found) this.used.add(key);
+    return found;
   }
 
   set(key: string, decision: CustomerDecision): void {
     this.decisions.set(key, decision);
+    this.used.add(key);
   }
 
   save(): void {

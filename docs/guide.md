@@ -114,6 +114,29 @@ Exit codes: `0` all checks passed or were skipped, `1` at least one check failed
 | `STATE_MATCHES` and `FULFIL_ONCE` say skipped | Add `app.probeUrl` (see "What your app can offer"). |
 | `new` says an Anthropic key is needed | `fastforward new` and AI-played customers need `ANTHROPIC_API_KEY`. Without it, customers follow scripted defaults and everything else still works. |
 
+## Recording and replaying the model
+
+Without an Anthropic key, customers follow scripted defaults and every failure gets the built-in explanation for its
+check (the report labels it "Built-in text"). With a key (`ANTHROPIC_API_KEY` in `.env`), Claude plays the customers and
+writes the explanations, and the run saves what it decided and wrote next to the scenario:
+
+- `<scenario>.lock.json`: the customer decisions.
+- `<scenario>.narration.lock.json`: the failure explanations.
+
+A later run of the same scenario replays both with no key and no cost, and the report labels the words "Written by
+Claude" and says "no model calls now, replayed from a recording". `--fresh` deletes both files so the model starts
+again. Only real model output is ever saved, never a template.
+
+- **Spend guard:** a run stops calling the model after `FF_AI_MAX_CALLS` calls (default 100) and falls back to the
+  scripted and built-in text. Every run that uses the model prints how many calls and tokens it used.
+- **A separate twin** (`fastforward twin`) decides customers itself. Give it `--decisions bad-month.lock.json` to
+  repeat the recorded decisions, which is how the hosted demo replays a recording with no key.
+- **Recording the hosted demo's run:** `npm run record:ai` shows what it would do and costs nothing;
+  `npm run record:ai -- --yes` records the bad month for real (this spends money on your key), after which you commit the
+  two lock files.
+
+Replay shows what the model wrote in one recorded run. It is not a live model, and the demo says so.
+
 ## From a coding assistant
 
 `fastforward-mcp` is a stdio MCP server with `ff_write_scenario`, `ff_run` and `ff_explain`. In Claude Code:

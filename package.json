@@ -21,7 +21,8 @@
     "demo": "npm run build && npm run build -w @fastforward/web && node scripts/start-hosted.mjs --run",
     "bundle": "node scripts/bundle.mjs",
     "pack:check": "node scripts/pack-check.mjs",
-    "check:version": "node scripts/check-version.mjs"
+    "check:version": "node scripts/check-version.mjs",
+    "record:ai": "node scripts/record-ai-run.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

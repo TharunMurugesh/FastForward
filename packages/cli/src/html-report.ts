@@ -1,4 +1,4 @@
-import type { CheckId, CheckResult, Finding, Report, Scenario, TraceEntry } from '@fastforward/contracts';
+import { describeAi, explanationLabel, type CheckId, type CheckResult, type Finding, type Report, type Scenario, type TraceEntry } from '@fastforward/contracts';
 import { CHECK_TITLES } from './print.js';
 
 export interface HtmlReportOptions {
@@ -59,6 +59,12 @@ footer.sim-footer{max-width:920px;margin:24px auto 32px;padding:0 20px;text-alig
 }
 `;
 
+/** Says who wrote the explanation, when the report knows. */
+function helpLabel(finding: Finding): string {
+  const label = explanationLabel(finding.explanationSource);
+  return label ? `<p class="muted small">${e(label)}</p>` : '';
+}
+
 function failingBlock(check: CheckResult): string {
   const help = check.findings.find((f: Finding) => f.explanation || f.fix);
   const shown = check.findings.slice(0, SHOWN_PER_CHECK);
@@ -68,7 +74,7 @@ function failingBlock(check: CheckResult): string {
   <p class="muted small">${plural(check.findings.length, 'finding', 'findings')}</p>
   ${
     help
-      ? `<div class="help">${help.explanation ? `<p>${e(help.explanation)}</p>` : ''}${help.fix ? `<p><strong>Fix:</strong> ${e(help.fix)}</p>` : ''}</div>`
+      ? `<div class="help">${help.explanation ? `<p>${e(help.explanation)}</p>` : ''}${help.fix ? `<p><strong>Fix:</strong> ${e(help.fix)}</p>` : ''}${helpLabel(help)}</div>`
       : ''
   }
   <h4>Findings</h4>
@@ -166,6 +172,7 @@ export function renderHtmlReport(report: Report, opts: HtmlReportOptions = {}): 
 <section class="verdict ${failing.length > 0 ? 'bad' : 'ok'}">
   <h2>${e(verdict)}</h2>
   <p class="muted">${plural(report.counts.events, 'event', 'events')} · ${plural(report.counts.deliveries, 'delivery', 'deliveries')} · ${plural(report.counts.customers, 'customer', 'customers')}</p>
+${report.ai ? `  <p class="muted">${e(describeAi(report.ai))}</p>` : ''}
 ${
   failing.length > 0
     ? `  <ul class="lines">

@@ -1,5 +1,5 @@
 import type { CheckId, CheckResult, Report } from '@fastforward/contracts';
-import { CHECK_TITLES, fmtDateTime } from '../format.js';
+import { CHECK_TITLES, describeAi, explanationLabel, fmtDateTime } from '../format.js';
 
 interface Props {
   report: Report | null;
@@ -54,6 +54,7 @@ function FailingCheck({ check, notices, active, onFilter, onSelect }: { check: C
               <strong>Fix:</strong> {help.fix}
             </p>
           )}
+          {help && explanationLabel(help.explanationSource) && <p className="muted small">{explanationLabel(help.explanationSource)}</p>}
         </div>
         <ul className="examples">
           {check.findings.slice(0, EXAMPLES).map((f, i) => (
@@ -92,6 +93,7 @@ export function ReportPanel({ report, noticeCounts, activeCheck, onFilter, onSel
   return (
     <div className="report">
       <p className={`verdict ${failing.length ? 'bad' : 'ok'}`}>{failing.length ? `${failing.length} of ${report.checks.length} checks failed` : 'All checks passed'}</p>
+      {report.ai && <p className="muted small">{describeAi(report.ai)}</p>}
       <p className="muted">
         {report.counts.events} events · {report.counts.deliveries} deliveries · {report.counts.customers} customers
       </p>
