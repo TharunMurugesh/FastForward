@@ -1,10 +1,11 @@
 {
-  "ranAt": "2026-10-19T10:16:03.613Z",
+  "ranAt": "2026-10-23T12:47:01.387Z",
   "sandboxBase": "https://api-m.sandbox.paypal.com",
   "checks": [
     {
       "endpoint": "/v1/catalogs/products",
       "method": "POST",
+      "step": "create product",
       "sandboxStatus": 201,
       "twinStatus": 201,
       "shapeMatch": true,
@@ -14,6 +15,7 @@
     {
       "endpoint": "/v1/billing/plans",
       "method": "POST",
+      "step": "create plan",
       "sandboxStatus": 201,
       "twinStatus": 201,
       "shapeMatch": true,
@@ -23,6 +25,7 @@
     {
       "endpoint": "/v1/billing/subscriptions",
       "method": "POST",
+      "step": "create subscription",
       "sandboxStatus": 201,
       "twinStatus": 201,
       "shapeMatch": true,
@@ -32,6 +35,7 @@
     {
       "endpoint": "/v1/billing/subscriptions/{id}",
       "method": "GET",
+      "step": "get subscription",
       "sandboxStatus": 200,
       "twinStatus": 200,
       "shapeMatch": true,
@@ -41,6 +45,7 @@
     {
       "endpoint": "/v1/billing/subscriptions/{id}/cancel",
       "method": "POST",
+      "step": "cancel subscription",
       "sandboxStatus": 404,
       "twinStatus": 404,
       "shapeMatch": true,
@@ -48,8 +53,126 @@
       "allowedDiffs": []
     },
     {
+      "endpoint": "/v1/billing/subscriptions",
+      "method": "POST",
+      "step": "create subscription with a card",
+      "sandboxStatus": 201,
+      "twinStatus": 201,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}",
+      "method": "GET",
+      "step": "get active subscription",
+      "sandboxStatus": 200,
+      "twinStatus": 200,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}/transactions",
+      "method": "GET",
+      "step": "list transactions",
+      "sandboxStatus": 200,
+      "twinStatus": 200,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": [
+        {
+          "field": "links",
+          "reason": "Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026)."
+        },
+        {
+          "field": "total_items",
+          "reason": "Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026)."
+        },
+        {
+          "field": "total_pages",
+          "reason": "Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026)."
+        },
+        {
+          "field": "transactions",
+          "reason": "Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026)."
+        }
+      ]
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}/suspend",
+      "method": "POST",
+      "step": "suspend subscription",
+      "sandboxStatus": 204,
+      "twinStatus": 204,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}",
+      "method": "GET",
+      "step": "get suspended subscription",
+      "sandboxStatus": 200,
+      "twinStatus": 200,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}/activate",
+      "method": "POST",
+      "step": "activate subscription",
+      "sandboxStatus": 204,
+      "twinStatus": 204,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}/cancel",
+      "method": "POST",
+      "step": "cancel active subscription",
+      "sandboxStatus": 204,
+      "twinStatus": 204,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}",
+      "method": "GET",
+      "step": "get cancelled subscription",
+      "sandboxStatus": 200,
+      "twinStatus": 200,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}/cancel",
+      "method": "POST",
+      "step": "cancel a cancelled subscription (refused)",
+      "sandboxStatus": 422,
+      "twinStatus": 422,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
+      "endpoint": "/v1/billing/subscriptions/{id}/suspend",
+      "method": "POST",
+      "step": "suspend a cancelled subscription (refused)",
+      "sandboxStatus": 422,
+      "twinStatus": 422,
+      "shapeMatch": true,
+      "specMatch": true,
+      "allowedDiffs": []
+    },
+    {
       "endpoint": "/v1/notifications/verify-webhook-signature",
       "method": "POST",
+      "step": "verify webhook signature (invalid)",
       "sandboxStatus": 400,
       "twinStatus": 400,
       "shapeMatch": true,
@@ -59,6 +182,7 @@
     {
       "endpoint": "/v1/customer/disputes",
       "method": "GET",
+      "step": "list disputes",
       "sandboxStatus": 200,
       "twinStatus": 200,
       "shapeMatch": true,

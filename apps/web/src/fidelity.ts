@@ -2,6 +2,8 @@
 export interface FidelityCheck {
   endpoint: string;
   method: string;
+  /** Which step of the suite this was, when the same endpoint is called more than once. */
+  step?: string;
   sandboxStatus: number;
   twinStatus: number;
   shapeMatch: boolean;

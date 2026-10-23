@@ -1,6 +1,7 @@
 import type { Scenario } from '@fastforward/contracts';
 import { fidelity } from '../fidelity.js';
 import { newId } from '../ids.js';
+import { newPayerId, readCard, type CardOnFile } from './card.js';
 import { addInterval, type Unit } from '../time/calendar.js';
 import type { VirtualClock } from '../time/clock.js';
 import type { Scheduler } from '../time/scheduler.js';
@@ -11,6 +12,7 @@ import {
   planSummary,
   productResource,
   productSummary,
+  SANDBOX_TENANT,
   saleResource,
   subscriptionResource,
   toCents,
@@ -37,6 +39,12 @@ function invalid(field: string, issue: string, description: string): PayPalError
   return new PayPalError(422, 'UNPROCESSABLE_ENTITY', 'The requested action could not be performed, semantically incorrect, or failed business validation.', [
     { field, issue, description },
   ]);
+}
+
+/** The subscriber as the create response shows it: the name the request sent, and no payer_id. */
+function createSubscriber(stored: unknown, name: unknown): Record<string, unknown> {
+  const { payer_id: _payerId, ...rest } = (stored ?? {}) as Record<string, unknown>;
+  return typeof name === 'object' && name !== null ? { name: { ...(name as Record<string, unknown>) }, ...rest } : rest;
 }
 
 function selfLink(path: string): { href: string; rel: string; method: string } {
@@ -186,7 +194,7 @@ export class SubscriptionEngine {
 
   // ---- subscriptions ------------------------------------------------------------------------
 
-  createSubscription(body: { plan_id: string; custom_id?: string; start_time?: string; subscriber?: { email_address?: string } & Record<string, unknown>; shipping_amount?: { currency_code: string; value: string } }): SubscriptionResource {
+  createSubscription(body: { plan_id: string; custom_id?: string; start_time?: string; subscriber?: { email_address?: string; payment_source?: { card?: unknown } } & Record<string, unknown>; shipping_amount?: { currency_code: string; value: string } }, opts: { representation?: boolean } = {}): SubscriptionResource {
     if (typeof body?.plan_id !== 'string' || body.plan_id === '') {
       throw invalid('/plan_id', 'MISSING_REQUIRED_PARAMETER', 'A required field is missing: plan_id.');
     }
@@ -197,6 +205,15 @@ export class SubscriptionEngine {
     const now = this.deps.clock.now();
     const start = body.start_time ? new Date(body.start_time) : now;
     if (Number.isNaN(start.getTime())) throw invalid('/start_time', 'INVALID_PARAMETER_VALUE', 'start_time is not a valid date-time.');
+
+    // A card on the request means no buyer approval: PayPal's sandbox activates the subscription at once. Only the safe
+    // parts of the card are kept (see card.ts); the number and the security code are dropped here.
+    let card: CardOnFile | undefined;
+    if (body.subscriber?.payment_source?.card !== undefined) {
+      const read = readCard(body.subscriber.payment_source.card);
+      if ('field' in read) throw invalid(read.field, read.issue, read.description);
+      card = read.card;
+    }
     const sub: SubState = {
       id: newId('I'),
       planId: body.plan_id,
@@ -217,14 +234,50 @@ export class SubscriptionEngine {
       sales: [],
       retryPending: false,
       retryToken: 0,
-      subscriber: typeof body.subscriber === 'object' && body.subscriber !== null ? { ...body.subscriber } : {},
+      subscriber: card
+        ? {
+            ...(body.subscriber?.email_address !== undefined ? { email_address: body.subscriber.email_address } : {}),
+            payer_id: newPayerId(),
+            payment_source: { card },
+            tenant: SANDBOX_TENANT,
+          }
+        : typeof body.subscriber === 'object' && body.subscriber !== null
+          ? { ...body.subscriber }
+          : {},
       ...(body.shipping_amount ? { shippingAmount: body.shipping_amount } : {}),
       ...(body.custom_id !== undefined ? { customId: body.custom_id } : {}),
       ...(body.subscriber?.email_address !== undefined ? { subscriberEmail: body.subscriber.email_address } : {}),
     };
     this.subs.set(sub.id, sub);
     this.emitSubscription('BILLING.SUBSCRIPTION.CREATED', sub);
+    if (card) {
+      this.activateWithCard(sub);
+      // The real sandbox answers a card subscription with just these four fields, and with six more when the request
+      // sends Prefer: return=representation (both observed 23 Oct 2026).
+      const full = subscriptionResource(sub, { context: 'create' });
+      const brief = { status: full.status, id: full.id, create_time: full.create_time, links: full.links };
+      if (!opts.representation) return brief;
+      return {
+        ...brief,
+        plan_id: full.plan_id,
+        plan_overridden: full.plan_overridden,
+        quantity: full.quantity,
+        start_time: full.start_time,
+        status_update_time: full.status_update_time,
+        // At creation the real sandbox echoes the buyer's name and has no payer_id yet (a later GET is the other way round).
+        subscriber: createSubscriber(full.subscriber, body.subscriber?.name),
+      };
+    }
     return subscriptionResource(sub, { context: 'create' });
+  }
+
+  /** ACTIVE with no approval; the first payment is taken now unless the subscription starts later. */
+  private activateWithCard(sub: SubState): void {
+    this.setStatus(sub, 'ACTIVE');
+    this.emitSubscription('BILLING.SUBSCRIPTION.ACTIVATED', sub);
+    const now = this.deps.clock.now();
+    if (sub.startTime.getTime() <= now.getTime()) this.onBoundary(sub, now);
+    else this.queueBoundary(sub, sub.startTime);
   }
 
   /** The buyer approves: the subscription goes ACTIVE and the first billing event is queued. */

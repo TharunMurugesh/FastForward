@@ -28,7 +28,13 @@ export function registerSubscriptionRoutes(app: FastifyInstance, engineOf: () =>
   app.get<{ Params: { id: string } }>('/v1/billing/plans/:id', (req, reply) => guarded(reply, () => engineOf().getPlan(req.params.id)));
 
   app.post('/v1/billing/subscriptions', (req, reply) =>
-    guarded(reply, () => reply.code(201).send(engineOf().createSubscription(bodyOf(req.body) as Parameters<SubscriptionEngine['createSubscription']>[0]))),
+    guarded(reply, () =>
+      reply.code(201).send(
+        engineOf().createSubscription(bodyOf(req.body) as Parameters<SubscriptionEngine['createSubscription']>[0], {
+          representation: String(req.headers.prefer ?? '').toLowerCase().includes('return=representation'),
+        }),
+      ),
+    ),
   );
   app.get<{ Params: { id: string }; Querystring: { fields?: string } }>('/v1/billing/subscriptions/:id', (req, reply) =>
     guarded(reply, () => engineOf().get(req.params.id, { includePlan: (req.query.fields ?? '').split(',').includes('plan') })),

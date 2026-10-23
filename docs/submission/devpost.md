@@ -48,7 +48,7 @@ Run the same 75-day month twice, changing nothing but the bugs:
 - **The official SDK runs in the demo app.** Coffee Club uses `@paypal/paypal-server-sdk`, unmodified. A small add-on redirects its sandbox calls to the twin and blocks any call to live PayPal before a socket opens.
 - **Webhooks are signed and verified the way PayPal does it.** The twin signs events, serves the certificate, and implements the verify-webhook-signature endpoint.
 - **Passthrough to the real sandbox.** Calls the twin does not implement can be forwarded to the real PayPal sandbox. Only the sandbox host is allowed; live PayPal is refused.
-- **A live fidelity check against the real PayPal sandbox.** We send the same requests to PayPal's sandbox and to the twin, and compare status, response shape and the official spec. The first run found **27 differences**. We fixed them. After three runs the result is **0 differences: 7 of 7 endpoints match.** The results are committed as `fidelity/latest.json` and shown in the dashboard as "Checked against the real PayPal sandbox."
+- **A live fidelity check against the real PayPal sandbox.** We send the same requests to PayPal's sandbox and to the twin, and compare status, response shape and the official spec. The first run on the pending path found **27 differences** and the first run on the active path found **22**. We fixed them all: **all 17 steps now match** on status, shape and the official spec, including creating a subscription with a card (the sandbox activates it with no buyer), reading it, suspending, reactivating and cancelling it, and two refused actions. One difference is understood and recorded. The results are committed as `fidelity/latest.json` and shown in the dashboard as "Checked against the real PayPal sandbox."
 
 ## How AI is used
 
@@ -70,7 +70,7 @@ TypeScript (strict), Node 24, Fastify, zod, React and Vite, **AG Grid Community*
 
 ## Honest known limits
 
-- **The fidelity check covers the pending-approval path.** Subscriptions that are approved and active need a buyer's approval in the sandbox, so we do not compare those. Remaining guesses are marked verified or unverified in `packages/twin/src/fidelity.ts`.
+- **The real-sandbox comparison uses card-funded subscriptions** (US merchant, non-3DS test card), the only way to get an active subscription without a person approving it in a browser. Subscriptions approved with a PayPal wallet follow the same states but were not compared. Just after creation the sandbox lists no transactions yet, while the twin lists the payment at once; that difference is recorded. Remaining guesses are marked verified or unverified in `packages/twin/src/fidelity.ts`.
 - **One timing is a guess.** PayPal's retry schedule (5 days, twice per cycle), how failures are counted and the suspension threshold are verified from its documentation and API spec. PayPal does not say whether the final failure suspends on its first attempt or only after that cycle's retries; we follow its worked example, and the sandbox has no clock to test it.
 - **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and events delayed past the end of the run are never delivered. Event ids are random, so a rerun has the same shape and timing but not the same ids.
 - **Scope is narrow.** Six checks, two example apps, subscriptions and disputes only. Other PayPal products are out of scope.

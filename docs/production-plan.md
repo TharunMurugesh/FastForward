@@ -38,7 +38,7 @@ with accounts and billing comes later, after real people use the free tool.
 11. **Clear errors:** every failure says what to do next, in plain words.
 
 ## Phase 3: honest coverage (depth, not breadth)
-12. **[probe worked 23 Oct: a card-funded subscription is ACTIVE with no approval, see docs/approved-subscriptions-findings.md; build in progress] Approved, active subscriptions in the real-sandbox comparison.** Our known gap; needs a buyer approval in
+12. **[done 23 Oct: 17 of 17 steps match the real sandbox, see docs/approved-subscriptions-findings.md] Approved, active subscriptions in the real-sandbox comparison.** Our known gap; needs a buyer approval in
     the sandbox. I will test how far it can be automated, and say so if it cannot.
 13. **[done 23 Oct, partly verified] Verify the inferred rule** (suspend at the failure threshold) against PayPal's docs or the sandbox. Verified from the docs (updated 14 Oct 2026) and the official API spec: failure counting and the threshold. Still a guess, and untestable without a clock: whether the final failure suspends on its first attempt (twin, matches PayPal's worked example) or after that cycle's retries.
 14. **Show the AI in the product:** one recorded real AI run, replayable with no key (see earlier proposal).

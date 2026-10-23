@@ -55,8 +55,9 @@ each, per the method).
 - **Live fidelity (Vinay said yes; reruns covered):** three runs against his sandbox: 27 → 4 → **0
   differences, 7 of 7 endpoints match** (status, shape, spec). `fidelity/latest.json` committed (e238caf).
   Pitch line: "we compared our simulator against PayPal's real sandbox, found 27 differences, fixed them all."
-  Honest limit: the suite covers the APPROVAL_PENDING path (cancel → 404); approved/active subscriptions need a
-  buyer approval in the sandbox and are not compared. Remaining guesses are in `packages/twin/src/fidelity.ts`,
+  UPDATE 23 Oct: the suite now has 17 steps and all match, including the ACTIVE path (card-funded subscriptions are
+  ACTIVE with no buyer approval; see docs/approved-subscriptions-findings.md). Honest limit: wallet-approved
+  subscriptions are not compared. Remaining guesses are in `packages/twin/src/fidelity.ts`,
   each marked verified/unverified. Each live run leaves 1 product + 1 plan + 1 pending subscription in his sandbox.
 - `bad-month.yaml`: P75D, threshold 2; bugs=all (incl. slow-ack) → 5 checks fail; the demo set (no slow-ack) → **4 fail** (verified live 20 Oct); bugs=none → all 6 pass. A live run of the demo set takes about 3 s (measured 20 Oct); slow-ack makes it much slower.
 - Demo bug set: no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order.

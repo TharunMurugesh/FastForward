@@ -88,13 +88,15 @@ describe('a subscription has the fields the sandbox has at each status', () => {
     assertMatchesSpec(BILLING, `/v1/billing/subscriptions/${created.id}`, 'GET', 200, body);
   });
 
-  it('once active: billing_info, update_time and status_update_time appear; plan and shipping_amount still do not', async () => {
+  it('once active: billing_info, update_time, status_update_time and shipping_amount appear; the plan still does not', async () => {
     const h = harness();
     const created = (await inject(h, 'POST', '/v1/billing/subscriptions', { plan_id: 'P-X', custom_id: 'c' })).body!;
     h.engine.approve(created.id);
     await h.scheduler.advanceTo(h.clock.now());
     const { body } = await inject(h, 'GET', `/v1/billing/subscriptions/${created.id}`);
-    expect(keys(body)).toEqual(['billing_info', 'create_time', 'custom_id', 'id', 'links', 'plan_id', 'plan_overridden', 'quantity', 'start_time', 'status', 'status_update_time', 'subscriber', 'update_time']);
+    expect(keys(body)).toEqual(['billing_info', 'create_time', 'custom_id', 'id', 'links', 'plan_id', 'plan_overridden', 'quantity', 'shipping_amount', 'start_time', 'status', 'status_update_time', 'subscriber', 'update_time']);
+    // shipping_amount: sent by the real sandbox for an active subscription even when the request had none (23 Oct 2026).
+    expect(body!.shipping_amount).toEqual({ currency_code: 'USD', value: '0.00' });
     expect(body!.status).toBe('ACTIVE');
     expect(body!.billing_info.last_payment.amount).toEqual({ currency_code: 'USD', value: '5.00' });
     assertMatchesSpec(BILLING, `/v1/billing/subscriptions/${created.id}`, 'GET', 200, body);

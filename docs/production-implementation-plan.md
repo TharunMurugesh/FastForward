@@ -135,7 +135,7 @@ If a package name is taken by then, stop and tell Vinay; do not improvise a name
 
 ### F. Honest coverage (Phase 3, after E)
 
-**F1. Approved subscriptions in the real-sandbox comparison.** Today `fidelity/latest.json` covers the
+**F1. [DONE 23 Oct, see docs/approved-subscriptions-findings.md] Approved subscriptions in the real-sandbox comparison.** Today `fidelity/latest.json` covers the
 `APPROVAL_PENDING` path. Investigate how far it can be automated (a buyer approval in the sandbox is a browser
 step). Output: a written finding in `docs/` first, with options and cost; implement only the option Vinay picks.
 Needs his sandbox keys; he runs the live suite.

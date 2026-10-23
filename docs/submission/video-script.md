@@ -45,7 +45,7 @@ Now the report. Four of six checks fail. It did not verify signatures. It fulfil
 **On screen:** the dashboard panel "Checked against the real PayPal sandbox", real sandbox and twin side by side. Then the terminal, running the live fidelity check.
 
 **Say:**
-"A simulator is only useful if it behaves like the real thing. So we compared it to PayPal's real sandbox. The first run found twenty-seven differences. We fixed them. Now seven of seven endpoints match, on status, shape and PayPal's official specification. This panel shows it side by side. It covers the pending-approval path, and I will say plainly that approved subscriptions are not compared yet."
+"A simulator is only useful if it behaves like the real thing. So we compared it to PayPal's real sandbox. The first runs found twenty-seven differences, then twenty-two more on an active subscription. We fixed them. Now all seventeen steps match, on status, shape and PayPal's official specification, including creating, suspending, reactivating and cancelling a subscription. This panel shows it side by side. I will say plainly that we used a card-funded subscription, and that one small difference is recorded."
 
 ## 6. Fix it from your coding assistant [2:10 to 2:35]
 

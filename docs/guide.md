@@ -97,8 +97,8 @@ Exit codes: `0` all checks passed or were skipped, `1` at least one check failed
   PayPal's worked example shows) or only after that cycle's retries (up to 10 days later). PayPal does not say and
   the sandbox cannot test it. The counting rule and the threshold itself are verified. Every guess is marked in
   `packages/twin/src/fidelity.ts`.
-- **Not covered:** approved, active subscriptions in the real-sandbox comparison; other PayPal products; apps
-  that are not Node.
+- **Not covered:** subscriptions approved with a PayPal wallet in the real-sandbox comparison (it uses card-funded
+  ones, which the sandbox activates at once); other PayPal products; apps that are not Node.
 - **Bad weather limits:** reordering and bursts happen among events at the same simulated instant, and events
   delayed past the end of the run are never delivered.
 

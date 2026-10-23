@@ -61,9 +61,12 @@ Plain checks, not the AI, decide pass or fail, so the AI cannot talk a bug into 
   implements the verify-webhook-signature endpoint.
 - Calls the twin does not implement can pass through to the **real PayPal sandbox** (sandbox host only).
 - **Live fidelity check:** the same requests go to PayPal's real sandbox and to the twin, and we compare status,
-  response shape and the official spec. The first run found 27 differences; after fixing them, 7 of 7 endpoints
-  match. Evidence: `fidelity/latest.json`, shown in the dashboard as "Checked against the real PayPal sandbox".
-  Re-run with `npm run fidelity` (needs your own sandbox keys in `.env`).
+  response shape and the official spec, in 17 steps: creating, reading, suspending, reactivating and cancelling a
+  subscription (including one created with a card, which the sandbox activates at once, so no person has to approve
+  it in a browser), listing transactions, and two refused actions. The first run on the pending path found 27
+  differences and the first run on the active path found 22; after fixing them all 17 steps match, with one
+  understood difference (see known limits). Evidence: `fidelity/latest.json`, shown in the dashboard as "Checked
+  against the real PayPal sandbox". Re-run with `npm run fidelity` (needs your own sandbox keys in `.env`).
 
 ## Use it on your own app
 
@@ -102,9 +105,11 @@ it again. `ff_write_scenario` needs an Anthropic key; the other two do not.
 
 ## Known limits
 
-- **The fidelity check covers the pending-approval path.** Approved, active subscriptions need a buyer's
-  approval in the sandbox, so they are not compared. Remaining guesses are marked verified or unverified in
-  `packages/twin/src/fidelity.ts`.
+- **The real-sandbox comparison uses card-funded subscriptions** (a US merchant and a non-3DS test card), because
+  that is the only way to reach an active subscription without a person approving it in a browser. A subscription
+  approved with a PayPal wallet follows the same states but is not what we compared. One difference is understood
+  and recorded: just after creation the sandbox lists no transactions yet, while the twin lists the payment at
+  once. Remaining guesses are marked verified or unverified in `packages/twin/src/fidelity.ts`.
 - **One timing is a guess.** From PayPal's documentation and API spec we verified: failed payments are retried
   every 5 days, twice per cycle; a failure counts once the second retry fails; and reaching the failure threshold
   suspends the subscription. PayPal does not say whether the final failure suspends on its first attempt or only

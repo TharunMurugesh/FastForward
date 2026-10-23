@@ -38,11 +38,22 @@ export type AllowedDiffs = Record<string, { field: string; reason: string }[]>;
 /**
  * Real, understood differences between the sandbox and the twin. A field is a dotted path as printed by
  * `diffShapes`, or `(status)` to accept different status codes. Add an entry only after looking at the real
- * difference; the first live run (`npm run fidelity`) is what fills this in.
+ * difference; the first live run (`npm run fidelity`) is what fills this in. The key is `METHOD template`, or
+ * `METHOD template [step name]` for one step when the same endpoint is called more than once.
  */
-export const ALLOWED_DIFFS: AllowedDiffs = {};
+const TX_REASON =
+  'Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026).';
 
-type Ids = { product?: string; plan?: string; subscription?: string };
+export const ALLOWED_DIFFS: AllowedDiffs = {
+  'GET /v1/billing/subscriptions/{id}/transactions [list transactions]': [
+    { field: 'links', reason: TX_REASON },
+    { field: 'total_items', reason: TX_REASON },
+    { field: 'total_pages', reason: TX_REASON },
+    { field: 'transactions', reason: TX_REASON },
+  ],
+};
+
+type Ids = { product?: string; plan?: string; subscription?: string; cardSubscription?: string };
 
 interface Step {
   name: string;
@@ -109,6 +120,99 @@ const STEPS: Step[] = [
     template: '/v1/billing/subscriptions/{id}/cancel',
     specFile: 'billing_subscriptions_v1.json',
     build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.subscription}/cancel`, body: { reason: 'Fastforward fidelity check' } }),
+  },
+  // ---- the active path -------------------------------------------------------------------------------------
+  // A subscription created with a card is ACTIVE at once in the sandbox, with no buyer approval (found 23 Oct 2026,
+  // docs/approved-subscriptions-findings.md). That is how the suite reaches everything that needs an active subscription.
+  {
+    name: 'create subscription with a card',
+    method: 'POST',
+    template: '/v1/billing/subscriptions',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({
+      path: '/v1/billing/subscriptions',
+      body: {
+        plan_id: ids.plan,
+        subscriber: {
+          name: { given_name: 'Fastforward', surname: 'Probe' },
+          email_address: 'fidelity-probe@example.com',
+          payment_source: {
+            card: {
+              name: 'Fastforward Probe',
+              number: '4111111111111111', // a generic non-3DS test number; the sandbox charges nothing real
+              expiry: '2030-12',
+              security_code: '123',
+              billing_address: { address_line_1: '123 Main St', admin_area_2: 'San Jose', admin_area_1: 'CA', postal_code: '95131', country_code: 'US' },
+            },
+          },
+        },
+        application_context: { return_url: 'https://example.com/return', cancel_url: 'https://example.com/cancel' },
+      },
+    }),
+    capture: (body, ids) => void (ids.cardSubscription = idOf(body)),
+  },
+  {
+    name: 'get active subscription',
+    method: 'GET',
+    template: '/v1/billing/subscriptions/{id}',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}` }),
+  },
+  {
+    name: 'list transactions',
+    method: 'GET',
+    template: '/v1/billing/subscriptions/{id}/transactions',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}/transactions?start_time=2020-01-01T00:00:00Z&end_time=2035-01-01T00:00:00Z` }),
+  },
+  {
+    name: 'suspend subscription',
+    method: 'POST',
+    template: '/v1/billing/subscriptions/{id}/suspend',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}/suspend`, body: { reason: 'Fastforward fidelity check' } }),
+  },
+  {
+    name: 'get suspended subscription',
+    method: 'GET',
+    template: '/v1/billing/subscriptions/{id}',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}` }),
+  },
+  {
+    name: 'activate subscription',
+    method: 'POST',
+    template: '/v1/billing/subscriptions/{id}/activate',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}/activate`, body: { reason: 'Fastforward fidelity check' } }),
+  },
+  {
+    name: 'cancel active subscription',
+    method: 'POST',
+    template: '/v1/billing/subscriptions/{id}/cancel',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}/cancel`, body: { reason: 'Fastforward fidelity check' } }),
+  },
+  {
+    name: 'get cancelled subscription',
+    method: 'GET',
+    template: '/v1/billing/subscriptions/{id}',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}` }),
+  },
+  {
+    name: 'cancel a cancelled subscription (refused)',
+    method: 'POST',
+    template: '/v1/billing/subscriptions/{id}/cancel',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}/cancel`, body: { reason: 'Fastforward fidelity check' } }),
+  },
+  {
+    name: 'suspend a cancelled subscription (refused)',
+    method: 'POST',
+    template: '/v1/billing/subscriptions/{id}/suspend',
+    specFile: 'billing_subscriptions_v1.json',
+    build: (ids) => ({ path: `/v1/billing/subscriptions/${ids.cardSubscription}/suspend`, body: { reason: 'Fastforward fidelity check' } }),
   },
   {
     // Deliberately invalid, so the sandbox's answer is a harmless FAILURE or 400 and nothing is verified for real.
@@ -222,7 +326,7 @@ export interface SuiteOptions {
   twinUrl: string;
 }
 
-/** Runs the seven requests against both sides, in order, and returns what each side said. */
+/** Runs every step against both sides, in order, and returns what each side said. */
 export async function runFidelitySuite(opts: SuiteOptions): Promise<StepOutcome[]> {
   const sandboxBase = checkUpstreamBase(opts.sandboxBase);
   const sandboxToken = await accessToken(sandboxBase, opts.sandboxCreds.clientId, opts.sandboxCreds.clientSecret);
@@ -265,7 +369,7 @@ export interface Evaluation {
 /** Applies the allowed-differences table to one outcome and produces its line for latest.json. */
 export function evaluate(outcome: StepOutcome, allowed: AllowedDiffs): Evaluation {
   const key = `${outcome.method} ${outcome.template}`;
-  const table = allowed[key] ?? [];
+  const table = allowed[`${key} [${outcome.name}]`] ?? allowed[key] ?? [];
   const used = new Map<string, { field: string; reason: string }>();
   const unexpected: string[] = [];
 
@@ -298,6 +402,7 @@ export function evaluate(outcome: StepOutcome, allowed: AllowedDiffs): Evaluatio
     check: {
       endpoint: outcome.template,
       method: outcome.method,
+      step: outcome.name,
       sandboxStatus: outcome.sandbox.status,
       twinStatus: outcome.twin.status,
       shapeMatch: unexpected.length === 0,

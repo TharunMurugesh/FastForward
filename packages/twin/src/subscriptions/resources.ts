@@ -215,7 +215,7 @@ function links(sub: SubState): Record<string, unknown>[] {
  * - The plan is only included when asked for (`?fields=plan`), and in webhook notices.
  */
 /** unverified: the sandbox's tenant value; the live run saw the field, not its content. */
-const SANDBOX_TENANT = 'paypal';
+export const SANDBOX_TENANT = 'paypal';
 
 export interface SubscriptionView {
   context: 'create' | 'get' | 'event';
@@ -235,7 +235,8 @@ export function subscriptionResource(sub: SubState, view: SubscriptionView = { c
     ...(hideStatusTime ? {} : { status_update_time: sub.statusTime.toISOString() }),
     start_time: sub.startTime.toISOString(),
     quantity: '1',
-    ...(sub.shippingAmount ? { shipping_amount: sub.shippingAmount } : {}),
+    // Active, the real sandbox always sends shipping_amount, 0.00 when the request had none (observed 23 Oct 2026).
+    ...(sub.shippingAmount ? { shipping_amount: sub.shippingAmount } : waiting ? {} : { shipping_amount: toMoney(0, plan.currency) }),
     // Waiting for approval, GET leaves the subscriber out; POST echoes it, with a tenant when the request had none.
     ...(hideSubscriber ? {} : { subscriber: view.context === 'create' && Object.keys(sub.subscriber).length === 0 ? { tenant: SANDBOX_TENANT } : sub.subscriber }),
     ...(waiting
@@ -243,11 +244,15 @@ export function subscriptionResource(sub: SubState, view: SubscriptionView = { c
       : {
           billing_info: {
             outstanding_balance: toMoney(sub.outstandingCents, plan.currency),
+            current_cycle_sequence: plan.cycles[sub.cycleIdx]?.sequence ?? plan.cycles.length,
+            // The real sandbox sends cycles_remaining and current_pricing_scheme_version for every cycle, also when the
+            // plan has no end (total_cycles 0). unverified: the value of cycles_remaining then; the sandbox shape is a number.
             cycle_executions: plan.cycles.map((c, i) => ({
               tenure_type: c.tenure,
               sequence: c.sequence,
               cycles_completed: sub.cyclesDone[i] ?? 0,
-              ...(c.total > 0 ? { cycles_remaining: Math.max(c.total - (sub.cyclesDone[i] ?? 0), 0) } : {}),
+              cycles_remaining: c.total > 0 ? Math.max(c.total - (sub.cyclesDone[i] ?? 0), 0) : 0,
+              current_pricing_scheme_version: 1,
               total_cycles: c.total,
             })),
             ...(sub.lastPayment

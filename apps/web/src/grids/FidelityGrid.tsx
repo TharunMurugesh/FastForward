@@ -10,8 +10,9 @@ const Match = ({ value }: CustomCellRendererProps<FidelityCheck, boolean>) =>
 const Status = ({ value }: CustomCellRendererProps<FidelityCheck, number>) => <span className="chip neutral">{value}</span>;
 
 const columnDefs: ColDef<FidelityCheck>[] = [
+  { field: 'step', headerName: 'Step', minWidth: 220, flex: 1 },
   { field: 'method', width: 84, cellClass: 'mono' },
-  { field: 'endpoint', minWidth: 300, flex: 1, cellClass: 'mono' },
+  { field: 'endpoint', minWidth: 280, flex: 1, cellClass: 'mono' },
   { field: 'sandboxStatus', headerName: 'Real sandbox', width: 124, cellRenderer: Status, filter: 'agNumberColumnFilter' },
   { field: 'twinStatus', headerName: 'Fastforward', width: 124, cellRenderer: Status, filter: 'agNumberColumnFilter' },
   { field: 'shapeMatch', headerName: 'Response shape', width: 142, cellRenderer: Match },
@@ -39,7 +40,7 @@ export function FidelityGrid({ file, isSample }: { file: FidelityFile; isSample:
           <h2>Checked against the real PayPal sandbox</h2>
           <p className="muted">
             The same requests were sent to PayPal's sandbox and to Fastforward; only response shapes and status codes are compared, never values or
-            tokens. {matching} of {file.checks.length} endpoints match PayPal's shape
+            tokens. {matching} of {file.checks.length} steps match PayPal's shape
             {known > 0 && ` (${known} known, explained ${known === 1 ? 'difference' : 'differences'})`}. Last run {fmtDateYear(file.ranAt)}.
           </p>
         </div>

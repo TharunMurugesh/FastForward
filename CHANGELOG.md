@@ -29,8 +29,9 @@ First version. Not published to npm yet; until then it runs from a clone of the 
   empty folder and runs the bad month.
 
 ### Known limits
-- The comparison with PayPal's real sandbox covers the pending-approval path (7 of 7 endpoints match), not
-  approved, active subscriptions.
+- The comparison with PayPal's real sandbox (17 steps, all matching) uses card-funded subscriptions, which the
+  sandbox activates without a buyer. Subscriptions approved with a PayPal wallet are not compared. One difference is
+  recorded: a just-created subscription has no transactions in the sandbox yet; the twin lists the payment at once.
 - The retry schedule, failure counting and the suspension threshold are verified against PayPal's documentation
   and API spec. One timing is a guess: whether the final failure suspends on its first attempt (as PayPal's worked
   example reads) or after that cycle's retries.

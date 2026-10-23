@@ -67,5 +67,18 @@ So the whole active path can be compared automatically. **Option B (recording on
 limit that remains: this is the card-funded path (US merchant, non-3DS card). A subscription approved with a PayPal
 wallet follows the same states, but is not what we recorded.
 
+## What was built from it (23 Oct 2026)
+
+- The twin accepts `subscriber.payment_source.card`: the subscription is ACTIVE at once, the first payment is taken,
+  and only the safe parts of the card are kept (never the number or the security code, in any response or webhook).
+- The live suite grew from 7 to 17 steps (create with a card, get active, transactions, suspend, get suspended,
+  activate, cancel, get cancelled, and two refusals).
+- First live run of the active path: 22 differences across 5 steps (a fuller create response when asked for the
+  representation, four fields every active `GET` has, and the transactions list). A second run left 2 (the subscriber
+  in the create response). The third run: **17 of 17 steps match**, with one understood difference: just after
+  creation the sandbox lists no transactions yet, while the twin lists the payment at once.
+- The suite found one bug in our own code on the way: the generated payer ids could contain `0`, `1`, `I` or `O`,
+  which PayPal's spec forbids (about one id in four). Fixed, with a test over 2,000 ids.
+
 The probe scripts were throwaway and live outside the repo. They left one product, one plan and cancelled
 subscriptions in the sandbox.

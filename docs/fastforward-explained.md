@@ -32,7 +32,8 @@ You describe a scenario in plain words, like "a bad month". Then:
 4. You get a report: what your app handled, and what it missed (6 checks).
 
 Proof it is faithful: we compared the twin against PayPal's real sandbox. It had
-27 differences at first. We fixed them all, and now 7 of 7 endpoints match.
+27 differences at first, and 22 more when we tested an active subscription. We fixed them all, and now 17 of 17
+steps match.
 
 ## 3. Who pays, how much, why now
 
@@ -66,8 +67,9 @@ Proof it is faithful: we compared the twin against PayPal's real sandbox. It had
   subscriptions directly. Our answer: first paying customer is a small
   subscription business, and we will ask real PayPal developers to try it.
 - **Prices are my guess.** No one has been asked to pay yet.
-- **Coverage is partial.** The live comparison covers the pending-approval path,
-  not fully approved subscriptions. Say so plainly; it builds trust.
+- **One kind of subscription is compared.** The live comparison uses subscriptions paid with a card (the sandbox
+  activates those with no buyer). Ones approved with a PayPal wallet follow the same states but were not
+  compared. Say so plainly; it builds trust.
 
 ## 6. Your teach-back (reply with answers in your own words, short is fine)
 

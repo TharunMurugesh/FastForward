@@ -12,14 +12,25 @@ import { evaluate, runFidelitySuite, startTwinWithRun, toFidelityFile, writeFide
 vi.setConfig({ testTimeout: 120_000 });
 
 const creds = { clientId: 'sandbox-client-id', clientSecret: 'sandbox-secret-value-123' };
-const ENDPOINTS = [
-  'POST /v1/catalogs/products',
-  'POST /v1/billing/plans',
-  'POST /v1/billing/subscriptions',
-  'GET /v1/billing/subscriptions/{id}',
-  'POST /v1/billing/subscriptions/{id}/cancel',
-  'POST /v1/notifications/verify-webhook-signature',
-  'GET /v1/customer/disputes',
+// Every step of the suite, in order, with the status each side answers when the sandbox is another twin.
+const STEPS: { name: string; key: string; status: number }[] = [
+  { name: 'create product', key: 'POST /v1/catalogs/products', status: 201 },
+  { name: 'create plan', key: 'POST /v1/billing/plans', status: 201 },
+  { name: 'create subscription', key: 'POST /v1/billing/subscriptions', status: 201 },
+  { name: 'get subscription', key: 'GET /v1/billing/subscriptions/{id}', status: 200 },
+  { name: 'cancel subscription', key: 'POST /v1/billing/subscriptions/{id}/cancel', status: 404 },
+  { name: 'create subscription with a card', key: 'POST /v1/billing/subscriptions', status: 201 },
+  { name: 'get active subscription', key: 'GET /v1/billing/subscriptions/{id}', status: 200 },
+  { name: 'list transactions', key: 'GET /v1/billing/subscriptions/{id}/transactions', status: 200 },
+  { name: 'suspend subscription', key: 'POST /v1/billing/subscriptions/{id}/suspend', status: 204 },
+  { name: 'get suspended subscription', key: 'GET /v1/billing/subscriptions/{id}', status: 200 },
+  { name: 'activate subscription', key: 'POST /v1/billing/subscriptions/{id}/activate', status: 204 },
+  { name: 'cancel active subscription', key: 'POST /v1/billing/subscriptions/{id}/cancel', status: 204 },
+  { name: 'get cancelled subscription', key: 'GET /v1/billing/subscriptions/{id}', status: 200 },
+  { name: 'cancel a cancelled subscription (refused)', key: 'POST /v1/billing/subscriptions/{id}/cancel', status: 422 },
+  { name: 'suspend a cancelled subscription (refused)', key: 'POST /v1/billing/subscriptions/{id}/suspend', status: 422 },
+  { name: 'verify webhook signature (invalid)', key: 'POST /v1/notifications/verify-webhook-signature', status: 400 },
+  { name: 'list disputes', key: 'GET /v1/customer/disputes', status: 200 },
 ];
 
 const cleanup: (() => Promise<void>)[] = [];
@@ -59,13 +70,13 @@ async function proxy(target: Twin, rewrite: (method: string, path: string, statu
 const keyOf = (o: StepOutcome) => `${o.method} ${o.template}`;
 
 describe('the suite, against a fake sandbox that is another twin', () => {
-  it('runs the seven requests in order and finds no difference', async () => {
+  it('runs every step in order and finds no difference', async () => {
     const sandbox = await fakeSandbox();
     const twin = await fakeSandbox();
     const outcomes = await runFidelitySuite({ sandboxBase: sandbox.url, sandboxCreds: creds, twinUrl: twin.url });
 
-    expect(outcomes.map(keyOf)).toEqual(ENDPOINTS);
-    expect(outcomes.map((o) => [o.sandbox.status, o.twin.status])).toEqual([[201, 201], [201, 201], [201, 201], [200, 200], [404, 404], [400, 400], [200, 200]]);
+    expect(outcomes.map((o) => [o.name, keyOf(o)])).toEqual(STEPS.map((s) => [s.name, s.key]));
+    expect(outcomes.map((o) => [o.sandbox.status, o.twin.status])).toEqual(STEPS.map((s) => [s.status, s.status]));
     for (const o of outcomes) {
       expect(o.diffs, keyOf(o)).toEqual([]);
       expect(o.specErrors, keyOf(o)).toEqual([]);
@@ -97,17 +108,22 @@ describe('the suite, against a fake sandbox that is another twin', () => {
     });
     const outcomes = await runFidelitySuite({ sandboxBase: front.url, sandboxCreds: creds, twinUrl: twin.url });
 
-    const get = outcomes.find((o) => o.template === '/v1/billing/subscriptions/{id}' && o.method === 'GET')!;
-    expect(get.diffs).toEqual([{ field: 'quantity', detail: 'only in twin' }]);
-    const cancel = outcomes.find((o) => o.template.endsWith('/cancel'))!;
-    expect([cancel.sandbox.status, cancel.twin.status]).toEqual([422, 404]);
+    const step = (name: string) => outcomes.find((o) => o.name === name)!;
+    expect(step('get subscription').diffs).toEqual([{ field: 'quantity', detail: 'only in twin' }]);
+    expect([step('cancel subscription').sandbox.status, step('cancel subscription').twin.status]).toEqual([422, 404]);
+    expect([step('cancel active subscription').sandbox.status, step('cancel active subscription').twin.status]).toEqual([422, 204]);
 
+    // The proxy touches every GET of a subscription and every cancel, so those steps (and only those) differ.
     const strict = outcomes.map((o) => evaluate(o, {}));
-    expect(strict.filter((c) => !c.check.shapeMatch).map((c) => `${c.check.method} ${c.check.endpoint}`)).toEqual([
-      'GET /v1/billing/subscriptions/{id}',
-      'POST /v1/billing/subscriptions/{id}/cancel',
+    expect(strict.filter((c) => !c.check.shapeMatch).map((c) => c.check.step)).toEqual([
+      'get subscription',
+      'cancel subscription',
+      'get active subscription',
+      'get suspended subscription',
+      'cancel active subscription',
+      'get cancelled subscription',
     ]);
-    expect(strict.find((c) => c.check.method === 'GET' && c.check.endpoint.endsWith('{id}'))!.unexpected).toEqual(['quantity (only in twin)']);
+    expect(strict.find((c) => c.check.step === 'get subscription')!.unexpected).toEqual(['quantity (only in twin)']);
 
     const allowed: AllowedDiffs = {
       'GET /v1/billing/subscriptions/{id}': [{ field: 'quantity', reason: 'test: the fake sandbox omits it' }],
@@ -115,10 +131,27 @@ describe('the suite, against a fake sandbox that is another twin', () => {
     };
     const lenient = outcomes.map((o) => evaluate(o, allowed));
     expect(lenient.every((c) => c.check.shapeMatch && c.unexpected.length === 0)).toBe(true);
-    expect(lenient.flatMap((c) => c.check.allowedDiffs)).toEqual([
-      { field: 'quantity', reason: 'test: the fake sandbox omits it' },
-      { field: '(status)', reason: 'test: the fake sandbox refuses' },
-    ]);
+    const used = lenient.flatMap((c) => c.check.allowedDiffs);
+    expect(used.filter((d) => d.field === 'quantity')).toHaveLength(4); // one per GET of a subscription
+    expect(used.filter((d) => d.field === '(status)')).toHaveLength(2); // the two cancels whose status the proxy changed
+    expect(used.every((d) => d.reason.startsWith('test:'))).toBe(true);
+  });
+
+  it('an allowed difference can be limited to one step, by name', async () => {
+    const sandbox = await fakeSandbox();
+    const twin = await fakeSandbox();
+    const front = await proxy(sandbox, (method, path, status, body) => {
+      if (method === 'GET' && /^\/v1\/billing\/subscriptions\/[^/]+$/.test(path)) {
+        const { quantity: _dropped, ...rest } = body as Record<string, unknown>;
+        return { status, body: rest };
+      }
+      return { status, body };
+    });
+    const outcomes = await runFidelitySuite({ sandboxBase: front.url, sandboxCreds: creds, twinUrl: twin.url });
+    const onlyActive: AllowedDiffs = { 'GET /v1/billing/subscriptions/{id} [get active subscription]': [{ field: 'quantity', reason: 'test: one step only' }] };
+    const checks = outcomes.map((o) => evaluate(o, onlyActive));
+    expect(checks.find((c) => c.check.step === 'get active subscription')!.check.shapeMatch).toBe(true);
+    expect(checks.find((c) => c.check.step === 'get subscription')!.check.shapeMatch).toBe(false);
   });
 
   it('flags a sandbox response that breaks the OpenAPI schema', async () => {
@@ -225,7 +258,7 @@ describe('the evidence file', () => {
     }
     const parsed = JSON.parse(text) as FidelityFile;
     expect(Object.keys(parsed).sort()).toEqual(['checks', 'ranAt', 'sandboxBase']);
-    expect(Object.keys(parsed.checks[0]!).sort()).toEqual(['allowedDiffs', 'endpoint', 'method', 'sandboxStatus', 'shapeMatch', 'specMatch', 'twinStatus']);
+    expect(Object.keys(parsed.checks[0]!).sort()).toEqual(['allowedDiffs', 'endpoint', 'method', 'sandboxStatus', 'shapeMatch', 'specMatch', 'step', 'twinStatus']);
     expect(parsed).toEqual({
       ranAt: '2026-10-25T10:00:00.000Z',
       sandboxBase: 'https://api-m.sandbox.paypal.com',
@@ -233,6 +266,7 @@ describe('the evidence file', () => {
         {
           endpoint: '/v1/billing/subscriptions/{id}',
           method: 'GET',
+          step: 'get subscription',
           sandboxStatus: 200,
           twinStatus: 200,
           shapeMatch: true,

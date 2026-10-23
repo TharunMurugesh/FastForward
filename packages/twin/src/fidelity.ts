@@ -42,6 +42,21 @@ export const fidelity = {
   //   signature is not base64, the time is not ISO-8601, cert_url is not a URL or a field is missing (the run saw 400
   //   for its invalid body without saying which field). A well-formed wrong signature answers 200 FAILURE.
   // - verified: the disputes list always has `items`, empty when there are none.
+  // The active path, from the live runs of 2026-10-23 (a subscription created with a card, see
+  // docs/approved-subscriptions-findings.md; the status, shape and spec of all 17 suite steps match):
+  // - verified: a subscriber.payment_source.card on the create request makes the subscription ACTIVE at once with its
+  //   first payment taken. The POST answers {status, id, create_time, links}, plus plan_id, plan_overridden, quantity,
+  //   start_time, status_update_time and subscriber (the buyer's name echoed, no payer_id) when the request sends
+  //   Prefer: return=representation. GET then has payer_id and no name, and only the card's brand, last_digits, expiry,
+  //   name and billing_address (never the number or security code).
+  // - verified: an active GET always has shipping_amount, billing_info.current_cycle_sequence and, per cycle,
+  //   current_pricing_scheme_version and cycles_remaining (also for plans with no end). unverified: that value then (the
+  //   twin sends 0; the sandbox shape is a number).
+  // - verified: suspend, activate and cancel answer 204; cancelling a cancelled subscription and suspending a cancelled
+  //   one answer 422 with PayPal's usual error body.
+  // - understood difference: a just-created card subscription has no transactions in the sandbox yet (the list comes
+  //   back without these fields); the twin lists the payment at once. See ALLOWED_DIFFS in the fidelity suite.
+  // - unverified: what the sandbox answers for a card number that is not 13 to 19 digits (the twin answers 422).
   // verified 2026-10-03: sandbox dispute created with seller_response_due_date = create time + 20 days.
   disputeResponseDays: 20,
   // unverified: Hookdeck PayPal webhook guide (10 s acknowledge window); PayPal publishes no number.
