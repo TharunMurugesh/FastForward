@@ -6,7 +6,7 @@ export const DEFAULT_WEBHOOK_URL = 'http://127.0.0.1:3000/webhooks/paypal';
 /** A starter scenario with comments, so a new user can read and edit it. Only the webhook address is required. */
 export function starterScenario(webhookUrl: string): string {
   return `# A starter Fastforward scenario: three customers over about ten weeks, with misbehaving webhooks.
-# Everything here is simulated; no real PayPal call is made. Edit freely, then: fastforward run fastforward.yaml
+# Everything here is simulated; no real PayPal call is made. Edit freely, then: npx fastforward-cli run fastforward.yaml
 name: my-first-month
 seed: 42                      # same seed, same shape and timing of events on every run
 start: 2026-11-01T00:00:00.000Z
@@ -69,10 +69,12 @@ export function writeStarter({ output, webhookUrl }: InitOptions): string {
   return `Wrote ${output}.
 
 Next:
-  1. Start your app with the add-on, so its PayPal calls go to the simulator instead:
+  1. In your app's folder, add the add-on once:
+       npm install --save-dev fastforward-register
+     then start your app with it, so its PayPal calls go to the simulator instead:
        FASTFORWARD=1 node --import fastforward-register your-app.js
   2. Run the scenario in another terminal:
-       fastforward run ${output}
+       npx fastforward-cli run ${output}
   3. Open report.html from the report folder it prints, to see what your app handled and what it missed.
 
 Only the webhook address is set (${webhookUrl}). Open ${output} and follow the comments to add

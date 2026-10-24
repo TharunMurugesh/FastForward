@@ -76,12 +76,15 @@ Plain checks, not the AI, decide pass or fail, so the AI cannot talk a bug into 
 
 Full guide, with the scenario reference, the six checks and troubleshooting: [docs/guide.md](docs/guide.md). Short version:
 
-Start your app with the add-on, then run a scenario:
+Fastforward is on npm (nothing to clone): `fastforward-cli` (the `fastforward` command), `fastforward-register` (the add-on
+your app preloads) and `fastforward-mcp` (for coding assistants). Add the add-on to your app, start your app with it, then
+write and run a scenario:
 
 ```
+npm install --save-dev fastforward-register
 FASTFORWARD=1 node --import fastforward-register app.js
-npx fastforward init
-npx fastforward run fastforward.yaml
+npx fastforward-cli init
+npx fastforward-cli run fastforward.yaml
 ```
 
 Your app needs only a webhook handler. Two optional touchpoints unlock more checks:
@@ -97,11 +100,11 @@ Other commands: `fastforward new "<description>"` writes a scenario from plain w
 
 ## From a coding assistant (MCP)
 
-`packages/mcp` is a stdio MCP server with three tools: `ff_write_scenario`, `ff_run` and `ff_explain`. Add it to
-Claude Code with:
+`fastforward-mcp` is a stdio MCP server with three tools: `ff_write_scenario`, `ff_run` and `ff_explain`. Add it to
+Claude Code with one line (nothing to install first):
 
 ```
-claude mcp add fastforward -- node packages/mcp/dist/server.js
+claude mcp add fastforward -- npx -y fastforward-mcp
 ```
 
 The assistant can then write a scenario, run it against your app, read why a check failed, fix the bug, and run

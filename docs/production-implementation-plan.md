@@ -120,7 +120,7 @@ already supported) and fail if the three manifests disagree.
 **Done when:** `npm run pack:check` passes and nothing in the repo tells a stranger to run a command that does not
 exist.
 
-### E. Publish to npm (VINAY ONLY, after D)
+### E. Publish to npm (VINAY ONLY, after D). DONE 24 Oct 2026: 0.1.0 is on npm; 0.1.1 is next
 
 Everything here is outward and irreversible (a published version number cannot be reused). Prepare, do not run.
 1. Vinay owns the npm org `fastforward-mcp` and must have two-factor login on (npm settings, security).

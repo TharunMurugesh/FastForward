@@ -30,7 +30,7 @@ const targets = [
     name: 'fastforward-cli',
     description: 'Fastforward: a flight simulator for PayPal subscriptions. Skip a month ahead, let AI customers misbehave, find your billing bugs.',
     entries: { bin: 'packages/cli/src/bin.ts', index: 'packages/cli/src/index.ts' },
-    manifest: { bin: { fastforward: './bin.js' }, main: './index.js', exports: { '.': './index.js' } },
+    manifest: { bin: { fastforward: 'bin.js' }, main: './index.js', exports: { '.': './index.js' } },
   },
   {
     name: 'fastforward-register',
@@ -42,7 +42,7 @@ const targets = [
     name: 'fastforward-mcp',
     description: 'MCP server for Fastforward: lets a coding assistant write a scenario, run it against your app and explain billing bugs.',
     entries: { server: 'packages/mcp/src/server.ts', index: 'packages/mcp/src/index.ts' },
-    manifest: { bin: { 'fastforward-mcp': './server.js' }, main: './index.js', exports: { '.': './index.js' } },
+    manifest: { bin: { 'fastforward-mcp': 'server.js' }, main: './index.js', exports: { '.': './index.js' } },
   },
 ];
 

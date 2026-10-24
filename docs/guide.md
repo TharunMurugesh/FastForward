@@ -15,7 +15,21 @@ Two example apps are included to borrow from:
 
 ## Install
 
-Fastforward is not on npm yet. Until it is, use a clone:
+Fastforward is on npm as three packages (MIT):
+
+- `fastforward-cli`: the `fastforward` command (`init`, `run`, `new`, `twin`).
+- `fastforward-register`: the add-on your app preloads, which sends its PayPal sandbox calls to the simulator.
+- `fastforward-mcp`: a server that lets a coding assistant write, run and explain scenarios.
+
+In your app's folder:
+
+```
+npm install --save-dev fastforward-register fastforward-cli
+```
+
+To only try it, no install is needed: `npx fastforward-cli init`.
+
+To run the demo, or to work on Fastforward itself, use a clone instead:
 
 ```
 git clone https://github.com/VinayG759/FastForward.git
@@ -23,12 +37,9 @@ cd FastForward
 npm install && npm run build
 ```
 
-Once published, the three packages are `fastforward-cli` (the `fastforward` command), `fastforward-register`
-(the add-on your app preloads) and `fastforward-mcp` (for coding assistants).
-
 ## Five steps on your own app
 
-1. **Write a scenario.** `fastforward init` writes `fastforward.yaml`. Pass `--webhook-url` if your webhook is
+1. **Write a scenario.** `npx fastforward-cli init` writes `fastforward.yaml`. Pass `--webhook-url` if your webhook is
    not at `http://127.0.0.1:3000/webhooks/paypal`.
 2. **Start your app with the add-on**, so its PayPal calls go to the simulator:
    `FASTFORWARD=1 node --import fastforward-register your-app.js`
@@ -36,7 +47,7 @@ Once published, the three packages are `fastforward-cli` (the `fastforward` comm
    (`api-m.paypal.com`, `api.paypal.com`) is refused before a connection opens.
 3. **Set your webhook id.** In the test environment use `PAYPAL_WEBHOOK_ID=WH-FF-LOCAL`, so your signature check
    uses the same id the simulator signs with.
-4. **Run it:** `fastforward run fastforward.yaml`. The simulated months play in seconds.
+4. **Run it:** `npx fastforward-cli run fastforward.yaml`. The simulated months play in seconds.
 5. **Read the report.** The command prints each check, and writes `report.html` (open it in a browser) and
    `report.json` into the report folder it names.
 
@@ -140,6 +151,6 @@ Replay shows what the model wrote in one recorded run. It is not a live model, a
 ## From a coding assistant
 
 `fastforward-mcp` is a stdio MCP server with `ff_write_scenario`, `ff_run` and `ff_explain`. In Claude Code:
-`claude mcp add fastforward -- node packages/mcp/dist/server.js` (from a clone). The assistant writes a scenario,
+`claude mcp add fastforward -- npx -y fastforward-mcp`. The assistant writes a scenario,
 runs it against your app, reads why a check failed, fixes your code and runs it again. Only `ff_write_scenario`
 needs an Anthropic key. Reports are kept in `.fastforward/runs/` in the folder where the server started.

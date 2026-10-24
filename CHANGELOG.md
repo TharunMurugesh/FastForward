@@ -3,9 +3,18 @@
 All notable changes to Fastforward. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/). The version number lives in the `VERSION` file.
 
-## [0.1.0] - not released yet
+## [0.1.1] - 2026-10-24
 
-First version. Not published to npm yet; until then it runs from a clone of the repository.
+### Fixed
+- `fastforward init` printed next steps that only work when the package is installed globally. It now prints
+  copy-paste commands for someone who has only run `npx fastforward-cli init`: add `fastforward-register` to the app, start
+  it with the add-on, then `npx fastforward-cli run`.
+- The `bin` paths in the published packages no longer carry a `./`, which made npm print a warning when publishing.
+
+## [0.1.0] - 2026-10-24
+
+First version, published to npm as `fastforward-cli` (the `fastforward` command), `fastforward-register` (the add-on an
+app preloads) and `fastforward-mcp` (the server for coding assistants).
 
 ### Added
 - **The twin:** a stand-in for PayPal Subscriptions and Disputes with its own clock, built from PayPal's official

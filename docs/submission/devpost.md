@@ -80,7 +80,7 @@ TypeScript (strict), Node 24, Fastify, zod, React and Vite, **AG Grid Community*
 
 ## Try it
 
-Setup and run instructions are in the repository README. Judges can use https://fastforward-production.up.railway.app/ or run it locally in three commands. The demo needs no PayPal login. To run your own AI scenarios, set `ANTHROPIC_API_KEY` in a `.env` file; without it, the scripted fallback runs. The hosted demo stays up until the judging period ends on 15 December 2026.
+Setup and run instructions are in the repository README. It is on npm (`npx fastforward-cli init`; `fastforward-register` and `fastforward-mcp` are the other two packages). Judges can use https://fastforward-production.up.railway.app/ or run it locally in three commands. The demo needs no PayPal login. To run your own AI scenarios, set `ANTHROPIC_API_KEY` in a `.env` file; without it, the scripted fallback runs. The hosted demo stays up until the judging period ends on 15 December 2026.
 
 Repository: https://github.com/VinayG759/FastForward (MIT licence)
 Video: [public YouTube URL]

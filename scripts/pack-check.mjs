@@ -21,9 +21,17 @@ const runNpm = (args, opts = {}) => {
   return execFileSync(npm, args, { encoding: 'utf8', shell: process.platform === 'win32', ...opts });
 };
 const inUse = (port) => new Promise((done) => { const s = connect(port, '127.0.0.1'); s.once('connect', () => (s.destroy(), done(true))); s.once('error', () => (s.destroy(), done(false))); });
+// What each child process wrote to stderr, so a start-up failure says why instead of only that it failed.
+const stderrOf = new Map();
+const watchStderr = (child, name) => {
+  let text = '';
+  child.stderr?.on('data', (d) => { text = (text + d).slice(-1500); stderrOf.set(name, text); });
+};
 async function waitFor(port, what) {
-  for (let i = 0; i < 100; i++) { if (await inUse(port)) return; await new Promise((r) => setTimeout(r, 300)); }
-  throw new Error(`${what} did not come up on ${port}`);
+  // 90 s: right after a heavy test run, starting a freshly installed Node program can take well over 30 s.
+  for (let i = 0; i < 300; i++) { if (await inUse(port)) return; await new Promise((r) => setTimeout(r, 300)); }
+  const why = stderrOf.get(what);
+  throw new Error(`${what} did not come up on ${port}${why ? `. Its error output ended with: ${why.trim()}` : ''}`);
 }
 
 for (const port of [3000, 4010]) if (await inUse(port)) throw new Error(`port ${port} is in use; stop it first`);
@@ -45,14 +53,16 @@ try {
   const registerUrl = pathToFileURL(join(dir, 'node_modules/fastforward-register/index.js')).href;
   const env = { ...process.env, FF_AI: 'off', ANTHROPIC_API_KEY: '', PAYPAL_CLIENT_ID: 'ff', PAYPAL_CLIENT_SECRET: 'ff' };
 
-  const twin = spawn(process.execPath, [cli, 'twin', '--port', '4010'], { cwd: dir, env, stdio: 'ignore' });
+  const twin = spawn(process.execPath, [cli, 'twin', '--port', '4010'], { cwd: dir, env, stdio: ['ignore', 'ignore', 'pipe'] });
+  watchStderr(twin, 'packed twin');
   children.push(twin);
   await waitFor(4010, 'packed twin');
   const app = spawn(process.execPath, ['--import', registerUrl, join(root, 'examples/coffee-club/dist/server.js')], {
     cwd: root,
     env: { ...env, FASTFORWARD: '1', PORT: '3000', COFFEE_BUGS: 'no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order', COFFEE_SLOW_MS: '1000' },
-    stdio: 'ignore',
+    stdio: ['ignore', 'ignore', 'pipe'],
   });
+  watchStderr(app, 'Coffee Club');
   children.push(app);
   await waitFor(3000, 'Coffee Club');
 

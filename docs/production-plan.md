@@ -27,7 +27,7 @@ with accounts and billing comes later, after real people use the free tool.
    scoped names `@fastforward/cli`, `/register`, `/mcp` are not published, but we do not yet know who owns the
    `@fastforward` npm scope; Vinay must check that on npmjs.com before publishing. Until packages are published,
    the README commands only work inside a clone, where the local copy runs first.
-7. **[built and tested locally, NOT published] Installable packages** (decided 20 Oct: three packages, `fastforward-cli`, `fastforward-register`, `fastforward-mcp`, internals bundled; `npm run pack:check` installs the packed tarballs into an empty folder and runs the bad month, 4 of 6): make the CLI, register add-on and MCP server real npm packages (today they are
+7. **[PUBLISHED 24 Oct 2026 as 0.1.0; 0.1.1 prepared] Installable packages** (decided 20 Oct: three packages, `fastforward-cli`, `fastforward-register`, `fastforward-mcp`, internals bundled; `npm run pack:check` installs the packed tarballs into an empty folder and runs the bad month, 4 of 6): make the CLI, register add-on and MCP server real npm packages (today they are
    private and only work inside this repo). Version numbers, a build that ships compiled files, a changelog.
    Publishing to npm is outward and needs your yes.
 8. **[done 20 Oct] `fastforward init`:** one command that writes a starter scenario and shows how to start the user's app with

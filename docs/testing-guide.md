@@ -36,7 +36,8 @@ Words you will see:
 - The live page is a finished run, so the time buttons ("+1 day", "Run to end") are greyed out.
 - The real-PayPal comparison covers subscriptions paid with a **card**, not ones approved with a PayPal wallet. One
   difference is recorded and explained on the page (the transactions list just after creation).
-- Fastforward is on npm **later**. For now it is installed from the GitHub repository.
+- Parts B to F install from the GitHub repository (that is how the demo and the test suites run). Part G tests the real
+  npm packages, as a stranger would install them.
 - The run id in the page address (`run-xxxxxxxx`) changes each time the site is redeployed. That is normal.
 - Node apps only. Only PayPal Subscriptions and Disputes.
 
@@ -203,6 +204,28 @@ examples/coffee-club/scenarios/bad-month.yaml and explain the failures." Expect 
 
 ---
 
+## Part G: install from npm, as a stranger would (needs Node 24, no clone)
+
+The three packages are on npm. Use a **brand-new empty folder** that is not inside the repository (for example
+`C:\ff-npm`). If PowerShell blocks `npm`, use `npm.cmd` and `npx.cmd`.
+
+| # | Do | You should see |
+|---|---|---|
+| G1 | `mkdir C:\ff-npm ; cd C:\ff-npm ; npx fastforward-cli init` (nothing installed first; answer `y` if asked to install) | "Wrote fastforward.yaml." and three numbered next steps that include `npm install --save-dev fastforward-register` and `npx fastforward-cli run fastforward.yaml`. A file `fastforward.yaml` now exists. |
+| G2 | `npm init -y` then `npm install fastforward-register fastforward-cli fastforward-mcp` | About "added 170 packages", no red errors, in under a minute. |
+| G3 | `dir node_modules\.bin` | Entries named `fastforward` and `fastforward-mcp` (with `.cmd` versions). |
+| G4 | `npx fastforward` | The usage text ("Usage: fastforward run ..."), because no command was given. |
+| G5 | The three packages' pages: https://www.npmjs.com/package/fastforward-cli , `.../fastforward-register` , `.../fastforward-mcp` | Each page exists, shows the version, the MIT licence and a short description. |
+
+G6 (the whole flow, as a user): in one window start Coffee Club from your clone of the repository as in C2 (it is the
+"app under test"). In the `C:\ff-npm` window run `npx fastforward run fastforward.yaml` and expect "**2 of 6 checks
+failed**" and two checks skipped. Then enable the two optional addresses as in Part E and expect "**4 of 6 checks failed**".
+
+G7 (optional, needs Claude Code): `claude mcp add fastforward -- npx -y fastforward-mcp`, then ask it to run
+`examples/coffee-club/scenarios/bad-month.yaml`. Expect the six checks listed.
+
+---
+
 ## What to send back
 
 Send Vinay a copy of the table below, filled in. For anything that is not **Pass**, add a screenshot and one sentence:
@@ -223,6 +246,9 @@ what you did, what you expected, what happened. Include your browser and Windows
 | D (plain fetch app) | | |
 | E (init and error messages) | | |
 | F (assistant tool, optional) | | |
+| G1 to G5 (install from npm) | | |
+| G6 (whole flow with the npm packages) | | |
+| G7 (assistant tool from npm, optional) | | |
 
 Things that would be especially useful: anything confusing to read, any wording you did not understand, any page that
 looks broken on your screen, and any step in this guide that did not work as written.

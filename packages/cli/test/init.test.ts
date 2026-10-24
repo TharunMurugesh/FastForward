@@ -31,8 +31,10 @@ describe('fastforward init', () => {
     expect(scenario.app.webhookUrl).toBe('http://127.0.0.1:3000/webhooks/paypal');
     expect(scenario.customers.length).toBeGreaterThanOrEqual(3);
     // The next steps name the real commands, so a new user can copy them.
-    expect(out.join('')).toContain('FASTFORWARD=1 node --import');
-    expect(out.join('')).toContain('fastforward run fastforward.yaml');
+    // Copy-paste commands that work for someone who has only run `npx fastforward-cli init`: nothing else is installed yet.
+    expect(out.join('')).toContain('npm install --save-dev fastforward-register');
+    expect(out.join('')).toContain('FASTFORWARD=1 node --import fastforward-register');
+    expect(out.join('')).toContain('npx fastforward-cli run fastforward.yaml');
   });
 
   it('uses --webhook-url and -o', async () => {
