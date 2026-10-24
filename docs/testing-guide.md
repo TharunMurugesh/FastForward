@@ -26,6 +26,9 @@ Words you will see:
 - **Do not ask for, or use, Vinay's Anthropic API key.** Using it costs him money. Everything you need is free (the demo
   replays a recording). Only the optional test C3 uses a key, and only Vinay runs that one.
 - Part A needs nothing installed. Start there.
+- **Windows PowerShell may refuse to run `npm`** with a red message about `npm.ps1` and "running scripts is disabled". This is a
+  Windows safety setting, not a Fastforward problem. Type **`npm.cmd`** instead of `npm` (for example `npm.cmd install`,
+  `npm.cmd run build`, `npm.cmd test`) and everything works without changing any setting. (Tharun hit this on 24 Oct.)
 
 ## Known limits (please do not report these as bugs)
 
