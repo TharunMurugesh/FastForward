@@ -15,7 +15,7 @@ with accounts and billing comes later, after real people use the free tool.
 1. **[done 20 Oct] Lock the public demo to read-only.** Found 20 Oct: anyone on the internet can POST to the live site's
    control API (`/_ff/runs`) and start runs on Tharun's server. Fix: the hosted proxy allows only GET/HEAD.
    Helps: everyone, because strangers cannot run up Tharun's bill or crash the demo before judging.
-2. **[written, pack:check added, runs once pushed] Automatic checks on every push (GitHub Actions):** build, typecheck, unit tests, and the package check (`npm run pack:check`). The repo has none.
+2. **[done and green on every push] Automatic checks (GitHub Actions):** build, unit tests, the package install test, end-to-end tests, a version check and a security audit.
    Helps: any contributor or customer, who can see that main always passes.
 3. **[done: 0 vulnerabilities, history clean] Dependency and secret audit:** `npm audit`, a secret scan of the history, a pinned Node version in Docker.
 4. **[done, tested] Container hardening:** run as a non-root user, add a Docker health check, a small `.dockerignore` review.
@@ -27,7 +27,7 @@ with accounts and billing comes later, after real people use the free tool.
    scoped names `@fastforward/cli`, `/register`, `/mcp` are not published, but we do not yet know who owns the
    `@fastforward` npm scope; Vinay must check that on npmjs.com before publishing. Until packages are published,
    the README commands only work inside a clone, where the local copy runs first.
-7. **[PUBLISHED 24 Oct 2026 as 0.1.0; 0.1.1 prepared] Installable packages** (decided 20 Oct: three packages, `fastforward-cli`, `fastforward-register`, `fastforward-mcp`, internals bundled; `npm run pack:check` installs the packed tarballs into an empty folder and runs the bad month, 4 of 6): make the CLI, register add-on and MCP server real npm packages (today they are
+7. **[PUBLISHED 24 Oct 2026: 0.1.0 and 0.1.1; Tharun re-tested the install from npm, all required steps passed] Installable packages** (decided 20 Oct: three packages, `fastforward-cli`, `fastforward-register`, `fastforward-mcp`, internals bundled; `npm run pack:check` installs the packed tarballs into an empty folder and runs the bad month, 4 of 6): make the CLI, register add-on and MCP server real npm packages (today they are
    private and only work inside this repo). Version numbers, a build that ships compiled files, a changelog.
    Publishing to npm is outward and needs your yes.
 8. **[done 20 Oct] `fastforward init`:** one command that writes a starter scenario and shows how to start the user's app with
@@ -41,7 +41,7 @@ with accounts and billing comes later, after real people use the free tool.
 12. **[done 23 Oct: 17 of 17 steps match the real sandbox, see docs/approved-subscriptions-findings.md] Approved, active subscriptions in the real-sandbox comparison.** Our known gap; needs a buyer approval in
     the sandbox. I will test how far it can be automated, and say so if it cannot.
 13. **[done 23 Oct, partly verified] Verify the inferred rule** (suspend at the failure threshold) against PayPal's docs or the sandbox. Verified from the docs (updated 14 Oct 2026) and the official API spec: failure counting and the threshold. Still a guess, and untestable without a clock: whether the final failure suspends on its first attempt (twin, matches PayPal's worked example) or after that cycle's retries.
-14. **[built 23 Oct; the real recording waits for Vinay] Show the AI in the product:** one recorded real AI run, replayable with no key. Built and tested with a fake model: saved explanations, labels, spend guard, the hosted demo replaying a recording. To finish: put `ANTHROPIC_API_KEY` in `.env`, then `npm run record:ai -- --yes` (a few dollars at most, capped at 60 calls), review and commit the two lock files.
+14. **[done 23 Oct] Show the AI in the product:** Claude's real run of the bad month was recorded once (10 model calls, about 16,000 tokens) and the live demo replays it with no key, with every explanation labelled. Re-record with `npm run record:ai -- --yes`.
 
 ## Phase 4: the business, only after real users
 15. **A one-page site and waitlist** (who pays, the $39 target, install command) to collect the first customers.
