@@ -149,11 +149,11 @@ const noticeColumns: ColDef<DeliveryRow>[] = [
   whenColumn('First sent (virtual)'),
   { field: 'customer', width: 84 },
   eventColumn,
+  findingsColumn,
   { field: 'status', headerName: 'Last answer', width: 108, cellRenderer: Status, filter: 'agNumberColumnFilter' },
   { headerName: 'Tries', width: 82, cellRenderer: Tries, valueGetter: (p) => (p.data as NoticeRow | undefined)?.tries ?? 1, filter: 'agNumberColumnFilter' },
-  { headerName: 'Worst', width: 92, cellRenderer: Worst, valueGetter: (p) => (p.data as NoticeRow | undefined)?.worstStatus ?? null, filter: 'agNumberColumnFilter' },
-  findingsColumn,
   signatureColumn,
+  { headerName: 'Worst', width: 92, cellRenderer: Worst, valueGetter: (p) => (p.data as NoticeRow | undefined)?.worstStatus ?? null, filter: 'agNumberColumnFilter' },
   { field: 'eventId', headerName: 'Event id', width: 150, cellClass: 'mono' },
 ];
 
@@ -162,6 +162,7 @@ const attemptColumns: ColDef<DeliveryRow>[] = [
   whenColumn('When (virtual)'),
   { field: 'customer', width: 84 },
   eventColumn,
+  findingsColumn,
   { field: 'status', headerName: 'App answered', width: 130, cellRenderer: Status, filter: 'agNumberColumnFilter' },
   {
     field: 'ms',
@@ -171,7 +172,6 @@ const attemptColumns: ColDef<DeliveryRow>[] = [
     valueFormatter: (p) => (typeof p.value === 'number' ? p.value.toLocaleString('en-GB') : ''),
     cellClassRules: { 'cell-slow': (p) => typeof p.value === 'number' && p.value > ACK_LIMIT_MS },
   },
-  findingsColumn,
   { field: 'attempt', headerName: 'Try', width: 76, filter: 'agNumberColumnFilter' },
   signatureColumn,
   { field: 'eventId', headerName: 'Event id', width: 150, cellClass: 'mono' },
@@ -233,7 +233,6 @@ export function DeliveriesGrid({ rows, notices, selectedEventId, onSelect, check
     <section className="card grid-card" id="deliveries" aria-label="Deliveries">
       <header className="card-head">
         <div>
-          <h2>Deliveries</h2>
           <p className="muted">
             {everyAttempt
               ? 'Every attempt to deliver a notice to your app, and what your app did with it.'

@@ -1,4 +1,5 @@
 import type { CheckId, CheckResult, Report, TraceEntry } from '@fastforward/contracts';
+import type { ReactNode } from 'react';
 import { CircleCheck, CircleMinus, CircleX, ListFilter, Sparkles, Users, Webhook, Wrench } from 'lucide-react';
 import { CheckBadge, CHECK_LOOK, Story } from '../checkLook.js';
 import { CHECK_TITLES, describeAi, EVENT_LABELS, runSummary } from '../format.js';
@@ -41,7 +42,7 @@ function CheckTile({ check }: { check: CheckResult }) {
 }
 
 /** One failure: the picture of what happened, where in the app to look, and the way to the fix. */
-function ProblemCard({ check, notices, trace, subscriptions, onExplain, onShowNotices }: { check: CheckResult } & Omit<Props, 'report'>) {
+export function ProblemCard({ check, notices, trace, subscriptions, onExplain, onShowNotices }: { check: CheckResult } & Omit<Props, 'report'>) {
   const facts = problemFacts(check, notices, trace, subscriptions);
   // Past two handlers a list stops helping: the problem is in every handler.
   const everyHandler = facts.handlers.length > 2;
@@ -107,8 +108,8 @@ function ProblemCard({ check, notices, trace, subscriptions, onExplain, onShowNo
   );
 }
 
-/** The first tab: did the app pass, and if not, what to fix first. */
-export function Overview({ report, ...rest }: Props) {
+/** The first tab: did the app pass, and if not, what to fix first. `children` goes under the cards (the timeline). */
+export function Overview({ report, children, ...rest }: Props & { children?: ReactNode }) {
   const failing = report.checks.filter((c) => c.status === 'fail');
   return (
     <div className="overview">
@@ -132,7 +133,8 @@ export function Overview({ report, ...rest }: Props) {
         </ul>
       </section>
       {failing.length > 0 ? (
-        <div className="problems">
+        // Columns chosen by count, so no card is left alone beside empty slots (4 makes 2 by 2).
+        <div className={`problems n-${failing.length}`}>
           {failing.map((c) => (
             <ProblemCard key={c.id} check={c} {...rest} />
           ))}
@@ -146,6 +148,7 @@ export function Overview({ report, ...rest }: Props) {
           </div>
         </section>
       )}
+      {children}
     </div>
   );
 }

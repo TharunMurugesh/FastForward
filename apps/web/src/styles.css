@@ -104,9 +104,10 @@ code,
 }
 
 .page {
+  width: 100%;
   max-width: 1560px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -129,13 +130,6 @@ code,
 }
 
 /* ---------- header ---------- */
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
 .brand {
   display: flex;
   gap: 12px;
@@ -147,11 +141,6 @@ code,
 }
 .logo {
   font-size: 26px;
-}
-.top-chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 .banner {
   background: var(--warn-bg);
@@ -208,17 +197,6 @@ h3 .chip {
 }
 
 /* ---------- time control ---------- */
-.controls {
-  display: grid;
-  grid-template-columns: auto minmax(200px, 1fr) auto;
-  gap: 20px;
-  align-items: center;
-}
-.clock {
-  display: flex;
-  flex-direction: column;
-  min-width: 130px;
-}
 .clock-label {
   font-size: 12px;
   color: var(--muted);
@@ -227,18 +205,10 @@ h3 .chip {
   font-size: 22px;
   line-height: 1.2;
 }
-.scrub input[type='range'] {
-  width: 100%;
-  accent-color: var(--accent);
-}
 .scrub-ends {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  gap: 8px;
-}
-.buttons {
-  display: flex;
   gap: 8px;
 }
 button {
@@ -573,13 +543,6 @@ pre {
   .page {
     padding: 12px;
   }
-  .controls {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .buttons button {
-    flex: 1;
-  }
   .grid-wrap {
     height: 420px;
   }
@@ -753,33 +716,102 @@ pre {
 .ai-line {
   color: var(--accent);
 }
-.tabbar {
-  display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  scrollbar-width: thin;
+/* ---------- sidebar ---------- */
+.shell {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: 100vh;
 }
-.tabbar button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 18px 12px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.sidebar .brand {
+  padding: 0 6px;
+}
+.sidebar h1 {
+  font-size: 19px;
+}
+.sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidenav button {
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
   border: 0;
-  border-radius: 8px 8px 0 0;
+  border-radius: 8px;
   background: none;
-  padding: 10px 14px;
-  border-bottom: 3px solid transparent;
+  padding: 9px 10px;
   color: var(--muted);
   font-weight: 600;
   white-space: nowrap;
+  text-align: left;
 }
-.tabbar button:hover:not(:disabled) {
+.sidenav button > span:not(.count) {
+  flex: 1;
+}
+.sidenav button:hover:not(:disabled) {
   color: var(--text);
   background: var(--surface-2);
 }
-.tabbar button.on {
+.sidenav button.on {
   color: var(--text);
-  border-bottom-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.sidenav button.on svg {
+  color: var(--accent);
+}
+.run-status {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 6px;
+}
+.page-title {
+  font-size: 22px;
+}
+@media (max-width: 900px) {
+  /* no room for a column: the sidebar becomes a strip across the top */
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebar {
+    position: static;
+    height: auto;
+    gap: 10px;
+    padding: 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidenav {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .sidenav button {
+    width: auto;
+  }
+  .sidenav button.on {
+    box-shadow: inset 0 -3px 0 var(--accent);
+  }
+  .run-status {
+    margin-top: 0;
+  }
+  .page-title {
+    display: none;
+  }
 }
 .section-head {
   display: flex;
@@ -1339,4 +1371,174 @@ button.link {
 .ag-cell .chip {
   padding: 0 8px;
   font-size: 11.5px;
+}
+
+/* ---------- sidebar clock and run facts ---------- */
+.time,
+.run-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.clock-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.time input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.time-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.time-buttons .primary {
+  grid-column: span 2;
+}
+.time-buttons button {
+  padding: 6px 8px;
+}
+.run-facts dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 13px;
+}
+.run-facts dt {
+  color: var(--muted);
+}
+.run-facts dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* ---------- pages that fill the screen ---------- */
+.grid-card .grid-wrap {
+  height: max(420px, calc(100vh - 250px));
+}
+.side {
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.side .inspector {
+  padding: 16px;
+}
+.side .empty {
+  padding: 24px 16px;
+}
+.main.wide-side {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+}
+.main.wide-side .problem,
+.side-note {
+  position: sticky;
+  top: 20px;
+}
+.side-note {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.overview .timeline {
+  margin-top: -4px;
+}
+@media (max-width: 1100px) {
+  .main.wide-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .main.wide-side .problem,
+  .side-note {
+    position: static;
+  }
+  .side {
+    max-height: none;
+  }
+}
+
+/* ---------- remedy strips and customer cards ---------- */
+.story.remedy li.cost .story-icon {
+  color: var(--ok);
+  background: var(--ok-bg);
+  border-color: color-mix(in srgb, var(--ok) 50%, transparent);
+}
+.story.remedy li.cost .story-text {
+  color: var(--ok);
+  font-weight: 700;
+}
+.customer-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.customer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.customer-card header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.customer-card h3 {
+  margin: 0;
+}
+.customer-card > button {
+  align-self: flex-start;
+  margin-top: auto;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.kind-counts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+}
+.kind-counts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.kind-counts strong {
+  color: var(--text);
+}
+.chips.wrap {
+  flex-wrap: wrap;
+}
+.drawer-body.inline {
+  padding: 16px;
+  overflow: visible;
+}
+@media (min-width: 1101px) {
+  .problems.n-1 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .problems.n-2,
+  .problems.n-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .problems.n-3,
+  .problems.n-5,
+  .problems.n-6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

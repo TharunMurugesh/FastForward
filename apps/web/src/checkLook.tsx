@@ -2,6 +2,15 @@ import type { CheckId } from '@fastforward/contracts';
 import {
   ArrowRight,
   Ban,
+  Bell,
+  CalendarClock,
+  CircleCheckBig,
+  Fingerprint,
+  FlaskConical,
+  Inbox,
+  Lock,
+  Send,
+  ShieldCheck,
   CircleDollarSign,
   Coffee,
   Copy,
@@ -35,6 +44,8 @@ export interface CheckLook {
   short: string;
   /** What happened, as three pictures: what PayPal did, what the app did, what it cost. */
   story: [Step, Step, Step];
+  /** The same moment handled by a correct app, as three pictures. */
+  remedy: [Step, Step, Step];
 }
 
 interface Step {
@@ -52,6 +63,11 @@ export const CHECK_LOOK: Record<CheckId, CheckLook> = {
       { icon: Hourglass, text: 'App answers after 10 s' },
       { icon: RefreshCw, text: 'PayPal gives up and retries' },
     ],
+    remedy: [
+      { icon: Mail, text: 'Notice arrives' },
+      { icon: Inbox, text: 'Save it to a queue' },
+      { icon: CircleCheckBig, text: 'Answer 200 at once, work later' },
+    ],
   },
   VERIFIES_SIGNATURES: {
     icon: ShieldAlert,
@@ -61,6 +77,11 @@ export const CHECK_LOOK: Record<CheckId, CheckLook> = {
       { icon: Mail, text: 'A notice arrives' },
       { icon: ShieldOff, text: 'App never checks it came from PayPal' },
       { icon: UserX, text: 'Anyone can fake one' },
+    ],
+    remedy: [
+      { icon: Mail, text: 'A notice arrives' },
+      { icon: ShieldCheck, text: 'Ask PayPal to verify its signature' },
+      { icon: Ban, text: 'Reject it unless the answer is SUCCESS' },
     ],
   },
   STATE_MATCHES: {
@@ -72,6 +93,11 @@ export const CHECK_LOOK: Record<CheckId, CheckLook> = {
       { icon: KeyRound, text: 'App keeps access open' },
       { icon: Coffee, text: 'Coffee without paying' },
     ],
+    remedy: [
+      { icon: Bell, text: 'A suspend or cancel notice arrives' },
+      { icon: RefreshCw, text: 'Read the real status from PayPal' },
+      { icon: Lock, text: 'Close access to match it' },
+    ],
   },
   FULFIL_ONCE: {
     icon: Copy,
@@ -81,6 +107,11 @@ export const CHECK_LOOK: Record<CheckId, CheckLook> = {
       { icon: Copy, text: 'Same notice arrives twice' },
       { icon: PackageCheck, text: 'App ships both' },
       { icon: CircleDollarSign, text: 'Second order given away' },
+    ],
+    remedy: [
+      { icon: Copy, text: 'The notice arrives again' },
+      { icon: Fingerprint, text: 'Check its event id was seen before' },
+      { icon: PackageCheck, text: 'Ship once, still answer 200' },
     ],
   },
   DISPUTE_ANSWERED: {
@@ -92,6 +123,11 @@ export const CHECK_LOOK: Record<CheckId, CheckLook> = {
       { icon: MessageSquareOff, text: 'App never replies' },
       { icon: Landmark, text: 'PayPal sides with the buyer' },
     ],
+    remedy: [
+      { icon: Flag, text: 'A dispute opens' },
+      { icon: CalendarClock, text: 'Save the reply-by date' },
+      { icon: Send, text: 'Send evidence through the disputes API' },
+    ],
   },
   NO_LIVE_CALLS: {
     icon: Globe,
@@ -101,6 +137,11 @@ export const CHECK_LOOK: Record<CheckId, CheckLook> = {
       { icon: Code, text: 'Test code runs' },
       { icon: Globe, text: 'It calls real PayPal' },
       { icon: TriangleAlert, text: 'Real money at risk' },
+    ],
+    remedy: [
+      { icon: Code, text: 'Test code runs' },
+      { icon: FlaskConical, text: 'Point it at the sandbox' },
+      { icon: ShieldCheck, text: 'No real money moves' },
     ],
   },
 };
@@ -127,11 +168,12 @@ export function CheckChip({ id, title, dim = false }: { id: CheckId; title: stri
   );
 }
 
-/** The three-picture story of a failure, left to right. */
-export function Story({ id }: { id: CheckId }) {
-  const { story, tone } = CHECK_LOOK[id];
+/** The three-picture story of a failure, left to right; `remedy` tells the same moment done right. */
+export function Story({ id, remedy = false }: { id: CheckId; remedy?: boolean }) {
+  const { tone } = CHECK_LOOK[id];
+  const story = remedy ? CHECK_LOOK[id].remedy : CHECK_LOOK[id].story;
   return (
-    <ol className={`story ${tone}`} aria-label="What happened">
+    <ol className={`story ${remedy ? 'remedy' : tone}`} aria-label={remedy ? 'What a correct app does' : 'What happened'}>
       {story.map(({ icon: Icon, text }, i) => (
         <li key={i} className={i === story.length - 1 ? 'cost' : ''}>
           {i > 0 && <ArrowRight className="story-arrow" size={16} aria-hidden="true" />}

@@ -1,5 +1,5 @@
 import type { CheckId, Report } from '@fastforward/contracts';
-import { BookOpen, ListFilter, Sparkles, Wrench, X } from 'lucide-react';
+import { BookOpen, CircleCheckBig, ListFilter, Sparkles, Wrench, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { CheckBadge, Story } from '../checkLook.js';
 import { CHECK_TITLES, explanationLabel, fmtDateTime } from '../format.js';
@@ -57,6 +57,12 @@ export function FixDrawer({ check, report, onClose, onOpenNotice, onShowNotices 
               <p>{help.fix}</p>
             </section>
           )}
+          <section className="drawer-section">
+            <h3>
+              <CircleCheckBig size={16} aria-hidden="true" /> What a correct app does
+            </h3>
+            <Story id={result.id} remedy />
+          </section>
           {help?.explanation && (
             <section className="drawer-section">
               <h3>
