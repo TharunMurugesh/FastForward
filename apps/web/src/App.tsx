@@ -1,5 +1,5 @@
 import type { CheckId } from '@fastforward/contracts';
-import { BookOpen, CalendarClock, ChartGantt, CirclePlay, Film, FlaskConical, Hash, Wrench, CircleCheck, Play, FastForward, GitCompareArrows, Hourglass, Info, LayoutDashboard, LoaderCircle, MessagesSquare, Table2, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarClock, History, ChartGantt, CirclePlay, Film, FlaskConical, Hash, Wrench, CircleCheck, Play, FastForward, GitCompareArrows, Hourglass, Info, LayoutDashboard, LoaderCircle, MessagesSquare, Table2, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BUG_LABELS, fmtDate, fmtDateYear } from './format.js';
 import { DeliveriesGrid } from './grids/DeliveriesGrid.js';
@@ -109,6 +109,46 @@ export function App() {
 
   const count: Partial<Record<Tab, number>> = { overview: failed, deliveries: notices.length, disputes };
 
+  // The clock, on the Timeline tab: it moves a live run forward, or replays a finished run or the recording.
+  const timeControls = (
+    <section className="card time-bar" aria-label="Time control">
+      <div className="clock">
+        <span className="clock-label">
+          <CalendarClock size={14} aria-hidden="true" /> Virtual date
+        </span>
+        <strong className="clock-date">{fmtDateYear(new Date(value).toISOString())}</strong>
+      </div>
+      <div className="scrub">
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={DAY_MS}
+          value={Math.min(Math.max(value, min), max)}
+          onChange={(e) => onScrub(Number(e.target.value))}
+          aria-label="Move through the run's virtual time"
+          disabled={loading}
+        />
+        <div className="scrub-ends muted">
+          <span>{fmtDate(new Date(min).toISOString())}</span>
+          <span>{finished ? 'The run is over: drag or step to replay any day of it' : live ? 'Time only moves forward in a live run' : 'Drag to replay the recording'}</span>
+          <span>{fmtDate(info.end)}</span>
+        </div>
+      </div>
+      <div className="time-buttons">
+        <button type="button" onClick={() => run.moveBy(1)} disabled={loading || atEnd}>
+          +1 day
+        </button>
+        <button type="button" onClick={() => run.moveBy(7)} disabled={loading || atEnd}>
+          +1 week
+        </button>
+        <button type="button" className="primary" onClick={run.toEnd} disabled={loading || atEnd}>
+          <Play size={15} aria-hidden="true" /> Run to end
+        </button>
+      </div>
+    </section>
+  );
+
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -136,66 +176,6 @@ export function App() {
           })}
         </nav>
 
-        {/* The clock lives here, beside every page. */}
-        {(
-          <section className="time" aria-label="Time control">
-            <span className="clock-label">
-              <CalendarClock size={14} aria-hidden="true" /> Virtual date
-            </span>
-            <strong className="clock-date">{loading ? <span className="bone" style={{ width: 120, height: 24 }} /> : fmtDateYear(new Date(value).toISOString())}</strong>
-            <input
-              type="range"
-              min={min}
-              max={max}
-              step={DAY_MS}
-              value={Math.min(Math.max(value, min), max)}
-              onChange={(e) => onScrub(Number(e.target.value))}
-              aria-label="Move through the run's virtual time"
-              disabled={loading}
-            />
-            <div className="scrub-ends muted">
-              <span>{loading ? '' : fmtDate(new Date(min).toISOString())}</span>
-              <span>{loading ? '' : fmtDate(info.end)}</span>
-            </div>
-            <p className="muted small">{finished ? 'The run is over: drag or step to replay any day of it.' : live ? 'Time only moves forward in a live run.' : 'Drag to replay the recording.'}</p>
-            <div className="time-buttons">
-              <button type="button" onClick={() => run.moveBy(1)} disabled={loading || atEnd}>
-                +1 day
-              </button>
-              <button type="button" onClick={() => run.moveBy(7)} disabled={loading || atEnd}>
-                +1 week
-              </button>
-              <button type="button" className="primary" onClick={run.toEnd} disabled={loading || atEnd}>
-                <Play size={15} aria-hidden="true" /> Run to end
-              </button>
-            </div>
-          </section>
-        )}
-
-        {finished && report && (
-          <section className="run-facts" aria-label="This run">
-            <span className="clock-label">
-              <CalendarClock size={14} aria-hidden="true" /> This run
-            </span>
-            <dl>
-              {(
-                [
-                  ['Scenario', report.scenario],
-                  ['Simulated', `${fmtDate(report.start)} to ${fmtDate(report.end)}`],
-                  ['Customers', report.counts.customers],
-                  ['Notices', report.counts.events],
-                  ['Deliveries', report.counts.deliveries],
-                ] as const
-              ).map(([label, value]) => (
-                <div key={label}>
-                  <dt>{label}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        )}
-
         {/* One row per fact, icon first, so the status reads as a list rather than loose tags. */}
         <ul className="run-status" aria-label="Run status">
           <li className="sim" title="Nothing here is real money or real PayPal traffic">
@@ -221,12 +201,46 @@ export function App() {
               <CirclePlay size={14} aria-hidden="true" /> In progress
             </li>
           )}
+          {!loading && !atEnd && (finished || mode === 'sample') && (
+            <li className="info">
+              <History size={14} aria-hidden="true" />{' '}
+              <button type="button" className="link" onClick={() => openTab('timeline')} title="Change the day on the Timeline tab">
+                Showing {fmtDate(new Date(value).toISOString())}
+              </button>
+            </li>
+          )}
           {run.busy && (
             <li className="info">
               <LoaderCircle size={14} className="spin" aria-hidden="true" /> Working
             </li>
           )}
         </ul>
+
+
+        {finished && report && (
+          <section className="run-facts" aria-label="This run">
+            <span className="clock-label">
+              <CalendarClock size={14} aria-hidden="true" /> This run
+            </span>
+            <dl>
+              {(
+                [
+                  ['Scenario', report.scenario],
+                  ['Simulated', `${fmtDate(report.start)} to ${fmtDate(report.end)}`],
+                  ['Customers', report.counts.customers],
+                  ['Notices', report.counts.events],
+                  ['Deliveries', report.counts.deliveries],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+
       </aside>
 
       <div className="page">
@@ -277,6 +291,7 @@ export function App() {
             {tab === 'timeline' && (
               <div className="main">
                 <div className="stack">
+                  {timeControls}
                   <header className="section-head">
                     <h2>Each customer's month</h2>
                     <p className="muted">One line per customer. Click a marker to see that notice.</p>
