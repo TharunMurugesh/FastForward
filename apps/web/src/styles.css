@@ -502,29 +502,6 @@ section[aria-label='Checked against the real PayPal sandbox'] .grid-wrap {
   flex-direction: column;
   gap: 12px;
 }
-.verdict {
-  font-size: 18px;
-  font-weight: 700;
-}
-.verdict.bad {
-  color: var(--bad);
-}
-.verdict.ok {
-  color: var(--ok);
-}
-.checks {
-  list-style: none;
-  padding: 0;
-  margin: 14px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.check-head {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
 .status {
   display: inline-grid;
   place-items: center;
@@ -664,6 +641,15 @@ pre {
   .buttons button {
     flex: 1;
   }
+  .big-verdict {
+    font-size: 20px;
+  }
+  .failed-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pill {
+    white-space: normal;
+  }
   .grid-wrap {
     height: 420px;
   }
@@ -723,26 +709,138 @@ pre {
   outline-offset: -2px;
 }
 
-/* ---------- report: one line per check ---------- */
-.hint {
-  margin-top: 10px;
-}
-.checks.quiet {
-  margin-top: 12px;
-  gap: 6px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-.check-line {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.check-name {
-  flex: 1;
-  min-width: 0;
+/* ---------- result band: the verdict first ---------- */
+.result {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+.result-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  border-left: 6px solid var(--border);
+}
+.result-head.bad {
+  border-left-color: var(--bad);
+}
+.result-head.ok {
+  border-left-color: var(--ok);
+}
+.result-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.big-verdict {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.result-head.bad .big-verdict {
+  color: var(--bad);
+}
+.result-head.ok .big-verdict {
+  color: var(--ok);
+}
+.check-pills {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 640px;
+}
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px 3px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.pill.fail {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+  font-weight: 600;
+}
+.pill .status {
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+}
+.pill.fail .status {
+  background: var(--bad);
+  color: var(--on-bad);
+}
+.failed-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+.failed-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--bad);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.failed-card.on {
+  outline: 2px solid var(--bad);
+  outline-offset: -1px;
+}
+.failed-card header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.failed-card h3 {
+  margin: 0;
+}
+.failed-card .fix {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.failed-card footer {
+  margin-top: auto;
+  padding-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.finished {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+}
+.card-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.card-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#deliveries {
+  scroll-margin-top: 12px;
 }
 .count-button {
   border-color: var(--bad);
@@ -756,17 +854,6 @@ pre {
 .count-button.on {
   background: var(--bad);
   color: var(--on-bad);
-}
-.check details {
-  margin: 6px 0 0 34px;
-}
-.check summary {
-  cursor: pointer;
-  color: var(--accent);
-  font-size: 13px;
-}
-.check .finding {
-  margin-top: 8px;
 }
 .examples {
   list-style: none;

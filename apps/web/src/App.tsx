@@ -6,18 +6,18 @@ import { FidelityGrid } from './grids/FidelityGrid.js';
 import { toDeliveryRows, toNoticeRows } from './grids/rows.js';
 import { DisputeChat } from './panels/DisputeChat.js';
 import { EventInspector } from './panels/EventInspector.js';
-import { ReportPanel } from './panels/ReportPanel.js';
+import { ResultBand } from './panels/ResultBand.js';
 import { toTimeline } from './timeline/model.js';
 import { Timeline } from './timeline/Timeline.js';
 import { useRun } from './useRun.js';
 
-type Tab = 'report' | 'event' | 'dispute';
+type Tab = 'event' | 'dispute';
 const DAY_MS = 86_400_000;
 
 export function App() {
   const run = useRun();
   const [selected, setSelected] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>('report');
+  const [tab, setTab] = useState<Tab>('event');
   const [checkFilter, setCheckFilter] = useState<CheckId | null>(null);
 
   const { info, trace, report, start, mode } = run;
@@ -30,11 +30,16 @@ export function App() {
     return counts;
   }, [notices]);
   const model = useMemo(() => toTimeline(trace, subs), [trace, subs]);
-  const failed = report?.checks.filter((c) => c.status === 'fail').length ?? 0;
 
   const select = useCallback((eventId: string | null) => {
     setSelected(eventId);
     if (eventId) setTab('event');
+  }, []);
+
+  // A failed check's "Show the notices" filters the table and brings it into view.
+  const filterTo = useCallback((check: CheckId | null) => {
+    setCheckFilter(check);
+    if (check) document.getElementById('deliveries')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
   // The scrubber: show the dragged value at once, tell the run once the hand stops.
@@ -86,6 +91,17 @@ export function App() {
         </p>
       )}
 
+      <ResultBand report={report} noticeCounts={noticeCounts} activeCheck={checkFilter} onFilter={filterTo} />
+
+      {live && atEnd ? (
+        // A live run's clock only moves forward, so once it is over the controls have nothing left to do.
+        <p className="card finished" role="status">
+          <span className="status pass" aria-hidden="true">
+            ✓
+          </span>{' '}
+          Run finished on <strong>{fmtDateYear(info.end)}</strong>. Everything on this page is the final result.
+        </p>
+      ) : (
       <section className="card controls" aria-label="Time control">
         <div className="clock">
           <span className="clock-label">Virtual date</span>
@@ -120,6 +136,7 @@ export function App() {
           </button>
         </div>
       </section>
+      )}
 
       <Timeline model={model} range={{ start, end: info.end }} now={info.now} selectedEventId={selected} onSelect={select} />
 
@@ -127,9 +144,6 @@ export function App() {
         <DeliveriesGrid rows={rows} notices={notices} selectedEventId={selected} onSelect={select} checkFilter={checkFilter} onClearCheck={() => setCheckFilter(null)} />
         <aside className="card side" aria-label="Details">
           <div className="tabs" role="tablist">
-            <button role="tab" aria-selected={tab === 'report'} className={tab === 'report' ? 'on' : ''} onClick={() => setTab('report')}>
-              Report {failed > 0 && <span className="count bad">{failed}</span>}
-            </button>
             <button role="tab" aria-selected={tab === 'event'} className={tab === 'event' ? 'on' : ''} onClick={() => setTab('event')}>
               Event
             </button>
@@ -138,7 +152,6 @@ export function App() {
             </button>
           </div>
           <div className="tab-body" role="tabpanel">
-            {tab === 'report' && <ReportPanel report={report} noticeCounts={noticeCounts} activeCheck={checkFilter} onFilter={setCheckFilter} onSelect={select} />}
             {tab === 'event' && <EventInspector eventId={selected} trace={trace} subscriptions={subs} report={report} />}
             {tab === 'dispute' && <DisputeChat trace={trace} subscriptions={subs} />}
           </div>

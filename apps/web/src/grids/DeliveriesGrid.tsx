@@ -180,7 +180,7 @@ export function DeliveriesGrid({ rows, notices, selectedEventId, onSelect, check
   }, [selectedEventId, shownRows]);
 
   return (
-    <section className="card grid-card" aria-label="Deliveries">
+    <section className="card grid-card" id="deliveries" aria-label="Deliveries">
       <header className="card-head">
         <div>
           <h2>Deliveries</h2>

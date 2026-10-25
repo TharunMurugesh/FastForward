@@ -1,4 +1,4 @@
-import type { AiSummary, CheckId, ExplanationSource } from '@fastforward/contracts';
+import type { AiSummary, CheckId, ExplanationSource, Report } from '@fastforward/contracts';
 
 const date = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 const dateYear = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -69,4 +69,29 @@ export function explanationLabel(source: ExplanationSource | undefined): string 
   if (source === 'model') return 'Written by Claude';
   if (source === 'template') return 'Built-in text';
   return null;
+}
+
+const many = (n: number, one: string, more: string) => `${n} ${n === 1 ? one : more}`;
+
+/** One line on what was played: scenario, length, customers, notices and deliveries. */
+export function runSummary(report: Pick<Report, 'scenario' | 'start' | 'end' | 'counts'>): string {
+  const days = Math.round((Date.parse(report.end) - Date.parse(report.start)) / 86_400_000);
+  return [
+    report.scenario,
+    many(days, 'simulated day', 'simulated days'),
+    many(report.counts.customers, 'customer', 'customers'),
+    many(report.counts.events, 'notice', 'notices'),
+    many(report.counts.deliveries, 'delivery', 'deliveries'),
+  ].join(' · ');
+}
+
+/** Known differences grouped by reason, so a reason that covers several fields is said once. */
+export function groupKnownDiffs(diffs: { field: string; reason: string }[]): { fields: string[]; reason: string }[] {
+  const groups: { fields: string[]; reason: string }[] = [];
+  for (const d of diffs) {
+    const g = groups.find((x) => x.reason === d.reason);
+    if (g) g.fields.push(d.field);
+    else groups.push({ fields: [d.field], reason: d.reason });
+  }
+  return groups;
 }
