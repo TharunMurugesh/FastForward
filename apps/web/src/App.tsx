@@ -1,5 +1,5 @@
 import type { CheckId } from '@fastforward/contracts';
-import { BookOpen, CalendarClock, ChartGantt, Wrench, CircleCheck, Play, FastForward, GitCompareArrows, Hourglass, Info, LayoutDashboard, LoaderCircle, MessagesSquare, Table2, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarClock, ChartGantt, CirclePlay, Film, FlaskConical, Hash, Wrench, CircleCheck, Play, FastForward, GitCompareArrows, Hourglass, Info, LayoutDashboard, LoaderCircle, MessagesSquare, Table2, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BUG_LABELS, fmtDate, fmtDateYear } from './format.js';
 import { DeliveriesGrid } from './grids/DeliveriesGrid.js';
@@ -176,39 +176,55 @@ export function App() {
               <CalendarClock size={14} aria-hidden="true" /> This run
             </span>
             <dl>
-              <dt>Scenario</dt>
-              <dd>{report.scenario}</dd>
-              <dt>Simulated</dt>
-              <dd>
-                {fmtDate(report.start)} to {fmtDate(report.end)}
-              </dd>
-              <dt>Customers</dt>
-              <dd>{report.counts.customers}</dd>
-              <dt>Notices</dt>
-              <dd>{report.counts.events}</dd>
-              <dt>Deliveries</dt>
-              <dd>{report.counts.deliveries}</dd>
+              {(
+                [
+                  ['Scenario', report.scenario],
+                  ['Simulated', `${fmtDate(report.start)} to ${fmtDate(report.end)}`],
+                  ['Customers', report.counts.customers],
+                  ['Notices', report.counts.events],
+                  ['Deliveries', report.counts.deliveries],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
             </dl>
           </section>
         )}
 
-        <div className="run-status">
-          <span className="chip badge-sim" title="Nothing here is real money or real PayPal traffic">
-            Simulated
-          </span>
-          {live && <span className="chip neutral mono">{info.runId}</span>}
+        {/* One row per fact, icon first, so the status reads as a list rather than loose tags. */}
+        <ul className="run-status" aria-label="Run status">
+          <li className="sim" title="Nothing here is real money or real PayPal traffic">
+            <FlaskConical size={14} aria-hidden="true" /> Simulated
+          </li>
+          {live && (
+            <li className="mono" title="This run's id">
+              <Hash size={14} aria-hidden="true" /> {info.runId}
+            </li>
+          )}
+          {mode === 'sample' && (
+            <li className="warn">
+              <Film size={14} aria-hidden="true" /> Sample run
+            </li>
+          )}
           {finished && (
-            <span className="chip ok">
-              <CircleCheck size={13} aria-hidden="true" /> Finished {fmtDate(info.end)}
-            </span>
+            <li className="ok">
+              <CircleCheck size={14} aria-hidden="true" /> Finished {fmtDate(info.end)}
+            </li>
           )}
-          {mode === 'sample' && <span className="chip warn">Sample run</span>}
+          {live && !finished && !run.busy && (
+            <li className="info">
+              <CirclePlay size={14} aria-hidden="true" /> In progress
+            </li>
+          )}
           {run.busy && (
-            <span className="chip neutral">
-              <LoaderCircle size={13} className="spin" aria-hidden="true" /> Working
-            </span>
+            <li className="info">
+              <LoaderCircle size={14} className="spin" aria-hidden="true" /> Working
+            </li>
           )}
-        </div>
+        </ul>
       </aside>
 
       <div className="page">
