@@ -1621,3 +1621,57 @@ button.link {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------- the selected notice's tabs ---------- */
+.notice-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+.seg {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.seg button {
+  flex: 1;
+  gap: 5px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.seg button.on {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.seg button.on svg {
+  color: var(--accent);
+}
+.notice-tabs pre {
+  max-height: none;
+}
+/* PayPal match: say plainly what it measures */
+.match-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  border-left: 4px solid var(--info);
+  background: var(--info-bg);
+}
+.match-note svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--info);
+}

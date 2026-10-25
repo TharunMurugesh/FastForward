@@ -1,5 +1,6 @@
 import type { Report, TraceEntry } from '@fastforward/contracts';
-import { MousePointerClick, ShieldCheck, ShieldOff, Wrench } from 'lucide-react';
+import { Braces, MousePointerClick, Send, ShieldCheck, ShieldOff, TriangleAlert, Wrench, type LucideIcon } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
 import { CheckBadge, CHECK_LOOK } from '../checkLook.js';
 import { CHECK_TITLES, EVENT_LABELS, fmtDateTime, explanationLabel } from '../format.js';
 import { eventOwners } from '../timeline/model.js';
@@ -58,7 +59,16 @@ export function EventInspector({ eventId, trace, subscriptions, report }: Props)
         )}
       </dl>
 
-      {findings.length > 0 && (
+      <NoticeTabs
+        key={eventId}
+        problems={findings.length}
+        attempts={deliveries.length}
+        renderProblems={() =>
+          findings.length === 0 ? (
+            <p className="cell-ok">
+              <ShieldCheck size={14} aria-hidden="true" /> No check found a problem with this notice.
+            </p>
+          ) : (
         <div className="stack">
           {findings.map(({ check, finding }, i) => (
             <article className={`finding ${CHECK_LOOK[check.id].tone}`} key={`${check.id}-${i}`}>
@@ -81,9 +91,10 @@ export function EventInspector({ eventId, trace, subscriptions, report }: Props)
             </article>
           ))}
         </div>
-      )}
-
-      <h4>What your app did</h4>
+          )
+        }
+        renderAttempts={() => (
+          <>
       {deliveries.length === 0 ? (
         <p className="muted">Not delivered yet.</p>
       ) : (
@@ -125,11 +136,35 @@ export function EventInspector({ eventId, trace, subscriptions, report }: Props)
           PayPal's verify endpoint answered {verifies.map((v) => v.result).join(', ')}.
         </p>
       )}
+          </>
+        )}
+        renderPayload={() => <pre>{JSON.stringify(entry.event, null, 2)}</pre>}
+      />
+    </div>
+  );
+}
 
-      <details>
-        <summary>Notice payload</summary>
-        <pre>{JSON.stringify(entry.event, null, 2)}</pre>
-      </details>
+type NoticeTab = 'problems' | 'attempts' | 'payload';
+
+/** The selected notice in three tabs, so its problems, its delivery tries and its raw payload each get the whole panel. */
+function NoticeTabs({ problems, attempts, renderProblems, renderAttempts, renderPayload }: { problems: number; attempts: number; renderProblems: () => ReactNode; renderAttempts: () => ReactNode; renderPayload: () => ReactNode }) {
+  const [tab, setTab] = useState<NoticeTab>(problems > 0 ? 'problems' : 'attempts');
+  const tabs: { id: NoticeTab; label: string; icon: LucideIcon; count?: number }[] = [
+    { id: 'problems', label: 'Problems', icon: TriangleAlert, count: problems },
+    { id: 'attempts', label: 'Attempts', icon: Send, count: attempts },
+    { id: 'payload', label: 'Payload', icon: Braces },
+  ];
+  return (
+    <div className="notice-tabs">
+      <div className="seg" role="tablist" aria-label="About this notice">
+        {tabs.map(({ id, label, icon: Icon, count }) => (
+          <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>
+            <Icon size={14} aria-hidden="true" /> {label}
+            {count !== undefined && count > 0 && <span className={`count${id === 'problems' ? ' bad' : ''}`}>{count}</span>}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel">{tab === 'problems' ? renderProblems() : tab === 'attempts' ? renderAttempts() : renderPayload()}</div>
     </div>
   );
 }

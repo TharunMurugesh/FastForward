@@ -88,22 +88,24 @@ export function App() {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   const live = mode === 'live';
+  // Only a live run still in progress moves the twin's clock, which only goes forward; a finished one is replayed in the page.
+  const forwardOnly = live && !run.complete;
   const loading = mode === 'loading';
   const min = Date.parse(start);
   const max = Date.parse(info.end);
   const value = dragging ?? Date.parse(info.now);
   const onScrub = (raw: number) => {
     // A live run's clock only moves forward.
-    const ms = live ? Math.max(raw, Date.parse(info.now)) : raw;
+    const ms = forwardOnly ? Math.max(raw, Date.parse(info.now)) : raw;
     setDragging(ms);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       setDragging(null);
       run.moveTo(new Date(ms).toISOString());
-    }, live ? 350 : 60);
+    }, forwardOnly ? 350 : 60);
   };
   const atEnd = Date.parse(info.now) >= max;
-  const finished = live && atEnd;
+  const finished = live && run.complete;
 
   const count: Partial<Record<Tab, number>> = { overview: failed, deliveries: notices.length, disputes };
 
@@ -134,8 +136,8 @@ export function App() {
           })}
         </nav>
 
-        {/* The clock lives here, beside every page; a finished live run has nothing left to move. */}
-        {!finished && (
+        {/* The clock lives here, beside every page. */}
+        {(
           <section className="time" aria-label="Time control">
             <span className="clock-label">
               <CalendarClock size={14} aria-hidden="true" /> Virtual date
@@ -155,7 +157,7 @@ export function App() {
               <span>{loading ? '' : fmtDate(new Date(min).toISOString())}</span>
               <span>{loading ? '' : fmtDate(info.end)}</span>
             </div>
-            <p className="muted small">{live ? 'Time only moves forward in a live run.' : 'Drag to replay the recording.'}</p>
+            <p className="muted small">{finished ? 'The run is over: drag or step to replay any day of it.' : live ? 'Time only moves forward in a live run.' : 'Drag to replay the recording.'}</p>
             <div className="time-buttons">
               <button type="button" onClick={() => run.moveBy(1)} disabled={loading || atEnd}>
                 +1 day

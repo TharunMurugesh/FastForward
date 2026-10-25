@@ -58,6 +58,13 @@ export function FidelityGrid({ file, isSample }: { file: FidelityFile; isSample:
         </div>
         {isSample && <span className="chip warn">Sample data, not a real run</span>}
       </header>
+      <p className="match-note">
+        <Info size={18} aria-hidden="true" />
+        <span>
+          <strong>This page tests Fastforward itself, not your app.</strong> It shows the simulator answers like real PayPal, so what it finds in your
+          app is real. The bugs switched on in Coffee Club are your app's bugs: they show on the Overview, and should not change this score.
+        </span>
+      </p>
       <div className="match-how" aria-label="How it is measured">
         <span>
           <Landmark size={18} aria-hidden="true" /> Real PayPal sandbox

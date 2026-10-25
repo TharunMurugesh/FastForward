@@ -13,6 +13,8 @@ export interface RunState {
   note: string | null;
   /** The address named a run the twin no longer has (it restarted since). */
   ended: boolean;
+  /** A live run that has reached its end: its clock cannot move, so the controls replay it in the page instead. */
+  complete: boolean;
   /** Which recording the sample is, when it is showing. */
   sample: { scenario: string; recordedAt: string; bugs: string[] } | null;
   info: RunInfo;
@@ -29,15 +31,30 @@ const EPOCH = '1970-01-01T00:00:00.000Z';
 /** How long the first load may take before the page stops waiting and shows the sample instead. */
 const LOAD_LIMIT_MS = 10_000;
 
-/** The recorded run, cut at virtual time `now`, so scrubbing it behaves like a live run. */
-function sampleAt(run: RecordedRun, now: string): { trace: TraceEntry[]; report: Report } {
+/** A whole run held in the page: the recording, or a live run that has already reached its end. */
+export interface WholeRun {
+  runId: string;
+  end: string;
+  subscriptions: RunInfo['subscriptions'];
+  trace: TraceEntry[];
+  report: Report | null;
+}
+
+/**
+ * The run as it stood at virtual time `now`, so scrubbing a finished run replays it without asking the twin:
+ * later entries and findings are dropped, and a check counts as failed once its first finding has happened.
+ */
+export function cutAt(run: WholeRun, now: string): { info: RunInfo; trace: TraceEntry[]; report: Report | null } {
   const cut = Date.parse(now);
   const trace = run.trace.filter((t) => Date.parse(t.at) <= cut);
+  const info = { runId: run.runId, now, end: run.end, subscriptions: run.subscriptions };
+  if (!run.report) return { info, trace, report: null };
   const checks: CheckResult[] = run.report.checks.map((c) => {
     const findings = c.findings.filter((f) => Date.parse(f.at) <= cut);
-    return { ...c, findings, status: findings.length > 0 ? 'fail' : 'pass' };
+    return { ...c, findings, status: c.status === 'skipped' ? 'skipped' : findings.length > 0 ? 'fail' : 'pass' };
   });
   return {
+    info,
     trace,
     report: {
       ...run.report,
@@ -51,7 +68,7 @@ function sampleAt(run: RecordedRun, now: string): { trace: TraceEntry[]; report:
   };
 }
 
-const sampleInfo = (run: RecordedRun, now: string): RunInfo => ({ runId: run.runId, now, end: run.end, subscriptions: run.subscriptions });
+const wholeOf = (run: RecordedRun): WholeRun => ({ runId: run.runId, end: run.end, subscriptions: run.subscriptions, trace: run.trace, report: run.report });
 
 export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (days: number) => void; toEnd: () => void } {
   const runId = new URLSearchParams(window.location.search).get('run');
@@ -59,6 +76,7 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
     mode: 'loading',
     note: null,
     ended: false,
+    complete: false,
     sample: null,
     info: { runId: '', now: EPOCH, end: EPOCH, subscriptions: [] },
     start: EPOCH,
@@ -69,13 +87,16 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
     busy: false,
   }));
   const live = useRef<{ id: string } | null>(null);
-  const recording = useRef<RecordedRun | null>(null);
+  // The whole run when it can be replayed in the page (the sample, or a finished live run), and the date shown.
+  const whole = useRef<WholeRun | null>(null);
+  const viewAt = useRef<string | null>(null);
 
   // The recording is a separate chunk: it is only downloaded when there is no live run to show.
   const useSample = useCallback(async (note: string, ended = false) => {
     live.current = null;
     const { badMonth } = await import('./fixtures/bad-month.js');
-    recording.current = badMonth;
+    whole.current = wholeOf(badMonth);
+    viewAt.current = badMonth.end;
     setState((s) => ({
       ...s,
       mode: 'sample',
@@ -86,15 +107,24 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
         recordedAt: badMonth.recordedAt,
         bugs: badMonth.recipe.coffeeBugs === 'all' ? ['no-verify', 'no-dedupe', 'slow-ack', 'ignores-suspend', 'ignores-disputes', 'trusts-event-order'] : badMonth.recipe.coffeeBugs.split(','),
       },
-      info: sampleInfo(badMonth, badMonth.end),
       start: badMonth.start,
-      ...sampleAt(badMonth, badMonth.end),
+      ...cutAt(wholeOf(badMonth), badMonth.end),
     }));
   }, []);
 
   const refreshLive = useCallback(async (id: string) => {
     const [info, trace, report] = await Promise.all([api.info(id), api.trace(id), api.report(id)]);
-    setState((s) => ({ ...s, mode: 'live', note: null, info, trace, report, start: trace[0]?.at ?? info.now }));
+    const start = trace[0]?.at ?? info.now;
+    const complete = Date.parse(info.now) >= Date.parse(info.end);
+    if (!complete) {
+      whole.current = null;
+      setState((s) => ({ ...s, mode: 'live', note: null, complete, info, trace, report, start }));
+      return;
+    }
+    // Finished: keep the whole run and show it at the date being looked at (the end, until someone scrubs).
+    whole.current = { runId: info.runId, end: info.end, subscriptions: info.subscriptions, trace, report };
+    const at = viewAt.current ?? info.end;
+    setState((s) => ({ ...s, mode: 'live', note: null, complete, start, ...cutAt(whole.current!, at) }));
   }, []);
 
   // Pick live or sample once, on load.
@@ -151,11 +181,14 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
   const moveTo = useCallback(
     (iso: string) => {
       const l = live.current;
-      const rec = recording.current;
-      if (!l) {
-        if (rec) setState((s) => ({ ...s, info: sampleInfo(rec, iso), ...sampleAt(rec, iso) }));
+      const run = whole.current;
+      // The sample and a finished live run replay in the page; only a live run in progress asks the twin to move.
+      if (run) {
+        viewAt.current = iso;
+        setState((s) => ({ ...s, ...cutAt(run, iso) }));
         return;
       }
+      if (!l) return;
       setState((s) => ({ ...s, busy: true }));
       api
         .advance(l.id, { to: iso })
