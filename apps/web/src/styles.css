@@ -18,6 +18,13 @@
   --purple: #7a3d9e;
   --on-bad: #ffffff;
   --shadow: 0 1px 2px rgb(20 30 50 / 8%);
+  /* one colour per check, used on every tab; always paired with the check's icon */
+  --t-ack: #c2410c;
+  --t-sig: #a16207;
+  --t-state: #0f766e;
+  --t-once: #7e22ce;
+  --t-dispute: #1d4ed8;
+  --t-live: #be185d;
   color-scheme: light;
 }
 
@@ -42,6 +49,12 @@
     --purple: #c58bea;
     --on-bad: #2a0c0c;
     --shadow: none;
+    --t-ack: #fb923c;
+    --t-sig: #facc15;
+    --t-state: #2dd4bf;
+    --t-once: #c084fc;
+    --t-dispute: #60a5fa;
+    --t-live: #f472b6;
     color-scheme: dark;
   }
 }
@@ -341,29 +354,6 @@ button.link {
   padding: 0 3px;
   white-space: nowrap;
 }
-.k-payment_ok {
-  color: var(--ok);
-}
-.k-payment_failed,
-.k-delivery_failed {
-  color: var(--bad);
-}
-.k-suspended {
-  color: var(--warn);
-}
-.k-cancelled,
-.k-expired {
-  color: var(--muted);
-}
-.k-dispute {
-  color: var(--purple);
-}
-.k-forged {
-  color: var(--warn);
-}
-.k-duplicate {
-  color: var(--info);
-}
 .legend {
   list-style: none;
   display: flex;
@@ -435,19 +425,6 @@ section[aria-label='Checked against the real PayPal sandbox'] .grid-wrap {
   font-size: 12px;
 }
 
-/* row tints on the deliveries grid; a border and the chips carry the meaning too, not colour alone */
-.ag-row.row-failing {
-  background: var(--bad-bg) !important;
-  box-shadow: inset 4px 0 0 var(--bad);
-}
-.ag-row.row-forged {
-  background: var(--warn-bg) !important;
-  box-shadow: inset 4px 0 0 var(--warn);
-}
-.ag-row.row-duplicate {
-  background: var(--info-bg) !important;
-  box-shadow: inset 4px 0 0 var(--info);
-}
 .ag-cell.mono {
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   font-size: 12px;
@@ -468,31 +445,6 @@ section[aria-label='Checked against the real PayPal sandbox'] .grid-wrap {
   overflow: hidden;
   position: sticky;
   top: 12px;
-}
-.tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-2);
-}
-.tabs button {
-  flex: 1;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  padding: 11px 8px;
-  border-bottom: 3px solid transparent;
-  color: var(--muted);
-  font-weight: 600;
-}
-.tabs button.on {
-  color: var(--text);
-  border-bottom-color: var(--accent);
-  background: var(--surface);
-}
-.tab-body {
-  padding: 16px;
-  max-height: 640px;
-  overflow: auto;
 }
 .empty {
   padding: 20px 4px;
@@ -522,19 +474,6 @@ section[aria-label='Checked against the real PayPal sandbox'] .grid-wrap {
 .status.skipped {
   background: var(--surface-2);
   color: var(--muted);
-}
-.finding {
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border-left: 4px solid var(--bad);
-  background: var(--bad-bg);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.finding h4 {
-  margin: 0 0 2px;
 }
 .facts {
   display: grid;
@@ -641,15 +580,6 @@ pre {
   .buttons button {
     flex: 1;
   }
-  .big-verdict {
-    font-size: 20px;
-  }
-  .failed-cards {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .pill {
-    white-space: normal;
-  }
   .grid-wrap {
     height: 420px;
   }
@@ -690,170 +620,700 @@ pre {
   right: 4px;
 }
 
-/* on a tinted row the soft chip colours vanish, so findings chips get solid fills there */
-.ag-row.row-failing .chip.bad,
-.finding .chip.bad {
-  background: var(--bad);
-  color: var(--on-bad);
-}
-.ag-row.row-forged .chip.warn {
-  background: var(--warn);
-  color: var(--surface);
-}
-.ag-row.row-duplicate .chip.info {
-  background: var(--info);
-  color: var(--surface);
-}
 .ag-row-selected {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
-/* ---------- result band: the verdict first ---------- */
-.result {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* ---------- check colours: one tone per check, always with its icon ---------- */
+.tone-ack {
+  --tone: var(--t-ack);
 }
-.result-head {
-  display: flex;
-  flex-wrap: wrap;
+.tone-sig {
+  --tone: var(--t-sig);
+}
+.tone-state {
+  --tone: var(--t-state);
+}
+.tone-once {
+  --tone: var(--t-once);
+}
+.tone-dispute {
+  --tone: var(--t-dispute);
+}
+.tone-live {
+  --tone: var(--t-live);
+}
+.check-badge {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 10px;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+}
+.check-badge.sm {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+}
+.check-badge.md {
+  width: 34px;
+  height: 34px;
+}
+.check-badge.lg {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+.check-chip,
+.flag-chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px 24px;
-  border-left: 6px solid var(--border);
-}
-.result-head.bad {
-  border-left-color: var(--bad);
-}
-.result-head.ok {
-  border-left-color: var(--ok);
-}
-.result-verdict {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.big-verdict {
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1.2;
-}
-.result-head.bad .big-verdict {
-  color: var(--bad);
-}
-.result-head.ok .big-verdict {
-  color: var(--ok);
-}
-.check-pills {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  max-width: 640px;
-}
-.pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 12px 3px 4px;
+  gap: 4px;
+  padding: 1px 8px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
   white-space: nowrap;
+  transition: opacity 0.15s;
 }
-.pill.fail {
-  border-color: var(--bad);
-  background: var(--bad-bg);
+.check-chip {
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent);
+}
+.flag-chip {
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.dim {
+  opacity: 0.3;
+}
+.cell-ok,
+.cell-bad,
+.cell-warn,
+.cell-tone {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-weight: 600;
 }
-.pill .status {
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
+.cell-ok {
+  color: var(--ok);
 }
-.pill.fail .status {
-  background: var(--bad);
-  color: var(--on-bad);
+.cell-bad {
+  color: var(--bad);
 }
-.failed-cards {
+.cell-warn {
+  color: var(--warn);
+}
+.cell-tone {
+  color: var(--tone);
+}
+.chip {
+  gap: 4px;
+}
+
+/* ---------- header, banner, tabs ---------- */
+.logo {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 12px;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-text);
 }
-.failed-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-top: 4px solid var(--bad);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-.failed-card.on {
-  outline: 2px solid var(--bad);
-  outline-offset: -1px;
-}
-.failed-card header {
+.banner {
   display: flex;
   gap: 10px;
   align-items: flex-start;
 }
-.failed-card h3 {
+.banner > svg {
+  color: var(--warn);
+  flex: none;
+  margin-top: 2px;
+}
+.banner details {
+  margin-top: 4px;
+}
+.banner summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+}
+.banner ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.banner a,
+.ai-line {
+  color: var(--accent);
+}
+.tabbar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.tabbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: none;
+  padding: 10px 14px;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tabbar button:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.tabbar button.on {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+.section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ai-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--accent);
+}
+.icon-button {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  margin-left: auto;
+}
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+button.link {
+  display: inline;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- overview ---------- */
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.verdict-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+}
+.verdict-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.big-verdict {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.verdict-card.bad .big-verdict {
+  color: var(--bad);
+}
+.verdict-card.ok .big-verdict {
+  color: var(--ok);
+}
+.check-tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 8px;
+  flex: 1 1 520px;
+  max-width: 720px;
+}
+.check-tile {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.check-tile .check-badge {
+  grid-row: span 2;
+}
+.check-tile.pass .check-badge,
+.check-tile.skipped .check-badge {
+  color: var(--muted);
+  background: var(--surface);
+}
+.check-tile.fail {
+  border-color: color-mix(in srgb, var(--tone) 55%, transparent);
+  background: color-mix(in srgb, var(--tone) 8%, var(--surface));
+}
+.tile-name {
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.tile-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.tile-status.pass {
+  color: var(--ok);
+}
+.tile-status.fail {
+  color: var(--bad);
+}
+.tile-status.skipped {
+  color: var(--muted);
+}
+.problems {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.problem {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--tone);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.problem header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.problem h3 {
   margin: 0;
 }
-.failed-card .fix {
-  padding: 8px 10px;
+.problem footer {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.story {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.story li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+.story-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.story li.cost .story-icon {
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+  border-color: color-mix(in srgb, var(--tone) 50%, transparent);
+}
+.story li.cost .story-text {
+  color: var(--tone);
+  font-weight: 700;
+}
+.story-arrow {
+  position: absolute;
+  left: -10px;
+  top: 14px;
+  color: var(--muted);
+}
+.facts-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.facts-row li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.facts-row svg,
+.fix-preview svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--muted);
+}
+.facts-row code {
+  overflow-wrap: anywhere;
+}
+.fix-preview {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-size: 13px;
+}
+/* a preview, not the fix: two lines, the rest is in "How to fix" */
+.fix-preview span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.all-good,
+.empty-state {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.all-good > svg {
+  color: var(--ok);
+}
+.empty-state {
+  flex-direction: column;
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--muted);
+}
+.empty-state h2 {
+  color: var(--text);
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+/* ---------- fix drawer ---------- */
+.drawer-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 45%);
+}
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(560px, 100vw);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 24px rgb(0 0 0 / 25%);
+}
+.drawer-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-body {
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.drawer-section h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.drawer-section.fix {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border-left: 4px solid var(--accent);
+  background: var(--surface-2);
+}
+.drawer-section > button {
+  align-self: flex-start;
+  margin-top: 6px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .drawer {
+    animation: slide-in 0.18s ease-out;
+  }
+}
+@keyframes slide-in {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+}
+
+/* ---------- event panel findings ---------- */
+.finding {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 4px solid var(--tone);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.finding h4 {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.finding details {
+  margin-top: 0;
+}
+.finding summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+}
+.finding-fix {
+  display: flex;
+  gap: 6px;
+}
+.finding-fix svg {
+  flex: none;
+  margin-top: 3px;
+}
+.disputes {
+  max-width: 820px;
+}
+
+/* ---------- timeline marker colours: the related check's tone ---------- */
+.k-payment_ok {
+  color: var(--ok);
+}
+.k-payment_failed {
+  color: var(--bad);
+}
+.k-delivery_failed {
+  color: var(--t-ack);
+}
+.k-suspended {
+  color: var(--t-state);
+}
+.k-cancelled,
+.k-expired {
+  color: var(--muted);
+}
+.k-dispute {
+  color: var(--t-dispute);
+}
+.k-forged {
+  color: var(--t-sig);
+}
+.k-duplicate {
+  color: var(--t-once);
+}
+
+/* ---------- PayPal match ---------- */
+.match-how {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.match-how > span:not(.muted) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.stat-tiles {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.stat-tiles li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.stat-tiles svg {
+  grid-row: span 2;
+}
+.stat-tiles strong {
+  font-size: 22px;
+  line-height: 1.1;
+}
+.stat-tiles span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.stat-tiles .ok svg {
+  color: var(--ok);
+}
+.stat-tiles .bad svg {
+  color: var(--bad);
+}
+.stat-tiles .neutral svg {
+  color: var(--info);
+}
+
+/* ---------- skeleton ---------- */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.bone {
+  display: block;
+  max-width: 100%;
   border-radius: 8px;
   background: var(--surface-2);
 }
-.failed-card footer {
-  margin-top: auto;
-  padding-top: 4px;
+.bone.round {
+  border-radius: 50%;
+}
+.skel-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
   justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
 }
-.finished {
+.skel-col {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  flex-direction: column;
+  gap: 12px;
 }
-.card-actions {
+.skel-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  flex: 1 1 420px;
+  max-width: 720px;
+}
+.skel-story {
   display: flex;
-  gap: 8px;
+  justify-content: space-around;
+}
+.skel-lane {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 12px;
   align-items: center;
-  flex-wrap: wrap;
+  padding: 10px 0;
 }
-.card-head h2 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+@media (prefers-reduced-motion: no-preference) {
+  .bone {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s ease-in-out infinite;
+  }
 }
-#deliveries {
-  scroll-margin-top: 12px;
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
 }
-.count-button {
-  border-color: var(--bad);
-  background: var(--bad-bg);
-  color: var(--bad);
-  font-weight: 700;
-  padding: 4px 11px;
-  border-radius: 999px;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
 }
-.count-button.on {
-  background: var(--bad);
-  color: var(--on-bad);
+
+/* ---------- phones ---------- */
+@media (max-width: 700px) {
+  .big-verdict {
+    font-size: 21px;
+  }
+  .check-tiles,
+  .skel-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .problems {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tabbar button {
+    padding: 9px 10px;
+  }
 }
 .examples {
   list-style: none;

@@ -1,4 +1,6 @@
 import type { TraceEntry } from '@fastforward/contracts';
+import { Flag, Sparkles } from 'lucide-react';
+import { CheckBadge } from '../checkLook.js';
 import { fmtDateTime } from '../format.js';
 import { disputeThreads } from './thread.js';
 
@@ -14,8 +16,9 @@ export function DisputeChat({ trace, subscriptions }: Props) {
   if (threads.length === 0) {
     return (
       <div className="empty">
+        <Flag size={28} className="muted" aria-hidden="true" />
         <p>
-          <strong>No disputes yet.</strong>
+          <strong>No disputes yet</strong>
         </p>
         <p className="muted">When a simulated customer opens a dispute, the conversation appears here.</p>
       </div>
@@ -26,7 +29,7 @@ export function DisputeChat({ trace, subscriptions }: Props) {
       {threads.map((t) => (
         <section key={t.disputeId} aria-label={`Dispute ${t.disputeId}`}>
           <h3>
-            {t.customer}'s dispute <span className="mono muted small">{t.disputeId}</span>
+            <CheckBadge id="DISPUTE_ANSWERED" size="sm" /> {t.customer}'s dispute <span className="mono muted small">{t.disputeId}</span>
           </h3>
           <ol className="chat">
             {t.messages.map((m, i) => (
@@ -36,8 +39,8 @@ export function DisputeChat({ trace, subscriptions }: Props) {
                   {m.byModel && (
                     <>
                       {' '}
-                      <span className="chip neutral" title="The model decided what this customer says">
-                        Written by Claude
+                      <span className="ai-chip" title="The model decided what this customer says">
+                        <Sparkles size={12} aria-hidden="true" /> Written by Claude
                       </span>
                     </>
                   )}

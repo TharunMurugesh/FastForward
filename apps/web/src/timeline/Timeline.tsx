@@ -1,4 +1,5 @@
-import type { CSSProperties } from 'react';
+import { Ban, CalendarX, CircleCheck, CirclePause, CircleX, Copy, Flag, ShieldX, Unplug, type LucideIcon } from 'lucide-react';
+import { createElement, type CSSProperties } from 'react';
 import { fmtDate, fmtDateTime } from '../format.js';
 import type { MarkerKind, TimelineMarker, TimelineModel } from './model.js';
 
@@ -22,19 +23,18 @@ const LABEL: Record<MarkerKind, string> = {
   delivery_failed: 'Delivery failed',
 };
 
-/** Shape as well as colour, so the meaning survives colour blindness. Paths are drawn in a 12x12 box. */
-const GLYPH: Record<MarkerKind, string> = {
-  payment_ok: 'M6 1.2a4.8 4.8 0 1 1 0 9.6 4.8 4.8 0 0 1 0-9.6z',
-  payment_failed: 'M6 1 11.2 10.6H.8z',
-  suspended: 'M2 2h8v8H2z',
-  cancelled: 'M2 2 10 10M10 2 2 10',
-  expired: 'M2 2 10 10M10 2 2 10',
-  dispute: 'M6 .8 11.2 6 6 11.2.8 6z',
-  forged: 'M2.5 1v10M2.5 1.5h7l-2 2.6 2 2.6h-7',
-  duplicate: 'M1.5 3.5h6v6h-6zM4.5 1h6v6',
-  delivery_failed: 'M6 1.6a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8zM3 9 9 3',
+/** An icon as well as a colour, so the meaning survives colour blindness. Colours match the related check's. */
+const ICON: Record<MarkerKind, LucideIcon> = {
+  payment_ok: CircleCheck,
+  payment_failed: CircleX,
+  suspended: CirclePause,
+  cancelled: Ban,
+  expired: CalendarX,
+  dispute: Flag,
+  forged: ShieldX,
+  duplicate: Copy,
+  delivery_failed: Unplug,
 };
-const STROKE_ONLY = new Set<MarkerKind>(['cancelled', 'expired', 'forged', 'duplicate', 'delivery_failed']);
 /** Markers about the delivery, not the event, sit on a second lane under the row's line. */
 const LOWER_LANE = new Set<MarkerKind>(['duplicate', 'delivery_failed']);
 
@@ -98,9 +98,7 @@ export function Timeline({ model, range, now, selectedEventId, onSelect }: Props
                     title={`${LABEL[m.kind]}${m.count && m.count > 1 ? ` ×${m.count}` : ''} · ${fmtDateTime(m.at)}`}
                     aria-label={`${row.customer}: ${LABEL[m.kind]}${m.count && m.count > 1 ? `, ${m.count} attempts` : ''}, ${fmtDateTime(m.at)}`}
                   >
-                    <svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true">
-                      <path d={GLYPH[m.kind]} fill={STROKE_ONLY.has(m.kind) ? 'none' : 'currentColor'} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-                    </svg>
+                    {createElement(ICON[m.kind], { size: 16, strokeWidth: 2.4, 'aria-hidden': true })}
                   </button>
                 ))}
             </div>
@@ -118,9 +116,7 @@ export function Timeline({ model, range, now, selectedEventId, onSelect }: Props
       <ul className="legend" aria-label="Legend">
         {present.map((k) => (
           <li key={k} className={`k-${k}`}>
-            <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
-              <path d={GLYPH[k]} fill={STROKE_ONLY.has(k) ? 'none' : 'currentColor'} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-            </svg>
+            {createElement(ICON[k], { size: 14, strokeWidth: 2.4, 'aria-hidden': true })}
             {LABEL[k]}
           </li>
         ))}

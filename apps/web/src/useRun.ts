@@ -11,6 +11,8 @@ export interface RunState {
   mode: Mode;
   /** Why the sample run is showing, when it is. */
   note: string | null;
+  /** The address named a run the twin no longer has (it restarted since). */
+  ended: boolean;
   /** Which recording the sample is, when it is showing. */
   sample: { scenario: string; recordedAt: string; bugs: string[] } | null;
   info: RunInfo;
@@ -24,6 +26,8 @@ export interface RunState {
 
 const DAY_MS = 86_400_000;
 const EPOCH = '1970-01-01T00:00:00.000Z';
+/** How long the first load may take before the page stops waiting and shows the sample instead. */
+const LOAD_LIMIT_MS = 10_000;
 
 /** The recorded run, cut at virtual time `now`, so scrubbing it behaves like a live run. */
 function sampleAt(run: RecordedRun, now: string): { trace: TraceEntry[]; report: Report } {
@@ -54,6 +58,7 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
   const [state, setState] = useState<RunState>(() => ({
     mode: 'loading',
     note: null,
+    ended: false,
     sample: null,
     info: { runId: '', now: EPOCH, end: EPOCH, subscriptions: [] },
     start: EPOCH,
@@ -67,7 +72,7 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
   const recording = useRef<RecordedRun | null>(null);
 
   // The recording is a separate chunk: it is only downloaded when there is no live run to show.
-  const useSample = useCallback(async (note: string) => {
+  const useSample = useCallback(async (note: string, ended = false) => {
     live.current = null;
     const { badMonth } = await import('./fixtures/bad-month.js');
     recording.current = badMonth;
@@ -75,6 +80,7 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
       ...s,
       mode: 'sample',
       note,
+      ended,
       sample: {
         scenario: badMonth.scenario,
         recordedAt: badMonth.recordedAt,
@@ -99,12 +105,18 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
       if (f && !cancelled) setState((s) => ({ ...s, fidelity: f, fidelityIsSample: false }));
     });
     if (!runId) {
-      void useSample('No run id in the address (add ?run=<id>), so this is a recorded sample run.');
+      void useSample('No run id in the address (add ?run=<id>).');
       return () => {
         cancelled = true;
       };
     }
-    refreshLive(runId)
+    // A twin that never answers must not leave the page loading forever.
+    let giveUp: ReturnType<typeof setTimeout> | undefined;
+    const tooSlow = new Promise<never>((_, reject) => {
+      giveUp = setTimeout(() => reject(new Error('no answer')), LOAD_LIMIT_MS);
+    });
+    Promise.race([refreshLive(runId), tooSlow])
+      .finally(() => clearTimeout(giveUp))
       .then(() => {
         if (cancelled) return;
         live.current = { id: runId };
@@ -124,8 +136,11 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
           unsubscribe();
         };
       })
-      .catch(() => {
-        if (!cancelled) void useSample(`Could not reach the twin for run ${runId}, so this is a recorded sample run.`);
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        // The twin keeps runs in memory, so a link to a run from before a restart answers 404: that run has ended.
+        const gone = e instanceof Error && / answered 404$/.test(e.message);
+        void useSample(gone ? `Run ${runId} has ended: runs are kept until the twin restarts, and the hosted demo restarts after each update.` : `Could not reach the twin for run ${runId}.`, gone);
       });
     return () => {
       cancelled = true;

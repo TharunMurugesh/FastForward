@@ -1,4 +1,6 @@
 import type { Report, TraceEntry } from '@fastforward/contracts';
+import { MousePointerClick, ShieldCheck, ShieldOff, Wrench } from 'lucide-react';
+import { CheckBadge, CHECK_LOOK } from '../checkLook.js';
 import { CHECK_TITLES, EVENT_LABELS, fmtDateTime, explanationLabel } from '../format.js';
 import { eventOwners } from '../timeline/model.js';
 import { isSlowOrFailed } from '../grids/rows.js';
@@ -14,10 +16,11 @@ export function EventInspector({ eventId, trace, subscriptions, report }: Props)
   if (!eventId) {
     return (
       <div className="empty">
+        <MousePointerClick size={28} className="muted" aria-hidden="true" />
         <p>
-          <strong>Nothing selected.</strong>
+          <strong>Pick a notice</strong>
         </p>
-        <p className="muted">Click a row in the deliveries table or a marker on the timeline to see the notice, how your app answered, and why a check failed.</p>
+        <p className="muted">Click a row or a marker to see what PayPal sent, how your app answered, and what to fix.</p>
       </div>
     );
   }
@@ -58,16 +61,21 @@ export function EventInspector({ eventId, trace, subscriptions, report }: Props)
       {findings.length > 0 && (
         <div className="stack">
           {findings.map(({ check, finding }, i) => (
-            <article className="finding bad" key={`${check.id}-${i}`}>
+            <article className={`finding ${CHECK_LOOK[check.id].tone}`} key={`${check.id}-${i}`}>
               <h4>
-                <span className="chip bad">{check.id}</span> {CHECK_TITLES[check.id]}
+                <CheckBadge id={check.id} size="sm" /> {CHECK_TITLES[check.id]}
               </h4>
               <p>{finding.summary}</p>
-              {finding.explanation && <p>{finding.explanation}</p>}
               {finding.fix && (
-                <p>
-                  <strong>Fix:</strong> {finding.fix}
+                <p className="finding-fix">
+                  <Wrench size={14} aria-hidden="true" /> <span>{finding.fix}</span>
                 </p>
+              )}
+              {finding.explanation && (
+                <details>
+                  <summary>Why this matters</summary>
+                  <p>{finding.explanation}</p>
+                </details>
               )}
               {explanationLabel(finding.explanationSource) && <p className="muted small">{explanationLabel(finding.explanationSource)}</p>}
             </article>
@@ -96,7 +104,17 @@ export function EventInspector({ eventId, trace, subscriptions, report }: Props)
                 <td>{d.attempt}</td>
                 <td>{d.status === null ? 'timed out' : d.status}</td>
                 <td>{d.ms.toLocaleString('en-GB')} ms</td>
-                <td>{d.verifyCalled ? '✓ checked' : '✗ not checked'}</td>
+                <td>
+                  {d.verifyCalled ? (
+                    <span className="cell-ok">
+                      <ShieldCheck size={13} aria-hidden="true" /> checked
+                    </span>
+                  ) : (
+                    <span className="cell-tone tone-sig">
+                      <ShieldOff size={13} aria-hidden="true" /> not checked
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

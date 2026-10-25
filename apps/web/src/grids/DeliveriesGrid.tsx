@@ -1,7 +1,9 @@
 import type { CheckId } from '@fastforward/contracts';
-import type { ColDef, GridApi, GridReadyEvent, IRowNode, RowClassRules, RowSelectionOptions } from 'ag-grid-community';
+import type { ColDef, GridApi, GridReadyEvent, IRowNode, RowSelectionOptions } from 'ag-grid-community';
 import { AgGridReact, type CustomCellRendererProps } from 'ag-grid-react';
+import { CircleX, Clock, Copy, RefreshCw, ShieldCheck, ShieldOff, ShieldX, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CheckBadge, CheckChip } from '../checkLook.js';
 import { CHECK_SHORT, CHECK_TITLES, EVENT_LABELS, fmtDateTime } from '../format.js';
 import { ACK_LIMIT_MS, isFailing, type DeliveryRow, type NoticeRow } from './rows.js';
 import { gridTheme } from './theme.js';
@@ -18,49 +20,91 @@ interface Props {
   onClearCheck: () => void;
 }
 
-function Status({ value }: CustomCellRendererProps<DeliveryRow, number | null>) {
-  if (value === null || value === undefined) return <span className="chip bad">timed out</span>;
-  return <span className={`chip ${value < 300 ? 'ok' : 'bad'}`}>{value}</span>;
+/** Shared with the cell renderers through the grid's context, so they can fade what is not being looked at. */
+interface GridContext {
+  checkFilter: CheckId | null;
+}
+type Cell<V = unknown> = CustomCellRendererProps<DeliveryRow, V, GridContext>;
+
+/** An answer is only worth colour when it went wrong: a normal 200 stays quiet grey. */
+function Answer({ value }: { value: number | null | undefined }) {
+  if (value === null || value === undefined)
+    return (
+      <span className="cell-bad">
+        <Clock size={13} aria-hidden="true" /> timed out
+      </span>
+    );
+  if (value >= 300)
+    return (
+      <span className="cell-bad">
+        <CircleX size={13} aria-hidden="true" /> {value}
+      </span>
+    );
+  return <span className="muted">{value}</span>;
 }
 
-function Verified({ value }: CustomCellRendererProps<DeliveryRow, boolean>) {
-  return value ? <span className="chip ok">✓ checked</span> : <span className="chip warn">✗ not checked</span>;
-}
+const Status = ({ value }: Cell<number | null>) => <Answer value={value} />;
 
-function Tries({ data }: CustomCellRendererProps<DeliveryRow>) {
-  const tries = (data as NoticeRow | undefined)?.tries ?? 1;
-  return tries > 1 ? <span className="chip warn">{tries} tries</span> : <span className="muted">1 try</span>;
-}
-
-/** Only worth showing when something went worse earlier than the last answer. */
-function Worst({ data }: CustomCellRendererProps<DeliveryRow>) {
-  const n = data as NoticeRow | undefined;
-  if (!n || n.worstStatus === n.status) return <span className="muted">–</span>;
-  if (n.worstStatus === null) return <span className="chip bad">timed out</span>;
-  return <span className={`chip ${n.worstStatus < 300 ? 'ok' : 'bad'}`}>{n.worstStatus}</span>;
-}
-
-/** Duplicate and forged flags, then the checks this row is evidence for: everything worth a look in one cell. */
-function Findings({ data }: CustomCellRendererProps<DeliveryRow>) {
-  if (!data) return null;
+function Verified({ value, context }: Cell<boolean>) {
+  if (value)
+    return (
+      <span className="cell-ok">
+        <ShieldCheck size={14} aria-hidden="true" /> checked
+      </span>
+    );
+  const dim = context?.checkFilter !== null && context?.checkFilter !== undefined && context.checkFilter !== 'VERIFIES_SIGNATURES';
   return (
-    <span className="chips">
-      {data.forged && <span className="chip warn">forged</span>}
-      {data.duplicate && <span className="chip info">duplicate</span>}
-      {data.failedChecks.map((id) => (
-        <span key={id} className="chip bad" title={`${CHECK_TITLES[id]} (${id})`}>
-          {CHECK_SHORT[id]}
-        </span>
-      ))}
+    <span className={`cell-tone tone-sig${dim ? ' dim' : ''}`}>
+      <ShieldOff size={14} aria-hidden="true" /> not checked
     </span>
   );
 }
 
-const rowClassRules: RowClassRules<DeliveryRow> = {
-  'row-failing': (p) => !!p.data && isFailing(p.data),
-  'row-forged': (p) => !!p.data && p.data.forged && !isFailing(p.data),
-  'row-duplicate': (p) => !!p.data && p.data.duplicate && !p.data.forged && !isFailing(p.data),
-};
+function Tries({ data }: Cell) {
+  const tries = (data as NoticeRow | undefined)?.tries ?? 1;
+  return tries > 1 ? (
+    <span className="cell-warn">
+      <RefreshCw size={13} aria-hidden="true" /> {tries}
+    </span>
+  ) : (
+    <span className="muted">1</span>
+  );
+}
+
+/** Only worth showing when something went worse earlier than the last answer. */
+function Worst({ data }: Cell) {
+  const n = data as NoticeRow | undefined;
+  if (!n || n.worstStatus === n.status) return <span className="muted">–</span>;
+  return <Answer value={n.worstStatus} />;
+}
+
+/**
+ * Copy and forged flags, then the checks this row is evidence for. The signature check is left out here: the
+ * Signature column already says it on every row, and repeating it is what turned the whole table red.
+ */
+function Findings({ data, context }: Cell) {
+  if (!data) return null;
+  const focus = context?.checkFilter ?? null;
+  return (
+    <span className="chips">
+      {data.forged && (
+        <span className="flag-chip" title="A deliberately fake notice with a bad signature">
+          <ShieldX size={13} aria-hidden="true" /> forged
+        </span>
+      )}
+      {data.duplicate && (
+        <span className="flag-chip" title="An extra copy of a notice PayPal already delivered">
+          <Copy size={13} aria-hidden="true" /> copy
+        </span>
+      )}
+      {data.failedChecks
+        .filter((id) => id !== 'VERIFIES_SIGNATURES')
+        .map((id) => (
+          <CheckChip key={id} id={id} title={`${CHECK_TITLES[id]} (${id})`} dim={focus !== null && focus !== id} />
+        ))}
+    </span>
+  );
+}
 
 const rowSelection: RowSelectionOptions = { mode: 'singleRow', enableClickSelection: true, checkboxes: false };
 
@@ -79,7 +123,7 @@ const findingsColumn: ColDef<DeliveryRow> = {
   flex: 1,
   cellRenderer: Findings,
   sortable: false,
-  filterValueGetter: (p) => [p.data?.forged ? 'forged' : '', p.data?.duplicate ? 'duplicate' : '', ...(p.data?.failedChecks ?? []).flatMap((id) => [id, CHECK_SHORT[id]])].filter(Boolean).join(' '),
+  filterValueGetter: (p) => [p.data?.forged ? 'forged' : '', p.data?.duplicate ? 'duplicate copy' : '', ...(p.data?.failedChecks ?? []).flatMap((id) => [id, CHECK_SHORT[id]])].filter(Boolean).join(' '),
 };
 
 const signatureColumn: ColDef<DeliveryRow> = {
@@ -159,6 +203,12 @@ export function DeliveriesGrid({ rows, notices, selectedEventId, onSelect, check
 
   const countShown = useCallback(() => setShown(api.current?.getDisplayedRowCount() ?? 0), []);
 
+  // The renderers read the focused check from the context; redraw them when it changes.
+  const context = useMemo<GridContext>(() => ({ checkFilter }), [checkFilter]);
+  useEffect(() => {
+    api.current?.refreshCells({ force: true });
+  }, [context]);
+
   const onGridReady = useCallback((e: GridReadyEvent<DeliveryRow>) => {
     api.current = e.api;
   }, []);
@@ -204,9 +254,10 @@ export function DeliveriesGrid({ rows, notices, selectedEventId, onSelect, check
       </header>
       {checkFilter && (
         <p className="filter-chip" role="status">
-          Showing evidence for <strong>{CHECK_TITLES[checkFilter]}</strong> <span className="mono">{checkFilter}</span>
-          <button type="button" className="link" onClick={onClearCheck}>
-            Show all
+          <CheckBadge id={checkFilter} size="sm" />
+          Showing the notices behind <strong>{CHECK_TITLES[checkFilter]}</strong>
+          <button type="button" className="clear" onClick={onClearCheck}>
+            <X size={14} aria-hidden="true" /> Show all
           </button>
         </p>
       )}
@@ -217,7 +268,7 @@ export function DeliveriesGrid({ rows, notices, selectedEventId, onSelect, check
           columnDefs={everyAttempt ? attemptColumns : noticeColumns}
           defaultColDef={defaultColDef}
           getRowId={(p) => p.data.id}
-          rowClassRules={rowClassRules}
+          context={context}
           rowSelection={rowSelection}
           quickFilterText={quick}
           isExternalFilterPresent={isExternalFilterPresent}
