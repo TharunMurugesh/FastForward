@@ -91,7 +91,7 @@ Every verdict is a fixed rule applied to the recorded run. The AI explains failu
 | Check | Passes when | If it fails |
 |---|---|---|
 | `ACK_FAST` | Every webhook got a 2xx answer within 10 seconds. | Answer first, work later: acknowledge at once and process in the background. PayPal retries slow webhooks. |
-| `VERIFIES_SIGNATURES` | For every delivered event, your app verified the signature (called PayPal's verify endpoint or fetched the certificate). | Verify every notice before acting on it. Forged events in the scenario test this. |
+| `VERIFIES_SIGNATURES` | For every delivered event, your app verified the signature (called PayPal's verify endpoint or fetched the certificate), **and** it rejected the forged notice with an error status (not 2xx). | Verify every notice before acting on it, and answer 400 to one whose signature fails. |
 | `STATE_MATCHES` | At each checkpoint, your app's idea of access matches the subscription's real status. Needs the probe. | Set access from the subscription status every time a notice arrives, and handle suspended, cancelled and expired as well as activated. |
 | `FULFIL_ONCE` | Each completed payment was fulfilled exactly once. Needs the probe. | Remember the id of every notice you handled and ignore ids you have seen. PayPal may deliver a notice more than once, by design. |
 | `DISPUTE_ANSWERED` | Every dispute got a seller response before its due date. | When a dispute-created notice arrives, send evidence through the disputes API, or alert a person. Silence means PayPal decides for the buyer. |

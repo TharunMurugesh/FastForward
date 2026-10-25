@@ -97,6 +97,27 @@ describe('run start', { timeout: 30_000 }, () => {
     expect(twin.activeRun()).toBeNull();
   });
 
+  it('tells an app that is aimed at LIVE PayPal so, instead of saying it is not redirected', async () => {
+    const { twin, app } = await setup({ redirected: false, blockedLive: true });
+    const res = await startRun(twin, scenario(app));
+    expect(res.status).toBe(400);
+    const { error } = (await res.json()) as { error: string };
+    expect(error).toContain('LIVE PayPal');
+    expect(error).toContain('https://api-m.paypal.com/v1/billing/subscriptions');
+    expect(error).toContain('api-m.sandbox.paypal.com');
+    expect(error).not.toContain("isn't redirected");
+    expect(twin.activeRun()).toBeNull();
+  });
+
+  it('still says LIVE PayPal when the add-on reports the blocked call just after the app has already answered', async () => {
+    const { twin, app } = await setup({ redirected: false, blockedLive: true, blockedLiveReportDelayMs: 60 });
+    const res = await startRun(twin, scenario(app));
+    expect(res.status).toBe(400);
+    const { error } = (await res.json()) as { error: string };
+    expect(error).toContain('LIVE PayPal');
+    expect(error).not.toContain("isn't redirected");
+  });
+
   it('without subscribeUrl the twin creates subscriptions itself with custom_id = name', async () => {
     const { twin, app } = await setup();
     const s = scenario(app);

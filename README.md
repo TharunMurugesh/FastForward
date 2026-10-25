@@ -129,7 +129,7 @@ it again. `ff_write_scenario` needs an Anthropic key; the other two do not.
 
 ## Contributing and security
 
-To try the live demo and a local install step by step, see [docs/testing-guide.md](docs/testing-guide.md). See [CONTRIBUTING.md](CONTRIBUTING.md) to set up and run the tests, and [SECURITY.md](SECURITY.md) to report a
+To try the live demo and a local install step by step, see [docs/testing-guide.md](docs/testing-guide.md); to try Fastforward on your own app (new or already built), see [docs/try-it-on-your-app.md](docs/try-it-on-your-app.md). See [CONTRIBUTING.md](CONTRIBUTING.md) to set up and run the tests, and [SECURITY.md](SECURITY.md) to report a
 vulnerability privately. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence

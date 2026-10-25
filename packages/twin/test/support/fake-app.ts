@@ -26,6 +26,10 @@ export interface FakeAppOptions {
   twinUrl: string;
   /** false: /subscribe invents an id without calling PayPal, like an app started without the add-on. */
   redirected?: boolean;
+  /** true (with redirected false): the app aimed at LIVE PayPal, so the add-on blocked the call and told the twin. */
+  blockedLive?: boolean;
+  /** With blockedLive: tell the twin this many ms AFTER answering, as the real add-on can (it reports without waiting). */
+  blockedLiveReportDelayMs?: number;
   /** Ask the twin's verify endpoint before acting on a webhook. Default true. */
   verify?: boolean;
 }
@@ -100,6 +104,12 @@ export class FakeApp {
 
   private async subscribe(name: string, email: string): Promise<string> {
     if (this.opts.redirected === false) {
+      // What the register add-on does when an app calls live PayPal: it refuses the call and reports it to the twin.
+      if (this.opts.blockedLive) {
+        const report = () => call('POST', `${this.opts.twinUrl}/_ff/live-call`, { url: 'https://api-m.paypal.com/v1/billing/subscriptions' }).catch(() => undefined);
+        if (this.opts.blockedLiveReportDelayMs === undefined) await report();
+        else setTimeout(() => void report(), this.opts.blockedLiveReportDelayMs);
+      }
       const id = `I-NOTREDIRECTED${this.members.size}`;
       this.members.set(id, { access: false, fulfilments: 0 });
       return id;

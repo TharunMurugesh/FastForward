@@ -172,13 +172,13 @@ describe('VERIFIES_SIGNATURES', () => {
     expect(r.findings.map((f) => f.eventIds[0])).toEqual(['WH-b']);
   });
 
-  it('ignores forged events and events that were never delivered', () => {
+  it('does not ask for a signature on forged events or events that were never delivered, when the forged one is rejected', () => {
     const forged = ev('BILLING.SUBSCRIPTION.CANCELLED', {}, 'WH-f');
     const undelivered = ev('PAYMENT.SALE.COMPLETED', {}, 'WH-u');
     const genuine = ev('PAYMENT.SALE.COMPLETED', {}, 'WH-g');
     const trace: TraceEntry[] = [
       event(forged, '2026-11-01T00:00:00.000Z', true),
-      delivery('WH-f'),
+      delivery('WH-f', { status: 400 }),
       event(undelivered),
       event(genuine),
       delivery('WH-g', { transmissionId: 'TG' }),
@@ -190,6 +190,47 @@ describe('VERIFIES_SIGNATURES', () => {
   it('is skipped when there were no deliveries', () => {
     const e = ev('PAYMENT.SALE.COMPLETED', {});
     expect(check([event(e)], 'VERIFIES_SIGNATURES')).toMatchObject({ status: 'skipped', findings: [] });
+  });
+
+  describe('a forged notice must be rejected, not just checked', () => {
+    // An app can ask PayPal "is this real?" and then ignore the answer. The genuine notices all look verified, so only
+    // what the app did with the forged one gives it away.
+    const forged = ev('BILLING.SUBSCRIPTION.CANCELLED', {}, 'WH-forged');
+    const genuine = ev('PAYMENT.SALE.COMPLETED', {}, 'WH-g');
+    const verifiedGenuine: TraceEntry[] = [
+      event(genuine),
+      delivery('WH-g', { transmissionId: 'TG' }),
+      { at: '2026-11-01T00:00:01.000Z', kind: 'verify_call', transmissionId: 'TG', result: 'SUCCESS' },
+    ];
+
+    it('fails when the app answers a forged notice with a success status, and says what to do', () => {
+      const r = check([...verifiedGenuine, event(forged, '2026-11-02T00:00:00.000Z', true), delivery('WH-forged', { status: 200, transmissionId: 'TF' })], 'VERIFIES_SIGNATURES');
+      expect(r.status).toBe('fail');
+      expect(r.findings).toHaveLength(1);
+      expect(r.findings[0]).toMatchObject({ eventIds: ['WH-forged'] });
+      expect(r.findings[0]!.summary).toMatch(/forged/i);
+      expect(r.findings[0]!.summary).toMatch(/200/);
+      expect(r.findings[0]!.summary).toMatch(/reject/i);
+    });
+
+    it('passes when the app rejects the forged notice with an error status', () => {
+      const r = check([...verifiedGenuine, event(forged, '2026-11-02T00:00:00.000Z', true), delivery('WH-forged', { status: 400, transmissionId: 'TF' })], 'VERIFIES_SIGNATURES');
+      expect(r).toMatchObject({ status: 'pass', findings: [] });
+    });
+
+    it('does not blame an app that never answered the forged notice', () => {
+      const r = check([...verifiedGenuine, event(forged, '2026-11-02T00:00:00.000Z', true), delivery('WH-forged', { status: null, ms: 10000, transmissionId: 'TF' })], 'VERIFIES_SIGNATURES');
+      expect(r.status).toBe('pass');
+    });
+
+    it('lists the forged-notice finding after the genuine ones, so the first findings (which get explained) do not move', () => {
+      const unverified = ev('PAYMENT.SALE.COMPLETED', {}, 'WH-u');
+      const r = check(
+        [event(forged, '2026-11-01T00:00:00.000Z', true), delivery('WH-forged', { status: 200, transmissionId: 'TF' }), event(unverified, '2026-11-03T00:00:00.000Z'), delivery('WH-u', { transmissionId: 'TU' })],
+        'VERIFIES_SIGNATURES',
+      );
+      expect(r.findings.map((f) => f.eventIds[0])).toEqual(['WH-u', 'WH-forged']);
+    });
   });
 });
 

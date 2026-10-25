@@ -3,6 +3,25 @@
 All notable changes to Fastforward. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/). The version number lives in the `VERSION` file.
 
+## [0.1.2] - 2026-10-25
+
+Found by building a brand-new app from scratch with the published packages and breaking it on purpose.
+
+### Changed
+- **VERIFIES_SIGNATURES is stricter.** Asking PayPal "is this notice real?" is not enough: a **forged** notice that the app
+  answers with a success status (2xx) is now a finding too, with the advice to reject a notice whose signature fails with an
+  error status such as 400. These findings come after the genuine ones, so the explained findings do not move. Before, an app
+  that called the verify endpoint and then ignored the answer passed.
+
+### Fixed
+- An app aimed at **live** PayPal was told "your app isn't redirected", which is the wrong advice (the add-on had blocked
+  it). It now says the app tried to call LIVE PayPal and to point it at the sandbox. The add-on reports the blocked call
+  without waiting, so the twin now looks for that report for up to a second before choosing the message.
+
+### Added
+- `docs/try-it-on-your-app.md`: a step-by-step guide for an app being built (with a tested starter app and three ways to break
+  it on purpose) and for an app that already exists.
+
 ## [0.1.1] - 2026-10-24
 
 ### Fixed

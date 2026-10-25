@@ -18,6 +18,12 @@ const DAY_MS = 86_400_000;
 const SUBSCRIBE_TIMEOUT_MS = 30_000;
 
 /** Spec §11: the run aborts with this when the app's subscribe step never reaches the twin. */
+/** How long to wait for the add-on's report of a blocked live call before blaming a missing add-on. */
+const BLOCKED_REPORT_WAIT_MS = 1000;
+
+export const liveBlockedMessage = (url: string): string =>
+  `your app tried to call LIVE PayPal (${url}), and Fastforward blocks that so a test can never touch real money. While testing, point your app at PayPal's sandbox (api-m.sandbox.paypal.com) and use sandbox credentials.`;
+
 export const NOT_REDIRECTED = "your app isn't redirected — start it with `FASTFORWARD=1 node --import fastforward-register`";
 
 /** Same shape as `@fastforward/ai`'s DecisionContext; the twin takes a function and never imports the AI package. */
@@ -191,6 +197,16 @@ export class Run {
     return next;
   }
 
+  /** The blocked-live-call entry, if one shows up within BLOCKED_REPORT_WAIT_MS. Only used on the way to an error message. */
+  private async waitForBlockedLiveCall(): Promise<Extract<TraceEntry, { kind: 'live_call_blocked' }> | undefined> {
+    const deadline = Date.now() + BLOCKED_REPORT_WAIT_MS;
+    for (;;) {
+      const found = this.trace.find((t): t is Extract<TraceEntry, { kind: 'live_call_blocked' }> => t.kind === 'live_call_blocked');
+      if (found || Date.now() >= deadline) return found;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+  }
+
   private async subscribeThroughApp(customer: Customer, url: string): Promise<string> {
     const before = this.subscriptionCreates;
     let res: Response;
@@ -206,7 +222,12 @@ export class Run {
     }
     const text = await res.text();
     // Checked before the status: an app talking to the real sandbox usually fails too, and this is the real cause.
-    if (this.subscriptionCreates === before) throw new Error(NOT_REDIRECTED);
+    if (this.subscriptionCreates === before) {
+      // An app aimed at LIVE PayPal is blocked by the add-on, which tells the twin: that is the real cause, not a missing add-on.
+      // The add-on reports a blocked call without waiting, so the app's own error can reach us first: look for a moment.
+      const blocked = await this.waitForBlockedLiveCall();
+      throw new Error(blocked ? liveBlockedMessage(blocked.url) : NOT_REDIRECTED);
+    }
     if (!res.ok) throw new Error(`subscribe for ${customer.name} answered ${res.status}: ${text.slice(0, 200)}. Your app's subscribe endpoint failed; look at your app's own log for the cause.`);
     let id: unknown;
     try {
