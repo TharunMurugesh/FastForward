@@ -1,121 +1,91 @@
-STATUS: taken over 2026-10-19
+STATUS: waiting for the next Sara
 
-> For the next Sara: you are the orchestrator (method in ~/.claude/CLAUDE.md). This is the **PayPal AI
-> Hackathon** project, product **Fastforward** (working name). Read, in order: the two project memories
-> (`project-paypal-time-machine`, `paypal-sandbox-disputes-gotchas`), `docs/hackathon-details.md` (the
-> Official Rules digest), the spec and the plan below. Then this note is the current state.
+> For the next Sara: you are lead engineer and orchestrator (method in ~/.claude/CLAUDE.md). Project: the
+> **PayPal AI Hackathon**, product **Fastforward**. Read the project memories first (they load with MEMORY.md),
+> then this note. It is the current state; git history has the detail. Older notes are in git
+> (`git log -- docs/handoff.md`), do not dig through them unless something here is unclear.
 
-# Handoff: 19 Oct 2026, afternoon (end of wave 2, wave 3 in flight)
+# Handoff: 27 Oct 2026
 
-## Deadline and dates
-- **Submit by 12 Nov 2026 12:00 pm PST = 13 Nov 01:30 IST** (corrected from the rules; aim to submit during
-  12 Nov IST). The demo must stay usable until judging ends on **15 Dec**.
+## Deadline
+**Submit by 12 Nov 2026, 12:00 pm PST = 13 Nov 01:30 IST.** The live demo must stay up until judging ends on
+**15 Dec**.
 
-## Decisions already made (do not reopen)
-- Idea: Fastforward. Stack: TypeScript 7 strict ESM, Node 24, npm workspaces, Fastify, zod, Vitest 5,
-  React + Vite.
-- AI: `claude-opus-5-5` for all three jobs (effort: writer medium, customers low, narrator medium).
-  Server-side refusal `fallbacks: 'default'` is ON (Vinay told 19 Oct). Vinay has $1,500 credits.
-  He puts `ANTHROPIC_API_KEY` in `.env` himself (never paste it in chat).
-- Hosting: **Railway** (`railway.json` in Task 17). Deploying needs his yes; tell him the cost first.
-- Sponsor prize: **AG Grid** (Community, MIT only, never Enterprise). Bryntum dropped.
-- PayPal visibility: a fidelity panel ("Checked against the real PayPal sandbox") in the dashboard, a live
-  fidelity run in the video, and README/Devpost text spelling out each use of PayPal. Rules' stage one is
-  pass/fail on "reasonably applies PayPal APIs".
-- Prize rule: one grand prize or honourable mention, plus one sponsor prize. Aim: top 3 / Best Use of
-  PayPal + AI / Best Demo Delivery, plus Best Use of AG Grid.
+## What exists (all on `origin/main`, CI green)
+- **Fastforward:** a simulator of PayPal Subscriptions and Disputes (the "twin") with a virtual clock, bad-weather
+  webhooks, six checks, Claude-written customers and explanations, a CLI, an MCP server and a dashboard.
+- **npm:** `fastforward-cli`, `fastforward-register`, `fastforward-mcp`, all **0.1.2** (verified on the registry).
+  Publishing happens only in Vinay's own PowerShell (npm needs his security key).
+- **Live demo:** https://fastforward-production.up.railway.app/ (Tharun's Railway, built from Tharun's fork; deploy =
+  Vinay runs `git push tharun main`). It replays the recorded Claude run (no API key on Railway, ever), and the public
+  site is read-only (non-GET on `/_ff` and `/demo` answers 405). On each start it plays bad-month once: **3 of 6 checks
+  fail** (VERIFIES_SIGNATURES, FULFIL_ONCE, DISPUTE_ANSWERED). The built-in sample recording shows 4 of 6.
+- **Real-sandbox comparison:** 17 of 17 steps match, 1 known, explained difference (`fidelity/latest.json`).
+- **Tests:** 492 unit, 6 e2e. Run e2e from **PowerShell**: from Git Bash it fails with "Vitest failed to find the
+  runner" before any test starts (a shell path problem, not the code).
 
-## Built earlier (detail; current state is in "State on main" below)
-| Task | What | Notes |
-|---|---|---|
-| 0 | Redirect spike | `docs/spike-results.md`: SDK and fetch both redirectable |
-| 1 | Scaffold + contracts | `packages/contracts` (Sara owns; workers ask for changes) |
-| 2–4 | Twin server, virtual clock/scheduler, subscriptions engine + routes, `fidelity.ts`, PayPal OpenAPI specs | Retry rule verified from PayPal docs (5 days, twice per cycle); "suspend at once on reaching threshold" is inferred, marked unverified |
-| 5 | Signed webhooks, verify endpoint, delivery with retries | `createSigner` is async (approved). Retry conflict: doubling from 1 min hits the 3-day window at 13 attempts, so `deliveryMaxAttempts` 25 never applies. Open fidelity question |
-| 6 | `fastforward-register` add-on | Blocks live PayPal before any socket opens; undici pinned 8.12.2 |
-| 7 | Coffee Club demo app | Official SDK; re-fetches subscription status on every event (fixed); bugs: no-verify, no-dedupe, slow-ack, ignores-suspend, ignores-disputes, **trusts-event-order** |
-| 8 | `@fastforward/ai` | Fake AiClient in all tests; only real model decisions are locked |
-| — | Contract change 5c815df | Trace kinds `verify_call` and `cert_fetch`; VERIFIES_SIGNATURES judges from these |
+## The dashboard (rebuilt 25 to 27 Oct, commits 9c440e3..48bf6df)
+- **Left sidebar:** sections (Overview, Timeline, Deliveries, Disputes, PayPal match; the tab lives in the address,
+  e.g. `#deliveries`), a run-status box (Simulated, run id, Finished/In progress/Sample, "Showing 25 Nov" while
+  replaying), and the run's numbers. On screens under 900px it becomes a strip across the top.
+- **Overview:** six check tiles; one card per failed check with a three-picture story, which webhook handler to look
+  at, who it hit, a two-line fix preview, "How to fix" (drawer with the full fix, a "what a correct app does" strip and
+  the findings) and "See the N notices" (filters Deliveries). The month's timeline sits underneath.
+- **Timeline tab:** the time controls live here (date, slider, +1 day, +1 week, Run to end). A live run in progress
+  moves the twin forward only; a **finished** run (the hosted demo always is) is replayed in the page with `cutAt`
+  in `apps/web/src/useRun.ts`, the same logic the sample uses. Customer cards underneath.
+- **Deliveries:** calm table (no red rows; one colour and icon per check). The side panel opens on the first problem
+  notice and has Problems / Attempts / Payload tabs.
+- **Disputes:** the conversation, the check's card, a "what a correct app does" strip and the full fix.
+- **PayPal match:** says plainly it tests Fastforward against real PayPal, not the app (injected app bugs must not
+  change its 17/17; Vinay asked about this).
+- **Where things are:** each check's icon, colour, short name, story and remedy: `apps/web/src/checkLook.tsx`; card facts:
+  `apps/web/src/problems.ts`; icons are **Lucide** (`lucide-react` pinned exactly at 1.55.0, ISC). Vinay's rules for the
+  UI: proper icons only (no emoji, no hand-drawn shapes), pictures before text, no empty space, responsive at every
+  width, and calm colours.
+- **Checking the UI:** nothing in the repo does screenshots. Last session drove headless Edge over the DevTools
+  protocol (`--remote-debugging-port`, `Emulation.setDeviceMetricsOverride`, `Page.captureScreenshot`) against
+  `node scripts/start-hosted.mjs --run` with `PORT=8099`; rebuild the script in the new session's scratchpad if needed.
+  Check widths 1600x850 (Vinay's screen), 1440, 1024, 820 and 390 (mobile), dark and light.
 
-Root `typecheck` is `tsc -b` (noEmit is refused with project references). Root `tsconfig.json` lists every
-package; on merges keep all references and regenerate `package-lock.json` (take main's, then `npm install`).
+## Pending, in order
+1. **Vinay: deploy and look.** `git push tharun main` if not done since 48bf6df, then open the live URL fresh (no old
+   `?run=`: runs live in memory, so an old link ends after a restart; the banner then links to the current run).
+2. **Sara: bring the docs up to date with the new dashboard** (checked 27 Oct which ones describe the old layout):
+   - `docs/testing-guide.md` (Parts A to G, which Tharun follows): Report tab, side panel, Run to end at the top.
+   - `docs/how-it-works.md` around lines 39 and 121: lists the Report / Event / Dispute tabs.
+   - `docs/submission/video-script.md`: the on-screen directions (e.g. line 45, "the dashboard panel"; the sandbox
+     comparison is now the PayPal match page). Walk every scene against the real dashboard.
+   - `docs/submission/devpost.md` line 71: "one row per delivery attempt ... failing checks highlighted" (the table now
+     shows one row per notice by default, with a colour and icon per check).
+   `docs/guide.md` and the README do not describe the layout; the README has no screenshots. Keep the numbers:
+   3 of 6 live, 17 of 17 steps.
+3. **Vinay: film the video** from the updated script (Sara rehearses it with him), upload to YouTube.
+4. **Vinay: put the one YouTube link in `docs/submission/devpost.md` and submit.** Before he submits, Sara checks the text
+   leads with the money: who pays, $39 per developer per month (free for one developer, a target, not revenue
+   claimed), why they would pay now. Lesson from Citizen's Voice (see ~/.claude/CLAUDE.md).
+5. Good to have: try Fastforward on a real open-source Node shop with PayPal; 2 or 3 outside developers (not entrants;
+   Vinay will not reveal the idea on Discord, do not raise Discord again) trying it for quotes.
+6. Good to have: finish Vinay's teach-back. Stopped at: "why does Fastforward need the register add-on, and what would
+   happen without it?" Next topics: how the twin jumps time, how the checks read the trace.
 
-## Workers
-All wave workers are RELEASED (19 Oct ~15:45): Worker A `paypal-hackathon-fc` (PayPal 3), Worker B
-`paypal-hackathon-fa` (PayPal 4), Worker C `paypal-hackathon-be` (PayPal 5). Branches merged; worktrees removed
-once each confirmed a clean tree. Next jobs go to FRESH worker sessions with self-contained briefs (one worktree
-each, per the method).
+## Decisions waiting on Vinay
+- **A second dispute in bad-month** (e.g. one the app answers in time, to show lost and won side by side). Sara
+  recommended **no**: it needs re-recording with his API key (money) and changes the numbers in every doc and the video.
+  He has not answered.
 
-## State on main (19 Oct ~15:45): PHASES 1 AND 2 DONE
-- 369 unit tests + 4 e2e pass (Sara ran both; e2e ~4.5 min, `npm run test:e2e`).
-- Built: twin (subscriptions, disputes, signed webhooks, retries, weather, control API incl. /runs/current and
-  /report), register add-on, Coffee Club (6 switchable bugs, official SDK, re-fetches status), AI package, checks
-  (6), CLI (`fastforward run|new|twin`, report.json + self-contained report.html, dashboard link), dashboard
-  (AG Grid Community: one row per notice, Report tab first, timeline, dispute chat, fidelity panel).
-- **Live fidelity (Vinay said yes; reruns covered):** three runs against his sandbox: 27 → 4 → **0
-  differences, 7 of 7 endpoints match** (status, shape, spec). `fidelity/latest.json` committed (e238caf).
-  Pitch line: "we compared our simulator against PayPal's real sandbox, found 27 differences, fixed them all."
-  UPDATE 23 Oct: the suite now has 17 steps and all match, including the ACTIVE path (card-funded subscriptions are
-  ACTIVE with no buyer approval; see docs/approved-subscriptions-findings.md). Honest limit: wallet-approved
-  subscriptions are not compared. Remaining guesses are in `packages/twin/src/fidelity.ts`,
-  each marked verified/unverified. Each live run leaves 1 product + 1 plan + 1 pending subscription in his sandbox.
-- `bad-month.yaml`: P75D, threshold 2; bugs=all (incl. slow-ack) → 5 checks fail; the demo set (no slow-ack) → **4 fail** (verified live 20 Oct); bugs=none → all 6 pass. A live run of the demo set takes about 3 s (measured 20 Oct); slow-ack makes it much slower.
-- Demo bug set: no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order.
-- Notes: every retry has its own transmission id; STATE_MATCHES orders notices by `status_update_time`.
+## Settled (do not reopen)
+- Price $39 per developer per month, free for one. AI model `claude-opus-5-5`. AG Grid Community only (never Enterprise).
+- The scenario has exactly one dispute on purpose (Maya healthy, Leo's card fails, Ana disputes).
+- `docs/details.txt` is Vinay's raw paste of the rules, already digested into `docs/hackathon-details.md`. Leave it
+  untracked; never stage it.
 
-## State on 23 Oct (Sara): READ THIS FIRST
-Everything below the "Update 20 Oct" heading is older; this section is current.
-- **Built and pushed (main, CI green):** twin, checks, CLI (`run`, `new`, `twin`, `init`), MCP server, dashboard, two example apps
-  (Coffee Club, Plain Fetch Shop), hosted demo (Docker, read-only), three publishable packages (`npm run pack:check`),
-  user guide, CHANGELOG, SECURITY, CONTRIBUTING, CI (build, unit, pack check, e2e in about 1 minute, version check).
-- **Real-sandbox comparison: 17 of 17 steps match** (pending path and the active path via card-funded subscriptions;
-  docs/approved-subscriptions-findings.md). Known honest limits: wallet-approved subscriptions not compared; one
-  understood difference (transactions just after creation); one unverified timing (suspension on the first failed
-  attempt of the final cycle vs after its retries).
-- **AI recording and replay: built and tested with a fake model.** Decisions and explanations are saved next to the
-  scenario and replayed with no key; reports label what is Claude's; `FF_AI_MAX_CALLS` caps spend; the twin now
-  hands explanations to the dashboard's report (before, the live dashboard had none). The REAL recording is not done.
-- **Vinay's items (nothing here is blocked on code):**
-  1. DONE 23 Oct: Claude's run was recorded (10 model calls, 15,985 tokens) and committed as
-     `examples/coffee-club/scenarios/bad-month.lock.json` and `bad-month.narration.lock.json`. Push `main` to Tharun's fork so
-     the live demo replays it. Re-record with `npm run record:ai -- --yes` (needs the key in `.env`).
-  2. DONE 23 Oct: main pushed to Tharun's fork; the live site is on the new build (17 steps, read-only, explanations shown).
-  3. DONE 23 Oct: Private vulnerability reporting enabled (SECURITY.md points at it).
-  4. DONE 24 Oct: `fastforward-register`, `fastforward-cli`, `fastforward-mcp` 0.1.0 are on npm (verified: install from the registry, `npx fastforward-cli init`, `npx -y fastforward-mcp` all work). npm shows a placeholder `0.0.0-stage` for a few minutes after publishing; the "bin script name was invalid and removed" warning is harmless noise (the registry kept the `bin`). 0.1.1 (init next steps fixed) was published 24 Oct and verified from the real registry (fresh install, `npx fastforward-cli@latest init`, the whole flow against Coffee Club). Future releases: bump `VERSION`, `npm run build; npm run pack:check`, then the three `npm publish --access public` from `publishastforward-register`, `-cli`, `-mcp` in Vinay's own PowerShell (npm needs his security key; it cannot be done from a non-interactive shell).
-  5. Film the video from about 5 Nov (docs/submission/video-script.md; numbers there: 3 of 6 checks with the recorded Claude customers (4 with scripted), 17 of 17 steps),
-     fill the one YouTube link in devpost.md, submit by 12 Nov (13 Nov 01:30 IST).
-  6. Recruit a few real PayPal developers to try it (message drafts available from Sara; no idea revealed to entrants).
-- **Standing rules from Vinay (23 Oct):** only Vinay and Sara write code (Tharun does non-coding jobs); come to Vinay only
-  for major decisions; pushing tested work to origin main is pre-approved; spending money, publishing, deploying and
-  legal text are his.
-
-## Update 20 Oct (Sara)
-- Task 16 MCP merged (376 tests pass). Worker C's `docs/submission/{devpost,video-script}.md` merged and corrected (4 of 6, minutes).
-- Price decided by Vinay: target $39 per developer per month, free for one developer; framed as a target, no revenue claimed.
-- Discord question to PayPal CANCELLED by Vinay (will not reveal the idea). Do not raise it again.
-- Worker B's session ended with partial work; Sara finished it: `railway.json`, `scripts/start-hosted.mjs`, `npm run demo`, `README.md` merged (59df8e8). Verified: fresh clone, no `.env`, `npm install` then `npm run demo` brings up twin, Coffee Club and dashboard on 8080; demo run = 4 of 6 failing, about 3 s.
-- MCP verified over real stdio (tools list, ff_run 4 of 6, ff_explain, unknown run gives an error result). Not yet tried inside a real assistant.
-- All workers released; worktrees removed. Phase 3 code is DONE. What is left is outward (Vinay's yes): public GitHub repo + push, Railway deploy (tell him the cost; stays up until 15 Dec; Anthropic spend cap), recruit 3-5 PayPal developers, film the video (from ~5 Nov), fill the 3 links in devpost.md, Devpost submission by 12 Nov. Optional: e2e speed, print check of report.html.
-- Still open: manual MCP check with a real assistant (plan Task 16 step 4), Vinay's teach-back of docs/fastforward-explained.md.
-
-## Next for Sara (Phase 3)
-1. **Task 16 MCP server** (packages/mcp: ff_write_scenario, ff_run, ff_explain): fresh worker.
-2. **Task 17**: `railway.json`, `scripts/start-hosted.mjs` (twin + Coffee Club + dashboard on $PORT, serving
-   `/fidelity/latest.json`), root `npm run demo`, README (revenue-first pitch, 3-command quickstart, how PayPal is
-   used, known limits from `webhooks/weather.ts`), `docs/submission/{devpost.md,video-script.md}`: fresh worker(s).
-3. Optional polish: e2e speed (4.5 min), print check of report.html.
-4. Outward steps, each needing Vinay's explicit yes: public GitHub repo + push, Railway deploy (tell him the
-   cost; the demo must stay up until 15 Dec; set an Anthropic spend cap), Devpost submission.
-
-## Vinay's open items
-- **Discord question to PayPal** (outward, his to send; offer to draft): does a sandbox emulator built from
-  PayPal's specs and checked against the real sandbox count as meaningful PayPal use?
-- **Recruit 3–5 real PayPal developers** (other entrants) to try it by ~1 Nov (outward; draft for him).
-- **Video**: he owns it from ~5 Nov; Sara co-writes the script.
-- Final product name. Railway cost confirmation before deploy. Public GitHub repo + push (his yes).
-- `docs/details.txt` (his raw paste) is untracked; everything in it is in `docs/hackathon-details.md`.
-
-## Rules to repeat to every worker
-No production writes; never call live PayPal or the real Anthropic API from tests; no push, deploy or
-outside messages without Vinay; explicit `git add` paths only; no AI attribution lines anywhere; secrets only
-in `.env`; workers never merge to main.
+## How work flows
+- Only Vinay and Sara write code (Tharun gets non-coding jobs such as following the testing guide).
+- Come to Vinay only for major decisions: money, npm publish, deploys (pushing to Tharun's fork), legal or price,
+  outward messages, deleting things on GitHub. Pushing tested work to `origin main` is pre-approved, **but Sara's shell
+  cannot log in to GitHub** (no credentials in PowerShell or Git Bash here): commit, then ask Vinay to run
+  `git push origin main` and `git push tharun main`.
+- Explicit `git add` paths only (never `-A`); no Co-Authored-By or any AI attribution in commits, PRs or docs; secrets
+  only in `.env`; never call live PayPal or the real Anthropic API from tests.
+- Say "deployed, needs your test", never "fixed", until it is verified.
