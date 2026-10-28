@@ -30,8 +30,8 @@ match the real PayPal sandbox, a run of 75 days takes **about 3 seconds**.
    "Open the dashboard", stop it with Ctrl+C. On camera it then starts in seconds.
 3. Turn off notifications (Windows Focus), close other tabs, hide the bookmarks bar.
 4. Dark mode is fine; the dashboard follows your system setting.
-5. Scene 12 uses your sandbox keys from `.env` (free). Scene 13 uses your Anthropic key: one scenario costs a few
-   cents. Both are optional; skip them if you prefer.
+5. Only scene 13 spends money: it uses your Anthropic key, and one scenario costs a few cents. It is optional.
+   Nothing else needs a key (scene 12 blocks the call before any connection opens).
 6. No music unless you made it or hold the licence. Show no logo that is not ours.
 
 ---
