@@ -13,7 +13,8 @@ chopping the long take: it sounds more natural. Each scene below has **Show** (w
 exact clicks or commands) and **Say** (the words). In the cut, say only the lines marked **(cut)**.
 
 Numbers to expect (check them on screen; if a take shows something else, say what the screen shows):
-**3 of 6 checks fail** with the recorded Claude customers, **6 of 6 pass** with the bugs off, **17 of 17 steps**
+**3 of 6 checks fail** with the recorded Claude customers, **6 of 6 pass** with the bugs off, Inkwell passes
+**6 of 6** written correctly and fails **1 of 6** with the bug, **17 of 17 steps**
 match the real PayPal sandbox, a run of 75 days takes **about 3 seconds**.
 
 ---
@@ -24,7 +25,8 @@ match the real PayPal sandbox, a run of 75 days takes **about 3 seconds**.
    - Terminal 1 (PowerShell) in `C:\Users\vinay\Desktop\PayPal-Hackathon`.
    - Terminal 2 (PowerShell), empty, for the safety demo.
    - Browser: the dashboard at <http://localhost:8080> (after step 2), zoom 110 to 125% so text is readable.
-   - VS Code with Claude Code, and Fastforward connected for scene 14:
+   - Terminals A and B (PowerShell) in `C:\Users\vinay\Desktop\inkwell-ff-trial`, for scenes 11 and 14.
+   - VS Code with Claude Code on the Inkwell folder, Fastforward connected for scene 14:
      `claude mcp add fastforward -- npx -y fastforward-mcp`.
 2. **Start the demo once before filming** so the build is warm: `npm run demo`, wait for
    "Open the dashboard", stop it with Ctrl+C. On camera it then starts in seconds.
@@ -84,10 +86,9 @@ forgery."
 **Do:** point at the tiles, then at the first card's three pictures, then click **How to fix** on "Each payment is
 fulfilled once". Scroll the drawer slowly: The fix, What a correct app does, What happened in this run. Close it.
 
-**Say (cut):** "Three of six checks fail. The shop never checked a message really came from PayPal. It shipped an
-order twice when PayPal sent the same payment twice. And it ignored a dispute until PayPal sided with the buyer.
-Each card shows what happened in three pictures, which part of your code to look at, and the fix, written by Claude
-from what actually happened in this run."
+**Say (cut):** "Three of six checks fail: the shop never checked that messages really came from PayPal, it shipped one
+payment twice, and it ignored a dispute. Each card shows what happened in pictures, where in your code to look, and
+Claude's fix."
 
 **Say (tour, add):** "The verdict comes from plain checks, not from the AI, so the AI can't talk a bug into passing.
 Claude only explains. The drawer shows the fix first, then what a correct app does, then the exact story: which
@@ -163,22 +164,42 @@ created, the sandbox lists no payment yet and the twin lists it at once."
 **Say:** "Runs live in memory. Open an old link after a restart and the dashboard says that run has ended, shows a
 recorded sample, and links straight to the current run. Nobody lands on a broken page."
 
-## Scene 11. On your own app **(CUT, one line)** [tour: about 1.5 minutes; cut: 2:20 to 2:30]
+## Scene 11. A brand-new app, straight from npm **(CUT)** [tour: about 2.5 minutes; cut: 2:20 to 2:35]
 
-**Show:** Terminal 1 in a small Node shop of your own (the starter from `docs/try-it-on-your-app.md`), and VS Code.
+**The app:** **Inkwell**, in `C:\Users\vinay\Desktop\inkwell-ff-trial`. A writing app with a Pro plan at $8 a month,
+billed through PayPal Subscriptions. Built on 28 Oct in its own folder, outside our repo, using only the public npm
+packages. About 160 lines: Express, plain `fetch` (no PayPal SDK) and the SQLite database built into Node. It verifies
+every notice with PayPal, reads the subscription's real status instead of trusting the order notices arrive in, handles
+each notice once inside a database transaction, and answers disputes by refunding through PayPal's disputes API.
+
+**Show:** VS Code open on the Inkwell folder: `package.json` (the two packages under devDependencies), then
+`src/server.mjs`, scrolled slowly.
 
 **Do:**
-1. `npm install --save-dev fastforward-cli fastforward-register`
-2. `npx fastforward-cli init` (writes `fastforward.yaml` and prints the next steps)
-3. `$env:FASTFORWARD="1"; node --import fastforward-register server.mjs`
-4. In Terminal 2: `npx fastforward-cli run fastforward.yaml`, then open the `report.html` it prints.
+1. Terminal A, in the Inkwell folder: `$env:FASTFORWARD="1"; node --import fastforward-register src/server.mjs`
+   (it prints "Inkwell listening on 3000 (Fastforward billing test)").
+2. Terminal B, same folder: `npx fastforward-cli run fastforward.yaml`. **6 of 6 pass**, none skipped.
+3. Put in a common bug: in `src/db.mjs`, line 41, change `if (fresh) work();` to `work();`. The app still writes down
+   every notice id; it just forgets to check it.
+4. Terminal A: Ctrl+C, Up arrow, Enter (restart). Terminal B: Up arrow, Enter.
+   **Only "Each payment is fulfilled once" fails**: Maya was given Pro four times for three payments.
+5. Open the report: `start .fastforward\runs\<run id>\report.html` (the run id is in the output).
+6. Undo the bug (Ctrl+Z in `src/db.mjs`, save) before scene 14 or the next take.
 
-**Say (cut):** "On your own app it's three packages on npm and two commands, and your code doesn't change."
+**Do not click the "Dashboard: http://localhost:5173/..." line** the run prints. The npm package does not include
+the dashboard, so that link opens nothing (a known issue the trial found). The report file works.
 
-**Say (tour, add):** "The add-on loads before your app and quietly sends its PayPal sandbox calls to the twin, whether
-you use PayPal's SDK or plain fetch: the second example shop uses no SDK at all. Fastforward writes a starter scenario,
-plays it against your app, and leaves a report you can open, share or attach to a pull request. Exit code one means a
-check failed, so it drops straight into CI. Today it works with Node apps."
+**Say (cut):** "This isn't our demo shop. It's a writing app built yesterday from our npm packages alone, with its own
+database. Written correctly, six of six pass. One forgotten check, and Fastforward finds exactly that bug and nothing
+else."
+
+**Say (tour, add):** "Two packages from npm, and the app's code doesn't change: the add-on loads before the app and
+quietly sends its PayPal sandbox calls to the twin, whether you use PayPal's SDK or plain fetch, as Inkwell does.
+`fastforward init` writes a starter scenario; this one is three customers over ten weeks in bad weather. Watch the bug:
+the app writes every notice id into its database but forgets to look it up, so a repeated notice gives Maya another
+month of Pro. Real developers make this mistake, and it would only show up weeks later in production. Fastforward names
+it in seconds and leaves a report you can share or attach to a pull request. Exit code one means a check failed, so it
+drops straight into CI. Today it works with Node apps."
 
 ## Scene 12. It can't touch real money [tour only, 30 seconds]
 
@@ -202,24 +223,19 @@ ordinary file: you can read it, edit it and commit it. Claude plays the customer
 decides pass or fail. Everything Claude decided is saved next to the scenario, so the same run replays exactly, with no
 key, and the report labels which words are Claude's."
 
-## Scene 14. Fix it from your coding assistant **(CUT)** [tour: about 2 minutes; cut: 2:30 to 2:50]
+## Scene 14. Fix it from your coding assistant **(CUT)** [tour: about 2 minutes; cut: 2:35 to 2:52]
 
-**Show:** VS Code with Claude Code, connected to Fastforward, open on the project folder.
+**Show:** VS Code with Claude Code, open on the **Inkwell** folder, connected to Fastforward
+(`claude mcp add fastforward -- npx -y fastforward-mcp`, run once in that folder).
 
 **Do:**
-1. Stop `npm run demo` (Ctrl+C) so ports 3000 and 4010 are free.
-2. In Terminal 2, start Coffee Club with **one** bug, the duplicate one (`ff_run` needs the app already running):
-
-   ```
-   $env:FASTFORWARD="1"; $env:PORT="3000"; $env:COFFEE_BUGS="no-dedupe"; $env:PAYPAL_CLIENT_ID="x"; $env:PAYPAL_CLIENT_SECRET="x"
-   node --import fastforward-register examples/coffee-club/dist/server.js
-   ```
-3. Ask Claude Code: "Run `examples/coffee-club/scenarios/bad-month.yaml` with Fastforward and explain what failed."
-   It calls `ff_run`, then `ff_explain`: "Each payment is fulfilled once" fails.
-4. Ask: "Fix it in `examples/coffee-club/src/server.ts`." The duplicate handling is around line 63.
-5. Rebuild and restart the shop, or the fix is not running: Ctrl+C in Terminal 2, `npm run build -w coffee-club`, then
-   the `node --import ...` line again.
-6. Ask: "Run it again." The check is green.
+1. Make sure nothing else is on port 3000 (stop `npm run demo`). Put the scene 11 bug back in `src/db.mjs`
+   (`work();` instead of `if (fresh) work();`) and start Terminal A again: `ff_run` needs the app already running.
+2. Ask Claude Code: "Run fastforward.yaml with Fastforward and explain what failed." It calls `ff_run`, then
+   `ff_explain`: "Each payment is fulfilled once" fails.
+3. Ask: "Fix it." It should put the check back in `src/db.mjs`.
+4. Restart Terminal A (Ctrl+C, Up arrow, Enter) so the fixed code is what runs. Plain JavaScript: no build step.
+5. Ask: "Run it again." Six of six, green.
 
 **Say (cut):** "You don't even have to leave your editor. Connected to Fastforward, a coding assistant runs the month,
 reads why a check failed, fixes the code and runs it again. Red to green."
@@ -229,7 +245,7 @@ assistant that speaks MCP can use it."
 
 **Rehearse this scene at least once.** If the assistant wanders, ask it step by step.
 
-## Scene 15. The close **(CUT)** [cut: 2:50 to 2:58]
+## Scene 15. The close **(CUT)** [cut: 2:52 to 3:00]
 
 **Show:** a title card: "Fastforward", the live demo address and the GitHub address.
 
