@@ -151,6 +151,8 @@ async function realCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
   if (!file) throw new ToolError(`real needs a scenario file\n\n${USAGE}`);
   const publicUrl = values['public-url'];
   if (!publicUrl?.startsWith('https://')) throw new ToolError(`real needs --public-url with an https address PayPal can reach\n\n${USAGE}`);
+  const publicHost = URL.canParse(publicUrl) ? new URL(publicUrl).hostname : '';
+  if (!publicHost.includes('.')) throw new ToolError(`--public-url "${publicUrl}" is not a usable address. It should look like https://some-name.trycloudflare.com, with https:// only once.`);
   try {
     process.loadEnvFile('.env');
   } catch {

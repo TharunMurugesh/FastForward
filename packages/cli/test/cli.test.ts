@@ -105,6 +105,12 @@ describe('fastforward errors say what to do next', () => {
     expect(c.err).toContain(`port ${port} is already in use`);
     expect(c.err).toContain('--port');
   });
+
+  it('a doubled https:// in the public address is caught before PayPal sees it', async () => {
+    const c = capture();
+    expect(await main(['real', 'any.yaml', '--public-url', 'https://https://some-name.trycloudflare.com'], c.io)).toBe(2);
+    expect(c.err).toContain('https:// only once');
+  });
 });
 
 describe('fastforward run', () => {
