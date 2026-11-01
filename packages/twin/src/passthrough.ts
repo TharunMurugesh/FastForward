@@ -31,7 +31,7 @@ export function checkUpstreamBase(base: string): string {
 }
 
 /** The twin's own OAuth client against the real sandbox; the app's token is never forwarded. */
-class SandboxToken {
+export class SandboxToken {
   private token: { value: string; expiresAt: number } | null = null;
 
   constructor(

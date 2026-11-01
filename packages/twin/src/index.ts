@@ -18,3 +18,4 @@ export * from './webhooks/sign.js';
 export * from './webhooks/envelope.js';
 export * from './webhooks/dispatcher.js';
 export * from './webhooks/routes.js';
+export * from './real/session.js';

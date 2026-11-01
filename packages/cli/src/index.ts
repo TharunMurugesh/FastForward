@@ -1,10 +1,13 @@
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { AiUnavailableError, DecisionLock, aiFromEnv, decideWithSource, writeScenario, type AiClient } from '@fastforward/ai';
-import { createTwin } from '@fastforward/twin';
+import { parseScenario } from '@fastforward/contracts';
+import { RealSession, createTwin, type RealReport } from '@fastforward/twin';
 import { ToolError } from './errors.js';
 import { DEFAULT_WEBHOOK_URL, writeStarter } from './init.js';
 import { formatReport } from './print.js';
+import { checkReachable } from './reachability.js';
 import { runScenarioFile } from './runner.js';
 import { scenarioToYaml } from './yaml.js';
 
@@ -35,8 +38,12 @@ const USAGE = `Usage:
   fastforward init [-o <file.yaml>] [--webhook-url <url>]
   fastforward new "<description>" [-o <file.yaml>]
   fastforward twin [--port <n>] [--decisions <file.lock.json>]
+  fastforward real <scenario.yaml> --public-url <https://...> [--receiver-port <n>] [--twin-port <n>] [--report-dir <dir>]
 
-run    plays the scenario against your app (started with FASTFORWARD=1 node --import fastforward-register)
+real   runs one real subscription on the real PayPal sandbox and passes PayPal's own notices to your app. Needs
+       PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET (sandbox), and a public https address that reaches --receiver-port
+       (default 4011), for example: cloudflared tunnel --url http://localhost:4011
+run   plays the scenario against your app (started with FASTFORWARD=1 node --import fastforward-register)
        and reports billing bugs. Exit code 0 = all checks passed or skipped, 1 = a check failed, 2 = could not run.
 init   writes a starter scenario (fastforward.yaml) and prints the next steps. No AI, no key.
 new    asks Claude to write a scenario from a description (needs ANTHROPIC_API_KEY).
@@ -59,6 +66,8 @@ export async function main(argv: string[], io: CliIo = defaultIo): Promise<0 | 1
         return await newCommand(rest, io);
       case 'twin':
         return await twinCommand(rest, io);
+      case 'real':
+        return await realCommand(rest, io);
       default:
         io.stderr(command ? `unknown command "${command}"\n\n${USAGE}` : USAGE);
         return 2;
@@ -129,6 +138,80 @@ async function newCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
   writeFileSync(out, scenarioToYaml(scenario));
   io.stdout(`Wrote ${out}. Check it, then run: fastforward run ${out}\n`);
   return 0;
+}
+
+async function realCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
+  const { values, positionals } = parse(args, {
+    'public-url': { type: 'string' },
+    'receiver-port': { type: 'string' },
+    'twin-port': { type: 'string' },
+    'report-dir': { type: 'string' },
+  });
+  const file = positionals[0];
+  if (!file) throw new ToolError(`real needs a scenario file\n\n${USAGE}`);
+  const publicUrl = values['public-url'];
+  if (!publicUrl?.startsWith('https://')) throw new ToolError(`real needs --public-url with an https address PayPal can reach\n\n${USAGE}`);
+  try {
+    process.loadEnvFile('.env');
+  } catch {
+    // no .env: the keys must already be in the environment
+  }
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  if (!clientId || !clientSecret) throw new ToolError('real needs PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET for a PayPal sandbox app, in the environment or in .env');
+  const receiverPort = values['receiver-port'] === undefined ? undefined : Number(values['receiver-port']);
+  const twinPort = values['twin-port'] === undefined ? 4010 : Number(values['twin-port']);
+  if ((receiverPort !== undefined && !Number.isInteger(receiverPort)) || !Number.isInteger(twinPort)) throw new ToolError('ports must be whole numbers');
+
+  let scenario;
+  try {
+    scenario = parseScenario(readFileSync(file, 'utf8'));
+  } catch (err) {
+    throw new ToolError(`${file}: ${(err as Error).message}`);
+  }
+  await checkReachable(scenario.app.webhookUrl, 5000);
+
+  const session = new RealSession({
+    creds: { clientId, clientSecret },
+    appWebhookUrl: scenario.app.webhookUrl,
+    publicUrl,
+    ...(receiverPort !== undefined ? { receiverPort } : {}),
+    log: (line) => io.stdout(`${line}\n`),
+  });
+  let twin;
+  try {
+    twin = await createTwin({ port: twinPort, real: session, sandboxCreds: { clientId, clientSecret } });
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') throw new ToolError(`port ${twinPort} is already in use. Stop the twin that is running, or pick another port with --twin-port.`);
+    throw err;
+  }
+  try {
+    const report = await session.run();
+    const dir = values['report-dir'] ?? join('.fastforward', 'real', report.subscriptionId ?? 'stopped-early');
+    mkdirSync(dir, { recursive: true });
+    const path = join(dir, 'real-report.json');
+    writeFileSync(path, JSON.stringify(report, null, 2) + '\n');
+    io.stdout(`\n${formatRealReport(report)}\nSaved to ${path}\n`);
+    if (report.error) return 2;
+    return report.notices.length > 0 && report.notices.every((n) => n.verify === 'SUCCESS' || report.certFetched) ? 0 : 1;
+  } finally {
+    await twin.close();
+  }
+}
+
+function formatRealReport(report: RealReport): string {
+  const lines = [`Real PayPal sandbox, subscription ${report.subscriptionId ?? '(not created)'}`];
+  for (const a of report.actions.filter((x) => x.expects)) {
+    lines.push(`  ${a.name.padEnd(20)} ${a.noticeSeconds === undefined ? `${a.expects} did not arrive in time` : `notice after ${a.noticeSeconds.toFixed(0)} s`}`);
+  }
+  lines.push('Notices passed to your app:');
+  for (const n of report.notices) {
+    const verify = n.verify === 'not-asked' ? (report.certFetched ? 'checked offline, or not at all' : 'signature NOT checked') : `PayPal said ${n.verify}`;
+    lines.push(`  ${n.eventType}${n.duplicate ? ' (duplicate)' : ''}: your app answered ${n.appStatus ?? 'nothing'}, ${verify}`);
+  }
+  if (report.notices.length === 0) lines.push('  none arrived. Check that the public address reaches the receiver port.');
+  if (report.error) lines.push(`Stopped early: ${report.error}`);
+  return lines.join('\n') + '\n';
 }
 
 async function twinCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {

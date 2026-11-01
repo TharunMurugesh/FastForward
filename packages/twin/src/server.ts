@@ -4,6 +4,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { registerControlRoutes } from './control.js';
 import { registerDisputeRoutes } from './disputes/routes.js';
 import { checkUpstreamBase, registerPassthrough, SANDBOX_BASE, type SandboxCreds } from './passthrough.js';
+import type { RealVerifier } from './real/session.js';
 import { createRunRegistry } from './run/registry.js';
 import { Run, type RunDeps } from './run/run.js';
 import { PayPalError } from './subscriptions/resources.js';
@@ -20,6 +21,8 @@ export interface TwinOptions {
   sandboxCreds?: SandboxCreds;
   /** Hooks a run calls out to, such as the AI customers' decisions. */
   deps?: RunDeps;
+  /** Present during a real PayPal run, so the notices it forwards are verified by real PayPal. */
+  real?: RealVerifier;
 }
 
 export interface Twin {
@@ -83,6 +86,7 @@ export async function createTwin(opts: TwinOptions = {}): Promise<Twin> {
 
   registerWebhookRoutes(app, {
     signer,
+    ...(opts.real ? { real: opts.real } : {}),
     ledger: () => registry.active()?.ledger ?? null,
     record: (entry) => {
       const run = registry.active();

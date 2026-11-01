@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import type { RealVerifier } from '../real/session.js';
 import { PayPalError } from '../subscriptions/resources.js';
 import type { VerifyLedger } from './dispatcher.js';
 import { certUrl, signingString, type Signer } from './sign.js';
@@ -14,6 +15,8 @@ export interface WebhookRouteDeps {
   signer: Signer;
   ledger: () => VerifyLedger | null;
   record?: (entry: WebhookTraceEntry) => void;
+  /** Present during a real PayPal run: its notices are checked by real PayPal, never by the twin. */
+  real?: RealVerifier;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -59,6 +62,10 @@ export function registerWebhookRoutes(app: FastifyInstance, deps: WebhookRouteDe
       return reply.code(400).send(new PayPalError(400, 'INVALID_REQUEST', 'Request is not well formed, syntactically incorrect, or violates schema.', problems).body());
     }
     const transmissionId = String(body.transmission_id);
+    if (deps.real?.owns(transmissionId)) {
+      const answer = await deps.real.verify(body as Record<string, unknown>);
+      return reply.code(answer.status).send(answer.body);
+    }
     deps.ledger()?.mark(transmissionId);
 
     // The app hands back the parsed event; re-serialising gives the sent bytes because they were JSON.stringify output.
@@ -74,6 +81,10 @@ export function registerWebhookRoutes(app: FastifyInstance, deps: WebhookRouteDe
 
   app.get<{ Params: { certId: string } }>('/v1/notifications/certs/:certId', async (req, reply) => {
     if (req.params.certId !== signer.certId) {
+      if (deps.real) {
+        const cert = await deps.real.fetchCert(req.params.certId);
+        return reply.code(cert.status).type('text/plain').send(cert.body);
+      }
       return reply.code(404).send({ name: 'RESOURCE_NOT_FOUND', message: 'The specified resource does not exist.' });
     }
     deps.ledger()?.markCertFetch();
