@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { AiUnavailableError, DecisionLock, aiFromEnv, decideWithSource, writeScenario, type AiClient } from '@fastforward/ai';
 import { parseScenario } from '@fastforward/contracts';
-import { RealSession, createTwin, type RealReport } from '@fastforward/twin';
+import { RealSession, createTwin, pickRealCustomer, type RealReport } from '@fastforward/twin';
 import { ToolError } from './errors.js';
 import { DEFAULT_WEBHOOK_URL, writeStarter } from './init.js';
 import { formatReport } from './print.js';
@@ -172,12 +172,18 @@ async function realCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
     throw new ToolError(`${file}: ${(err as Error).message}`);
   }
   await checkReachable(scenario.app.webhookUrl, 5000);
+  const customer = pickRealCustomer(scenario.customers);
+  if (!customer) throw new ToolError(`${file}: real needs at least one customer`);
+  const ai = io.ai === undefined ? aiFromEnv() : io.ai;
+  const lock = DecisionLock.load(join('.fastforward', 'real', `${scenario.name}.lock.json`));
 
   const session = new RealSession({
     creds: { clientId, clientSecret },
     appWebhookUrl: scenario.app.webhookUrl,
     publicUrl,
     ...(receiverPort !== undefined ? { receiverPort } : {}),
+    customer,
+    decide: (ctx) => decideWithSource(ctx, ai, lock),
     log: (line) => io.stdout(`${line}\n`),
   });
   let twin;
@@ -189,6 +195,7 @@ async function realCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
   }
   try {
     const report = await session.run();
+    if (lock.size > 0) lock.save();
     const dir = values['report-dir'] ?? join('.fastforward', 'real', report.subscriptionId ?? 'stopped-early');
     mkdirSync(dir, { recursive: true });
     const path = join(dir, 'real-report.json');
@@ -205,6 +212,7 @@ async function realCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
 
 function formatRealReport(report: RealReport): string {
   const lines = [`Real PayPal sandbox, subscription ${report.subscriptionId ?? '(not created)'}`];
+  if (report.decision) lines.push(`${report.decision.customer} chose: ${report.decision.decision.action}, ${report.decision.by === 'model' ? 'decided by Claude' : 'scripted default, Claude did not decide'}`);
   for (const a of report.actions.filter((x) => x.expects)) {
     lines.push(`  ${a.name.padEnd(20)} ${a.noticeSeconds === undefined ? `${a.expects} did not arrive in time` : `notice after ${a.noticeSeconds.toFixed(0)} s`}`);
   }

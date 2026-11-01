@@ -1,9 +1,11 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import type { Scenario } from '@fastforward/contracts';
+import type { Customer, CustomerDecision, DecisionBy, Scenario } from '@fastforward/contracts';
 import { afterEach, describe, expect, it } from 'vitest';
-import { createTwin, RealSession, type Twin } from '../src/index.js';
+import { createTwin, pickRealCustomer, RealSession, type DecisionContext, type Twin } from '../src/index.js';
 import { FakeApp } from './support/fake-app.js';
+
+const leo: Customer = { name: 'Leo', email: 'leo@example.test', persona: 'Busy, rarely reads email.', card: { kind: 'fails_from', date: '2026-12-01' }, actions: [] };
 
 const close = (server: Server) => new Promise<void>((resolve) => server.close(() => resolve()));
 const listen = (server: Server) => new Promise<string>((resolve) => server.listen(0, '127.0.0.1', () => resolve(`http://127.0.0.1:${(server.address() as AddressInfo).port}`)));
@@ -121,11 +123,12 @@ describe('RealSession', () => {
     for (const fn of cleanups.splice(0)) await fn();
   });
 
-  async function setUp(sandboxOpts: Parameters<typeof fakeSandbox>[0] = {}, appOpts: Parameters<typeof fakeApp>[1] = {}, waitMs = 2000) {
+  async function setUp(sandboxOpts: Parameters<typeof fakeSandbox>[0] = {}, appOpts: Parameters<typeof fakeApp>[1] = {}, waitMs = 2000, decision: CustomerDecision = { action: 'update_card' }, by: DecisionBy = 'model') {
     const sandbox = fakeSandbox(sandboxOpts);
     const sandboxUrl = await listen(sandbox.server);
     let twin: Twin | undefined;
     const app = fakeApp(() => twin!.url, appOpts);
+    const asked: DecisionContext[] = [];
     const appUrl = await listen(app.server);
     // The sandbox posts straight to the receiver in place of a tunnel, so the public address is the receiver itself.
     const session: RealSession = new RealSession({
@@ -135,10 +138,15 @@ describe('RealSession', () => {
       receiverPort: 47811,
       sandboxBase: sandboxUrl,
       waitMs,
+      customer: leo,
+      decide: async (ctx) => {
+        asked.push(ctx);
+        return { decision, by };
+      },
     });
     twin = await createTwin({ port: 0, real: session, upstreamBase: sandboxUrl });
     cleanups.push(() => close(sandbox.server), () => close(app.server), () => twin!.close());
-    return { sandbox, app, session, twin };
+    return { sandbox, app, session, twin, asked };
   }
 
   it('runs a real subscription and has real PayPal verify every real notice', async () => {
@@ -147,7 +155,7 @@ describe('RealSession', () => {
 
     expect(report.error).toBeUndefined();
     expect(report.subscriptionId).toBe('I-REAL');
-    expect(report.actions.map((a) => a.name)).toEqual(['create product', 'create plan', 'create subscription', 'suspend', 'activate', 'cancel', 'resend a notice']);
+    expect(report.actions.map((a) => a.name)).toEqual(['create product', 'create plan', 'create subscription', 'suspend', 'activate', 'cancel (end of run)', 'resend a notice']);
     for (const action of report.actions.filter((a) => a.expects)) expect(action.noticeSeconds).toBeTypeOf('number');
     expect(report.notices.map((n) => n.eventType)).toEqual([
       'BILLING.SUBSCRIPTION.ACTIVATED',
@@ -161,6 +169,45 @@ describe('RealSession', () => {
     expect(sandbox.verifyBodies.every((b) => b.webhook_id === 'REAL-WEBHOOK-ID')).toBe(true);
     expect(sandbox.verifyBodies).toHaveLength(5);
     expect(app.received[0]!.headers['paypal-transmission-sig']).toBe('c2ln');
+  });
+
+  it('asks the customer only after the suspension, in character', async () => {
+    const { session, asked, sandbox } = await setUp();
+    const report = await session.run();
+    expect(asked).toHaveLength(1);
+    expect(asked[0]).toMatchObject({ key: 'Leo:payment_failed:1', customer: leo, point: 'payment_failed' });
+    expect(report.decision).toEqual({ customer: 'Leo', decision: { action: 'update_card' }, by: 'model' });
+    const urls = sandbox.calls.map((c) => c.url);
+    expect(urls.findIndex((u) => u.endsWith('/suspend'))).toBeLessThan(urls.findIndex((u) => u.endsWith('/activate')));
+  });
+
+  it('a customer who cancels cancels on real PayPal, and nothing reactivates', async () => {
+    const { session, sandbox } = await setUp({}, {}, 2000, { action: 'cancel' });
+    const report = await session.run();
+    expect(report.actions.map((a) => a.name)).toEqual(['create product', 'create plan', 'create subscription', 'suspend', 'cancel', 'resend a notice']);
+    expect(sandbox.calls.some((c) => c.url.endsWith('/activate'))).toBe(false);
+    expect(sandbox.calls.filter((c) => c.url.endsWith('/cancel'))).toHaveLength(1);
+  });
+
+  it('a customer who ignores it stays suspended until the run ends', async () => {
+    const { session, sandbox } = await setUp({}, {}, 2000, { action: 'ignore' });
+    const report = await session.run();
+    expect(report.actions.map((a) => a.name)).toEqual(['create product', 'create plan', 'create subscription', 'suspend', 'cancel (end of run)', 'resend a notice']);
+    expect(sandbox.calls.some((c) => c.url.endsWith('/activate'))).toBe(false);
+  });
+
+  it('a dispute is reported but never played on real PayPal', async () => {
+    const { session, sandbox } = await setUp({}, {}, 2000, { action: 'dispute', reason: 'OTHER', message: 'No.' });
+    const report = await session.run();
+    expect(report.decision?.decision.action).toBe('dispute');
+    expect(report.actions.map((a) => a.name)).toContain('cancel (end of run)');
+    expect(sandbox.calls.some((c) => c.url.includes('dispute'))).toBe(false);
+  });
+
+  it('says when the scripted default decided, not Claude', async () => {
+    const { session } = await setUp({}, {}, 2000, { action: 'ignore' }, 'scripted');
+    const report = await session.run();
+    expect(report.decision?.by).toBe('scripted');
   });
 
   it('marks the resent notice as a duplicate', async () => {
@@ -219,7 +266,7 @@ describe('RealSession', () => {
   });
 
   it('refuses a sandbox base that is live PayPal', () => {
-    expect(() => new RealSession({ creds: { clientId: 'a', clientSecret: 'b' }, appWebhookUrl: 'http://127.0.0.1:1', publicUrl: 'https://x.example', sandboxBase: 'https://api-m.paypal.com' })).toThrow(/refusing/);
+    expect(() => new RealSession({ creds: { clientId: 'a', clientSecret: 'b' }, appWebhookUrl: 'http://127.0.0.1:1', publicUrl: 'https://x.example', sandboxBase: 'https://api-m.paypal.com', customer: leo, decide: async () => ({ action: 'ignore' }) })).toThrow(/refusing/);
   });
 
   it("sends the app's subscription lookup to real PayPal, using the session's own token", async () => {
@@ -279,5 +326,18 @@ describe('RealSession', () => {
     expect(await res.text()).toBe('REAL-CERT');
     const report = await session.run();
     expect(report.certFetched).toBe(true);
+  });
+});
+
+describe('pickRealCustomer', () => {
+  const maya: Customer = { ...leo, name: 'Maya', card: { kind: 'ok' } };
+
+  it('takes the customer whose card fails', () => {
+    expect(pickRealCustomer([maya, leo])?.name).toBe('Leo');
+  });
+
+  it('falls back to the first customer', () => {
+    expect(pickRealCustomer([maya])?.name).toBe('Maya');
+    expect(pickRealCustomer([])).toBeUndefined();
   });
 });

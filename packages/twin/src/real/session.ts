@@ -1,6 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import type { Customer, CustomerDecision, DecisionBy } from '@fastforward/contracts';
+import type { RunDeps } from '../run/run.js';
 import { checkUpstreamBase, SANDBOX_BASE, SandboxToken, type SandboxCreds } from '../passthrough.js';
 
 /** What the twin's webhook routes need from a real run: real notices are checked by real PayPal, never by the twin. */
@@ -25,6 +27,10 @@ export interface RealSessionOptions {
   certBase?: string;
   /** How long to wait for each notice before saying it did not arrive. */
   waitMs?: number;
+  /** The customer played on the real subscription. */
+  customer: Customer;
+  /** Chooses what the customer does once PayPal has suspended them. */
+  decide: NonNullable<RunDeps['decide']>;
   log?: (line: string) => void;
 }
 
@@ -59,6 +65,8 @@ export interface RealReport {
   certFetched: boolean;
   /** How PayPal's resend went. It adds a duplicate test; a refusal does not undo what the other notices proved. */
   resend?: 'arrived' | 'not-arrived' | 'refused';
+  /** What the customer chose, and who chose it. Absent when the run stopped before they were asked. */
+  decision?: { customer: string; decision: CustomerDecision; by?: DecisionBy };
   /** Set when the run stopped early. The webhook is removed either way. */
   error?: string;
 }
@@ -72,12 +80,18 @@ const RESEND_RETRY_MS = 30_000;
 const FORWARD_TIMEOUT_MS = 30_000;
 const POLL_MS = 250;
 
+/** The customer whose card fails is the one with a decision to make; otherwise the first. */
+export function pickRealCustomer(customers: Customer[]): Customer | undefined {
+  return customers.find((c) => c.card.kind === 'fails_from') ?? customers[0];
+}
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * One real subscription on the real PayPal sandbox: created, suspended, activated and cancelled, with PayPal's own
- * notices passed unchanged to the app. It proves the app's handler against real payloads and real signatures. The
- * twin takes over from there, for the months the sandbox cannot reach.
+ * One real subscription on the real PayPal sandbox: created and suspended, then the customer's own choice is carried
+ * out, with PayPal's notices passed unchanged to the app. The suspension is real but its cause is not: the sandbox
+ * cannot fail a renewal, so the customer is told their card failed. It proves the app's handler against real payloads
+ * and real signatures. The twin takes over from there, for the months the sandbox cannot reach.
  */
 export class RealSession implements RealVerifier {
   private readonly base: string;
@@ -125,6 +139,7 @@ export class RealSession implements RealVerifier {
     let subscriptionId: string | null = null;
     let error: string | undefined;
     let resend: NonNullable<RealReport['resend']> | undefined;
+    let decision: RealReport['decision'];
     const act = async (name: string, path: string, body: unknown, expects?: string): Promise<{ id?: string }> => {
       const seen = expects ? this.count(expects, subscriptionId) : 0;
       const started = Date.now();
@@ -185,8 +200,14 @@ export class RealSession implements RealVerifier {
       subscriptionId = created.id ?? null;
       const path = `/v1/billing/subscriptions/${subscriptionId}`;
       await act('suspend', `${path}/suspend`, { reason: 'Fastforward real run' }, 'BILLING.SUBSCRIPTION.SUSPENDED');
-      await act('activate', `${path}/activate`, { reason: 'Fastforward real run' }, 'BILLING.SUBSCRIPTION.ACTIVATED');
-      await act('cancel', `${path}/cancel`, { reason: 'Fastforward real run' }, 'BILLING.SUBSCRIPTION.CANCELLED');
+
+      decision = await this.askCustomer();
+      this.log(`${decision.customer} chose: ${decision.decision.action} (${decision.by === 'model' ? 'decided by Claude' : 'scripted default, Claude did not decide'})`);
+      if (decision.decision.action === 'update_card') await act('activate', `${path}/activate`, { reason: 'Customer updated their card' }, 'BILLING.SUBSCRIPTION.ACTIVATED');
+      if (decision.decision.action === 'dispute') this.log('real PayPal: the sandbox API cannot open a dispute, so it is not played here. The simulated run covers disputes.');
+      // Every run ends cancelled, so no test subscription is left behind; only a customer's own cancel counts as theirs.
+      if (decision.decision.action === 'cancel') await act('cancel', `${path}/cancel`, { reason: 'Customer cancelled' }, 'BILLING.SUBSCRIPTION.CANCELLED');
+      else await act('cancel (end of run)', `${path}/cancel`, { reason: 'Fastforward real run ended' }, 'BILLING.SUBSCRIPTION.CANCELLED');
 
       // PayPal's own resend makes a genuine duplicate, with a real signature.
       const first = this.notices.find((n) => n.resourceId === subscriptionId);
@@ -222,8 +243,26 @@ export class RealSession implements RealVerifier {
       notices: this.notices.map(({ at: _at, ...n }) => ({ ...n, verify: this.verified.get(n.transmissionId) ?? 'not-asked' })),
       certFetched: this.certFetched,
       ...(resend ? { resend } : {}),
+      ...(decision ? { decision } : {}),
       ...(error ? { error } : {}),
     };
+  }
+
+  private async askCustomer(): Promise<NonNullable<RealReport['decision']>> {
+    const { customer } = this.opts;
+    try {
+      const out = await this.opts.decide({
+        key: `${customer.name}:payment_failed:1`,
+        customer,
+        point: 'payment_failed',
+        at: new Date().toISOString(),
+        details: 'Your card was declined and PayPal has suspended your subscription.',
+      });
+      const { decision, by } = 'decision' in out ? out : { decision: out, by: undefined };
+      return { customer: customer.name, decision, ...(by ? { by } : {}) };
+    } catch {
+      return { customer: customer.name, decision: { action: 'ignore' }, by: 'scripted' }; // a broken decide function must not stop the run
+    }
   }
 
   private count(eventType: string, resource: string | null): number {
