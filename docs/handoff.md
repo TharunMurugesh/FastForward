@@ -1,9 +1,60 @@
-STATUS: taken over 2026-10-27
+STATUS: waiting for the next Sara
 
 > For the next Sara: you are lead engineer and orchestrator (method in ~/.claude/CLAUDE.md). Project: the
 > **PayPal AI Hackathon**, product **Fastforward**. Read the project memories first (they load with MEMORY.md),
 > then this note. It is the current state; git history has the detail. Older notes are in git
 > (`git log -- docs/handoff.md`), do not dig through them unless something here is unclear.
+
+# Handoff: 1 Nov 2026
+
+## Read this first: what changed on 1 Nov
+Vinay caught the biggest risk himself: Fastforward imitated PayPal instead of integrating it, and the brief says
+"integrates the PayPal developer platform". **This section overrides the older parts of this note where they differ.**
+Decisions and evidence are in the project memory `project-paypal-time-machine`.
+
+**Decided:**
+- **Real PayPal run:** real sandbox first, the twin only for the months the sandbox can't reach. Every step labelled
+  Real PayPal or Simulated.
+- **Pitch:** "the test clock PayPal's sandbox is missing." Teams still pay $39; PayPal adopting it is upside only. No
+  story opening.
+- **Exact clone of the PayPal developer dashboard for the video, with the logo.** Vinay's decision, risk accepted, do
+  not re-argue. Conditions: video only, no public URL, no sign-in or payment screens, "Concept, not PayPal" always
+  visible (use the purple sandbox strip). "Test Clock" sits under Testing Tools beside Webhook Simulator, and holds our
+  whole app with every section. Whether this goes in the public repo is still open: the rules want all source there.
+  Screenshots: `screenshots/` (excluded through `.git/info/exclude`; they show sandbox emails and partial client ids).
+- **Video:** AI voice-over, generated first, then record the screen to it. Add a "today in PayPal versus with us"
+  comparison on real pages. PayPal's simulator page says it itself: "you cannot verify, resend an event notification
+  for, or show webhook details for simulator-generated events."
+- **Commits:** short, human, one change, like `fix duplicate bid watches on vercel`.
+
+**Built and live-tested (commits from 68eb941):** `fastforward real <scenario.yaml> --public-url <https://...>`, code in
+`packages/twin/src/real/session.ts`. On the third live run all 5 notices reached Coffee Club, it answered 200, and real
+PayPal said SUCCESS on every signature. The resend retry (404 once, cause unknown) passes unit tests but has not run
+live yet. Delivery varies, so the video uses a recorded take.
+
+**How to run it live.** Sara's shell may not open tunnels, so Vinay runs these in three PowerShell windows:
+1. Coffee Club: `$env:FASTFORWARD="1"; $env:PORT="3000"; $env:PAYPAL_CLIENT_ID="x"; $env:PAYPAL_CLIENT_SECRET="x"` then
+   `node --import fastforward-register examples/coffee-club/dist/server.js`
+2. `cloudflared tunnel --url http://localhost:4011`, then wait about a minute.
+3. `node packages/cli/dist/bin.js real examples/coffee-club/scenarios/bad-month.yaml --public-url https://NAME.trycloudflare.com`
+
+**Next, in order:**
+1. **Claude decides the real actions.** The steps are scripted now, and the pitch needs AI acting on real PayPal. Reuse
+   `decideWithSource` from `@fastforward/ai`. Check the Devpost wording stays true until this ships.
+2. **Show the real run in the report and dashboard** with Real PayPal and Simulated labels. Today it only prints and
+   writes `real-report.json`. Include a recording for the hosted demo, which holds no keys.
+3. **The clone**, under the conditions above.
+4. **Rewrite the video script and Devpost text:** new pitch, PayPal proof moved up, 10 to 15 seconds for the AI
+   customers, and replace "starting with other hackathon entrants" (Vinay won't reveal the idea to them). "Never
+   touches real PayPal" becomes "never touches *live* PayPal".
+5. **Vinay:** three real developers tried it by 7 Nov (`docs/outreach/linkedin.md`, table still empty). Short teach-back
+   so the video and text are in his words. No live pitch in the rules, so the 20-question drill is dropped.
+6. **Film by 8 Nov, submit by 11 Nov.**
+
+**Vinay's open items:** approve Higgsfield credits for voice samples (not yet answered). BidReady: a TinyFish monitor may
+still bill daily, and its no-login site can spend his credits (flagged, not yet answered).
+
+**Hackathon rules he set from his BidReady retro** are in `~/.claude/CLAUDE.md`.
 
 # Handoff: 27 Oct 2026
 
