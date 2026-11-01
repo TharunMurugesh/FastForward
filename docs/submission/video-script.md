@@ -1,16 +1,9 @@
 # Fastforward: demo video script
 
-Two videos come from this one script:
-
-- **The full tour** (scenes 1 to 15, about 12 to 15 minutes): everything Fastforward does. Put it on YouTube as
-  an extra and link it from the README.
-- **The 3-minute cut** (the scenes marked **CUT**): what goes on the Devpost form. The rules say the submitted
-  video must be **under 3 minutes** and public on YouTube (`docs/hackathon-details.md`). Judges may judge from the
-  video alone, so the cut has to show it working end to end and say who pays.
-
-Film the full tour once, slowly. Then record the cut separately (shorter lines, quicker clicks) rather than
-chopping the long take: it sounds more natural. Each scene below has **Show** (what is on screen), **Do** (the
-exact clicks or commands) and **Say** (the words). In the cut, say only the lines marked **(cut)**.
+**The video for the Devpost form is now `voiceover.md`.** It replaces the "(cut)" lines below, which are out of date:
+ignore them. This file is only the optional full tour (scenes 1 to 15, about 12 to 15 minutes), an extra for YouTube.
+Film it only if there is time left after submitting. Each scene has **Show** (what is on screen), **Do** (the exact
+clicks or commands) and **Say** (the words).
 
 Numbers to expect (check them on screen; if a take shows something else, say what the screen shows):
 **3 of 6 checks fail** with the recorded Claude customers, **6 of 6 pass** with the bugs off, Inkwell passes
