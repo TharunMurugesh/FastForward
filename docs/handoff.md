@@ -51,8 +51,8 @@ live yet. Delivery varies, so the video uses a recorded take.
    so the video and text are in his words. No live pitch in the rules, so the 20-question drill is dropped.
 6. **Film by 8 Nov, submit by 11 Nov.**
 
-**Vinay's open items:** approve Higgsfield credits for voice samples (not yet answered). BidReady: a TinyFish monitor may
-still bill daily, and its no-login site can spend his credits (flagged, not yet answered).
+**Vinay's open item:** approve Higgsfield credits for voice samples (not yet answered). This session is PayPal only: he
+said not to raise BidReady.
 
 **Hackathon rules he set from his BidReady retro** are in `~/.claude/CLAUDE.md`.
 
