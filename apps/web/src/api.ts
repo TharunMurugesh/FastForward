@@ -1,5 +1,6 @@
 import type { Report, TraceEntry } from '@fastforward/contracts';
 import type { FidelityFile } from './fidelity.js';
+import type { RealRunFile } from './realRun.js';
 
 /** What `GET /_ff/runs/:id` returns (spec section 9). */
 export interface RunInfo {
@@ -44,6 +45,16 @@ export const api = {
       const res = await fetch('/fidelity/latest.json');
       if (!res.ok || !(res.headers.get('content-type') ?? '').includes('json')) return null;
       return (await res.json()) as FidelityFile;
+    } catch {
+      return null;
+    }
+  },
+  /** Committed recording from `fastforward real --report-dir fidelity`; null until one is recorded. */
+  async realRun(): Promise<RealRunFile | null> {
+    try {
+      const res = await fetch('/fidelity/real-report.json');
+      if (!res.ok || !(res.headers.get('content-type') ?? '').includes('json')) return null;
+      return (await res.json()) as RealRunFile;
     } catch {
       return null;
     }

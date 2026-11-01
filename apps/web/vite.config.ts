@@ -4,16 +4,20 @@ import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
 
-const fidelityFile = fileURLToPath(new URL('../../fidelity/latest.json', import.meta.url));
+const evidence: Record<string, string> = {
+  '/fidelity/latest.json': fileURLToPath(new URL('../../fidelity/latest.json', import.meta.url)),
+  '/fidelity/real-report.json': fileURLToPath(new URL('../../fidelity/real-report.json', import.meta.url)),
+};
 
-/** Serves the committed fidelity evidence (repo-root fidelity/latest.json, written by `npm run fidelity`). */
+/** Serves the committed evidence: repo-root fidelity/latest.json (`npm run fidelity`) and real-report.json (`fastforward real`). */
 function fidelityEvidence(): Plugin {
   // Braces on purpose: Vite treats a function returned from configureServer as a post-hook.
   const serve = (server: { middlewares: { use: (fn: (req: any, res: any, next: () => void) => void) => void } }): void => {
     server.middlewares.use((req, res, next) => {
-      if (req.url?.split('?')[0] !== '/fidelity/latest.json' || !existsSync(fidelityFile)) return next();
+      const file = evidence[req.url?.split('?')[0] ?? ''];
+      if (!file || !existsSync(file)) return next();
       res.setHeader('Content-Type', 'application/json');
-      res.end(readFileSync(fidelityFile));
+      res.end(readFileSync(file));
     });
   };
   return { name: 'fidelity-evidence', configureServer: serve, configurePreviewServer: serve };

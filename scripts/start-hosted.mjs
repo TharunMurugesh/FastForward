@@ -4,7 +4,7 @@
  *   - the twin (stand-in PayPal) on 4010
  *   - Coffee Club on 3000, with the register add-on preloaded and FASTFORWARD=1
  *   - the built dashboard on $PORT (default 8080), which also proxies /_ff/* to the twin,
- *     /demo/* to Coffee Club, and serves /fidelity/latest.json
+ *     /demo/* to Coffee Club, and serves the evidence in fidelity/
  * With `--run` (or FF_DEMO_RUN=1) it then plays the bad-month scenario once, and the dashboard's
  * front page opens on that run. AI is off and no PayPal sandbox keys are passed on: it needs no .env.
  * Build first: npm run build && npm run build -w @fastforward/web
@@ -23,7 +23,7 @@ const PORT = Number(process.env.PORT ?? 8080);
 const SCENARIO = process.env.FF_SCENARIO ?? 'examples/coffee-club/scenarios/bad-month.yaml';
 const DEFAULT_BUGS = 'no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order';
 const webDir = join(root, 'apps/web/dist/app');
-const fidelityFile = join(root, 'fidelity/latest.json');
+const evidence = { '/fidelity/latest.json': join(root, 'fidelity/latest.json'), '/fidelity/real-report.json': join(root, 'fidelity/real-report.json') };
 
 const children = [];
 const fail = (message) => {
@@ -128,13 +128,13 @@ const server = createServer((req, res) => {
   if (path === '/_ff' || path.startsWith('/_ff/')) return proxy(req, res, TWIN_PORT, req.url);
   if (path === '/demo' || path.startsWith('/demo/')) return proxy(req, res, COFFEE_PORT, (req.url ?? '').slice('/demo'.length) || '/');
 
-  if (path === '/fidelity/latest.json') {
-    if (!existsSync(fidelityFile)) {
+  if (Object.hasOwn(evidence, path)) {
+    if (!existsSync(evidence[path])) {
       res.writeHead(404);
       return res.end();
     }
     res.writeHead(200, { 'content-type': 'application/json' });
-    return res.end(readFileSync(fidelityFile));
+    return res.end(readFileSync(evidence[path]));
   }
 
   // The front page opens on the demo run, so a visitor with no run id still sees something real.

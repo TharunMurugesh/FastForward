@@ -5,6 +5,7 @@ describe('parseTab', () => {
   it('reads the tab from the address', () => {
     expect(parseTab('#deliveries')).toBe('deliveries');
     expect(parseTab('match')).toBe('match');
+    expect(parseTab('#real')).toBe('real');
   });
   it('falls back to the overview for an empty or unknown tab', () => {
     expect(parseTab('')).toBe('overview');

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export const TABS = ['overview', 'timeline', 'deliveries', 'disputes', 'match'] as const;
+export const TABS = ['overview', 'real', 'timeline', 'deliveries', 'disputes', 'match'] as const;
 export type Tab = (typeof TABS)[number];
 
 /** The tab named in the address (`#deliveries`); anything unknown falls back to the overview. */

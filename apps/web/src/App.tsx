@@ -1,5 +1,5 @@
 import type { CheckId } from '@fastforward/contracts';
-import { BookOpen, CalendarClock, History, ChartGantt, CirclePlay, Film, FlaskConical, Hash, Wrench, CircleCheck, Play, FastForward, GitCompareArrows, Hourglass, Info, LayoutDashboard, LoaderCircle, MessagesSquare, Table2, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarClock, History, ChartGantt, Landmark, CirclePlay, Film, FlaskConical, Hash, Wrench, CircleCheck, Play, FastForward, GitCompareArrows, Hourglass, Info, LayoutDashboard, LoaderCircle, MessagesSquare, Table2, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BUG_LABELS, fmtDate, fmtDateYear } from './format.js';
 import { DeliveriesGrid } from './grids/DeliveriesGrid.js';
@@ -7,6 +7,7 @@ import { FidelityGrid } from './grids/FidelityGrid.js';
 import { toDeliveryRows, toNoticeRows } from './grids/rows.js';
 import { DisputeChat } from './panels/DisputeChat.js';
 import { EventInspector } from './panels/EventInspector.js';
+import { RealRun } from './panels/RealRun.js';
 import { FixDrawer } from './panels/FixDrawer.js';
 import { Overview, ProblemCard } from './panels/Overview.js';
 import { CheckBadge, Story } from './checkLook.js';
@@ -22,6 +23,7 @@ const DAY_MS = 86_400_000;
 
 const TAB_LOOK: Record<Tab, { label: string; icon: LucideIcon }> = {
   overview: { label: 'Overview', icon: LayoutDashboard },
+  real: { label: 'Real PayPal', icon: Landmark },
   timeline: { label: 'Timeline', icon: ChartGantt },
   deliveries: { label: 'Deliveries', icon: Table2 },
   disputes: { label: 'Disputes', icon: MessagesSquare },
@@ -178,7 +180,7 @@ export function App() {
 
         {/* One row per fact, icon first, so the status reads as a list rather than loose tags. */}
         <ul className="run-status" aria-label="Run status">
-          <li className="sim" title="Nothing here is real money or real PayPal traffic">
+          <li className="sim" title="This month is simulated. Only the Real PayPal page shows real sandbox traffic, and none of it is real money">
             <FlaskConical size={14} aria-hidden="true" /> Simulated
           </li>
           {live && (
@@ -245,7 +247,7 @@ export function App() {
 
       <div className="page">
 
-      {mode === 'sample' && run.note && run.sample && (
+      {tab !== 'real' && mode === 'sample' && run.note && run.sample && (
         <div className="banner" role="status">
           <Info size={18} aria-hidden="true" />
           <div>
@@ -268,7 +270,7 @@ export function App() {
       <h2 className="page-title">{TAB_LOOK[tab].label}</h2>
 
       <main role="tabpanel" aria-label={TAB_LOOK[tab].label}>
-        {loading && tab !== 'match' ? (
+        {loading && tab !== 'match' && tab !== 'real' ? (
           <Skeleton shape={tab === 'overview' ? 'overview' : tab === 'timeline' ? 'timeline' : 'table'} />
         ) : (
           <>
@@ -361,13 +363,14 @@ export function App() {
             )}
           </>
         )}
+        {tab === 'real' && <RealRun report={run.realRun} onOpenTimeline={() => openTab('timeline')} />}
         {tab === 'match' && <FidelityGrid file={run.fidelity} isSample={run.fidelityIsSample} />}
       </main>
 
       <FixDrawer check={explaining} report={report} onClose={closeDrawer} onOpenNotice={openNotice} onShowNotices={showNotices} />
 
       <footer className="foot muted">
-        Fastforward is a simulator. Webhooks carry an <code>X-Fastforward-Run</code> header and nothing here touches live PayPal.
+        Simulated webhooks carry an <code>X-Fastforward-Run</code> header. Nothing here touches live PayPal.
       </footer>
       </div>
     </div>

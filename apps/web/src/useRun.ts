@@ -2,6 +2,7 @@ import type { CheckResult, Report, TraceEntry } from '@fastforward/contracts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type RunInfo } from './api.js';
 import type { FidelityFile } from './fidelity.js';
+import type { RealRunFile } from './realRun.js';
 import type { RecordedRun } from './fixtures/bad-month.js';
 import { sampleFidelity } from './fixtures/fidelity.js';
 
@@ -23,6 +24,7 @@ export interface RunState {
   report: Report | null;
   fidelity: FidelityFile;
   fidelityIsSample: boolean;
+  realRun: RealRunFile | null;
   busy: boolean;
 }
 
@@ -84,6 +86,7 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
     report: null,
     fidelity: sampleFidelity,
     fidelityIsSample: true,
+    realRun: null,
     busy: false,
   }));
   const live = useRef<{ id: string } | null>(null);
@@ -133,6 +136,9 @@ export function useRun(): RunState & { moveTo: (iso: string) => void; moveBy: (d
     let cancelled = false;
     void api.fidelity().then((f) => {
       if (f && !cancelled) setState((s) => ({ ...s, fidelity: f, fidelityIsSample: false }));
+    });
+    void api.realRun().then((realRun) => {
+      if (realRun && !cancelled) setState((s) => ({ ...s, realRun }));
     });
     if (!runId) {
       void useSample('No run id in the address (add ?run=<id>).');

@@ -1749,3 +1749,75 @@ button.link {
     flex: 1;
   }
 }
+
+/* ---------- Real PayPal ---------- */
+.real-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 10px;
+}
+.real-steps li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.real-steps li.real {
+  border-left: 3px solid var(--info);
+}
+.real-steps .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.real-steps p {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+.real-notices {
+  overflow-x: auto;
+}
+.real-notices table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.real-notices th,
+.real-notices td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.real-notices td .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+.real-notices code {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .real-notices table {
+    table-layout: fixed;
+  }
+  .real-notices th,
+  .real-notices td {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+  .real-notices td .chip {
+    margin: 4px 0 0;
+  }
+}
+@media (max-width: 420px) {
+  .real-steps {
+    grid-template-columns: 1fr;
+  }
+}
