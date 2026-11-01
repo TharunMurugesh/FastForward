@@ -195,7 +195,9 @@ async function realCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
     writeFileSync(path, JSON.stringify(report, null, 2) + '\n');
     io.stdout(`\n${formatRealReport(report)}\nSaved to ${path}\n`);
     if (report.error) return 2;
-    return report.notices.length > 0 && report.notices.every((n) => n.verify === 'SUCCESS' || report.certFetched) ? 0 : 1;
+    const handled = (n: RealReport['notices'][number]) => (n.verify === 'SUCCESS' || report.certFetched) && n.appStatus !== null && n.appStatus >= 200 && n.appStatus < 300;
+    const arrived = report.actions.every((a) => !a.expects || a.noticeSeconds !== undefined);
+    return arrived && report.notices.length > 0 && report.notices.every(handled) ? 0 : 1;
   } finally {
     await twin.close();
   }
@@ -209,7 +211,7 @@ function formatRealReport(report: RealReport): string {
   lines.push('Notices passed to your app:');
   for (const n of report.notices) {
     const verify = n.verify === 'not-asked' ? (report.certFetched ? 'checked offline, or not at all' : 'signature NOT checked') : `PayPal said ${n.verify}`;
-    lines.push(`  ${n.eventType}${n.duplicate ? ' (duplicate)' : ''}: your app answered ${n.appStatus ?? 'nothing'}, ${verify}`);
+    lines.push(`  ${n.eventType}${n.duplicate ? ' (sent again by PayPal)' : ''}: your app answered ${n.appStatus ?? 'nothing'}, ${verify}`);
   }
   if (report.notices.length === 0) lines.push('  none arrived. Check that the public address reaches the receiver port.');
   if (report.error) lines.push(`Stopped early: ${report.error}`);

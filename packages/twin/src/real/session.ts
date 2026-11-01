@@ -8,6 +8,8 @@ export interface RealVerifier {
   owns(transmissionId: string): boolean;
   verify(body: Record<string, unknown>): Promise<{ status: number; body: unknown }>;
   fetchCert(certId: string): Promise<{ status: number; body: string }>;
+  /** The app's own PayPal calls during a real run: its subscription is at PayPal, so the answer has to come from there. */
+  forward(method: string, url: string, body: unknown): Promise<{ status: number; body: unknown }>;
 }
 
 export interface RealSessionOptions {
@@ -41,6 +43,7 @@ export interface RealNotice {
   eventType: string;
   resourceId?: string;
   transmissionId: string;
+  /** PayPal sent this event before: our resend, or its own retry after the app answered with an error. */
   duplicate: boolean;
   /** What the app answered. Null when the app could not be reached. */
   appStatus: number | null;
@@ -60,6 +63,8 @@ export interface RealReport {
 
 const EVENT_TYPES = ['BILLING.SUBSCRIPTION.ACTIVATED', 'BILLING.SUBSCRIPTION.SUSPENDED', 'BILLING.SUBSCRIPTION.CANCELLED', 'PAYMENT.SALE.COMPLETED'];
 const MAX_BODY = 1024 * 1024;
+/** Sandbox delivery varies: 10 to 54 seconds when it came, and one notice took over 2 minutes (1 Nov 2026). */
+const DEFAULT_WAIT_MS = 180_000;
 const FORWARD_TIMEOUT_MS = 30_000;
 const POLL_MS = 250;
 
@@ -105,6 +110,10 @@ export class RealSession implements RealVerifier {
     this.certFetched = true;
     const res = await fetch(`${this.certBase}/v1/notifications/certs/${encodeURIComponent(certId)}`);
     return { status: res.status, body: await res.text() };
+  }
+
+  forward(method: string, url: string, body: unknown): Promise<{ status: number; body: unknown }> {
+    return this.api(method, url, body);
   }
 
   async run(): Promise<RealReport> {
@@ -206,7 +215,7 @@ export class RealSession implements RealVerifier {
   }
 
   private async waitFor(done: () => boolean): Promise<boolean> {
-    const deadline = Date.now() + (this.opts.waitMs ?? 60_000);
+    const deadline = Date.now() + (this.opts.waitMs ?? DEFAULT_WAIT_MS);
     while (Date.now() < deadline) {
       if (done()) return true;
       await sleep(POLL_MS);

@@ -1,7 +1,9 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import type { Scenario } from '@fastforward/contracts';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createTwin, RealSession, type Twin } from '../src/index.js';
+import { FakeApp } from './support/fake-app.js';
 
 const close = (server: Server) => new Promise<void>((resolve) => server.close(() => resolve()));
 const listen = (server: Server) => new Promise<string>((resolve) => server.listen(0, '127.0.0.1', () => resolve(`http://127.0.0.1:${(server.address() as AddressInfo).port}`)));
@@ -65,6 +67,7 @@ function fakeSandbox(opts: { rejectAt?: string; silent?: string } = {}) {
     }
     if (url === '/v1/catalogs/products') return send(201, { id: 'PROD-1' });
     if (url === '/v1/billing/plans') return send(201, { id: 'P-1' });
+    if (req.method === 'GET' && url === '/v1/billing/subscriptions/I-REAL') return send(200, { id: 'I-REAL', status: 'ACTIVE' });
     if (url === '/v1/billing/subscriptions') {
       notify('BILLING.SUBSCRIPTION.ACTIVATED', 'I-REAL');
       return send(201, { id: 'I-REAL', status: 'ACTIVE' });
@@ -198,6 +201,38 @@ describe('RealSession', () => {
 
   it('refuses a sandbox base that is live PayPal', () => {
     expect(() => new RealSession({ creds: { clientId: 'a', clientSecret: 'b' }, appWebhookUrl: 'http://127.0.0.1:1', publicUrl: 'https://x.example', sandboxBase: 'https://api-m.paypal.com' })).toThrow(/refusing/);
+  });
+
+  it("sends the app's subscription lookup to real PayPal, using the session's own token", async () => {
+    const { twin, sandbox } = await setUp();
+    const res = await fetch(`${twin.url}/v1/billing/subscriptions/I-REAL`, { headers: { authorization: 'Bearer FF-APP-TOKEN' } });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ id: 'I-REAL', status: 'ACTIVE' });
+    expect(sandbox.calls.some((c) => c.method === 'GET' && c.url === '/v1/billing/subscriptions/I-REAL')).toBe(true);
+  });
+
+  it('leaves simulated runs to the twin even with a real session present', async () => {
+    const { twin, sandbox } = await setUp();
+    const shop = new FakeApp({ twinUrl: twin.url });
+    await shop.start();
+    cleanups.push(() => shop.close());
+    const scenario: Scenario = {
+      name: 'simulated',
+      seed: 1,
+      start: '2026-11-01T00:00:00.000Z',
+      durationDays: 40,
+      app: { webhookUrl: shop.webhookUrl, webhookId: 'WH-FF-LOCAL', subscribeUrl: shop.subscribeUrl, probeUrl: shop.probeUrl },
+      plan: { name: 'Monthly', price: '12.00', currency: 'USD', interval: 'MONTH', trialDays: 0, totalCycles: 0, paymentFailureThreshold: 2 },
+      customers: [{ name: 'Maya', email: 'maya@example.test', persona: '', card: { kind: 'ok' }, actions: [] }],
+      weather: { duplicates: 0, reorder: 0, delayMinutes: [0, 0], forged: 0, burst: false },
+      expect: { accessWhile: ['ACTIVE'] },
+    };
+    const created = await fetch(`${twin.url}/_ff/runs`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ scenario }) });
+    expect(created.status, await created.clone().text()).toBe(201);
+
+    const res = await fetch(`${twin.url}/v1/billing/subscriptions/I-REAL`);
+    expect(res.status).toBe(404); // the twin's own answer: it has never heard of this subscription
+    expect(sandbox.calls.some((c) => c.url.startsWith('/v1/billing'))).toBe(false);
   });
 
   it('leaves the twin to verify its own notices', async () => {

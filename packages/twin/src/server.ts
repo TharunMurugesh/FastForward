@@ -75,6 +75,16 @@ export async function createTwin(opts: TwinOptions = {}): Promise<Twin> {
     run.record({ at: run.now().toISOString(), kind: 'app_call', method: req.method, path, status: reply.statusCode });
   });
 
+  // During a real PayPal run the app's subscription lives at PayPal, so its calls go there. A simulated run wins.
+  if (opts.real) {
+    const real = opts.real;
+    app.addHook('preHandler', async (req, reply) => {
+      if (registry.active() || !/^\/v1\/(billing|catalogs|customer)\//.test(pathOf(req.url))) return;
+      const answer = await real.forward(req.method, req.url, req.body);
+      return reply.code(answer.status).send(answer.body ?? undefined);
+    });
+  }
+
   app.post('/v1/oauth2/token', async () => ({
     scope: 'https://uri.paypal.com/services/subscriptions https://api-m.paypal.com/v1/payments/.*',
     access_token: `FF-${randomBytes(24).toString('base64url')}`,
