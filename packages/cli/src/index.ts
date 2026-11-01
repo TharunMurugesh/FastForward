@@ -214,6 +214,8 @@ function formatRealReport(report: RealReport): string {
     lines.push(`  ${n.eventType}${n.duplicate ? ' (sent again by PayPal)' : ''}: your app answered ${n.appStatus ?? 'nothing'}, ${verify}`);
   }
   if (report.notices.length === 0) lines.push('  none arrived. Check that the public address reaches the receiver port.');
+  if (report.resend === 'refused') lines.push('Duplicate test: PayPal refused the resend, so it was not tested.');
+  if (report.resend === 'not-arrived') lines.push('Duplicate test: PayPal accepted the resend, but it did not arrive in time.');
   if (report.error) lines.push(`Stopped early: ${report.error}`);
   return lines.join('\n') + '\n';
 }

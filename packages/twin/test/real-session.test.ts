@@ -15,7 +15,8 @@ async function readBody(req: AsyncIterable<unknown>): Promise<string> {
 }
 
 /** A stand-in for the real sandbox: answers the session's calls and posts a signed-looking notice for each action. */
-function fakeSandbox(opts: { rejectAt?: string; silent?: string } = {}) {
+function fakeSandbox(opts: { rejectAt?: string; silent?: string; refuseResendTimes?: number } = {}) {
+  let resendRefusals = opts.refuseResendTimes ?? 0;
   const calls: { method: string; url: string; body: string }[] = [];
   const verifyBodies: Record<string, any>[] = [];
   const events = new Map<string, { type: string; resource: string }>();
@@ -79,6 +80,7 @@ function fakeSandbox(opts: { rejectAt?: string; silent?: string } = {}) {
     }
     const resend = /webhooks-events\/([^/]+)\/resend$/.exec(url)?.[1];
     if (resend) {
+      if (resendRefusals-- > 0) return send(404, { name: 'RESOURCE_NOT_FOUND' });
       notify(events.get(resend)!.type, events.get(resend)!.resource, resend);
       return send(202, { id: resend });
     }
@@ -197,6 +199,23 @@ describe('RealSession', () => {
     const report = await session.run();
     expect(report.error).toContain('suspend');
     expect(sandbox.calls.some((c) => c.method === 'DELETE' && c.url === '/v1/notifications/webhooks/REAL-WEBHOOK-ID')).toBe(true);
+  });
+
+  it('keeps the result when PayPal keeps refusing the resend, and says no duplicate was tested', async () => {
+    const { session, sandbox } = await setUp({ rejectAt: '/resend' }, {}, 300);
+    const report = await session.run();
+    expect(report.error).toBeUndefined();
+    expect(report.resend).toBe('refused');
+    expect(report.notices.filter((n) => n.duplicate)).toHaveLength(0);
+    expect(sandbox.calls.filter((c) => c.url.endsWith('/resend'))).toHaveLength(6);
+    expect(sandbox.calls.some((c) => c.method === 'DELETE')).toBe(true);
+  });
+
+  it('asks again when the resend is refused at first', async () => {
+    const { session } = await setUp({ refuseResendTimes: 2 }, {}, 600);
+    const report = await session.run();
+    expect(report.resend).toBe('arrived');
+    expect(report.notices.filter((n) => n.duplicate)).toHaveLength(1);
   });
 
   it('refuses a sandbox base that is live PayPal', () => {

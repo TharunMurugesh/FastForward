@@ -57,6 +57,8 @@ export interface RealReport {
   notices: RealNotice[];
   /** The app downloaded PayPal's real signing certificate, so it may verify offline. */
   certFetched: boolean;
+  /** How PayPal's resend went. It adds a duplicate test; a refusal does not undo what the other notices proved. */
+  resend?: 'arrived' | 'not-arrived' | 'refused';
   /** Set when the run stopped early. The webhook is removed either way. */
   error?: string;
 }
@@ -65,6 +67,8 @@ const EVENT_TYPES = ['BILLING.SUBSCRIPTION.ACTIVATED', 'BILLING.SUBSCRIPTION.SUS
 const MAX_BODY = 1024 * 1024;
 /** Sandbox delivery varies: 10 to 54 seconds when it came, and one notice took over 2 minutes (1 Nov 2026). */
 const DEFAULT_WAIT_MS = 180_000;
+const RESEND_ATTEMPTS = 6;
+const RESEND_RETRY_MS = 30_000;
 const FORWARD_TIMEOUT_MS = 30_000;
 const POLL_MS = 250;
 
@@ -120,6 +124,7 @@ export class RealSession implements RealVerifier {
     const actions: RealAction[] = [];
     let subscriptionId: string | null = null;
     let error: string | undefined;
+    let resend: NonNullable<RealReport['resend']> | undefined;
     const act = async (name: string, path: string, body: unknown, expects?: string): Promise<{ id?: string }> => {
       const seen = expects ? this.count(expects, subscriptionId) : 0;
       const started = Date.now();
@@ -187,9 +192,23 @@ export class RealSession implements RealVerifier {
       const first = this.notices.find((n) => n.resourceId === subscriptionId);
       if (first) {
         const before = this.notices.filter((n) => n.eventId === first.eventId).length;
-        await act('resend a notice', `/v1/notifications/webhooks-events/${first.eventId}/resend`, { webhook_ids: [this.webhookId] });
-        const arrived = await this.waitFor(() => this.notices.filter((n) => n.eventId === first.eventId).length > before);
-        this.log(arrived ? 'real PayPal: the duplicate reached your app' : 'real PayPal: the duplicate did not arrive in time');
+        // A notice can be refused with 404 for a while after delivery (seen once, 1 Nov 2026), so ask again before giving up.
+        const retryMs = Math.min((this.opts.waitMs ?? DEFAULT_WAIT_MS) / RESEND_ATTEMPTS, RESEND_RETRY_MS);
+        let refusedWith = 0;
+        for (let attempt = 1; attempt <= RESEND_ATTEMPTS; attempt++) {
+          const res = await this.api('POST', `/v1/notifications/webhooks-events/${first.eventId}/resend`, { webhook_ids: [this.webhookId] });
+          refusedWith = res.status < 300 ? 0 : res.status;
+          if (refusedWith === 0) break;
+          this.log(`real PayPal: resend refused (${res.status}), attempt ${attempt} of ${RESEND_ATTEMPTS}`);
+          if (attempt < RESEND_ATTEMPTS) await sleep(retryMs);
+        }
+        if (refusedWith !== 0) {
+          resend = 'refused';
+        } else {
+          actions.push({ name: 'resend a notice', status: 202, sandboxId: first.eventId });
+          resend = (await this.waitFor(() => this.notices.filter((n) => n.eventId === first.eventId).length > before)) ? 'arrived' : 'not-arrived';
+        }
+        this.log({ arrived: 'real PayPal: the duplicate reached your app', 'not-arrived': 'real PayPal: the duplicate did not arrive in time', refused: 'real PayPal: PayPal refused the resend, so no duplicate was tested' }[resend]);
       }
     } catch (err) {
       error = (err as Error).message;
@@ -202,6 +221,7 @@ export class RealSession implements RealVerifier {
       actions,
       notices: this.notices.map(({ at: _at, ...n }) => ({ ...n, verify: this.verified.get(n.transmissionId) ?? 'not-asked' })),
       certFetched: this.certFetched,
+      ...(resend ? { resend } : {}),
       ...(error ? { error } : {}),
     };
   }
