@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export const TABS = ['overview', 'real', 'timeline', 'deliveries', 'disputes', 'match'] as const;
+export const TABS = ['choose', 'watch', 'result', 'details'] as const;
 export type Tab = (typeof TABS)[number];
 
-/** The tab named in the address (`#deliveries`); anything unknown falls back to the overview. */
+/** The step named in the address (`#result`); anything unknown falls back to the first step. */
 export function parseTab(hash: string): Tab {
   const name = hash.replace(/^#/, '');
-  return (TABS as readonly string[]).includes(name) ? (name as Tab) : 'overview';
+  return (TABS as readonly string[]).includes(name) ? (name as Tab) : 'choose';
 }
 
 /** The open tab, kept in the address so a link opens on the right page and Back goes to the previous tab. */

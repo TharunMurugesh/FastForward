@@ -139,7 +139,7 @@ const server = createServer((req, res) => {
 
   // The front page opens on the demo run, so a visitor with no run id still sees something real.
   if (path === '/' && demoRunId && !url.searchParams.has('run')) {
-    res.writeHead(302, { location: `/?run=${demoRunId}` });
+    res.writeHead(302, { location: `/?run=${demoRunId}${url.searchParams.has('embed') ? '&embed=1' : ''}` });
     return res.end();
   }
 

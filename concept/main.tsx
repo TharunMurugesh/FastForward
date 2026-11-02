@@ -1,11 +1,10 @@
-import { Activity, AppWindow, BookOpen, CalendarClock, ChevronDown, ChevronRight, ChevronUp, CircleCheck, CircleHelp, Clapperboard, Code, Coins, Copy, CreditCard, ExternalLink, FileText, Flag, Home, Inbox, Info, KeyRound, LayoutGrid, Menu, MessageSquare, Monitor, MoreVertical, Play, RefreshCw, Repeat, Search, Send, ShoppingCart, Users, Wrench, X, type LucideIcon } from 'lucide-react';
+import { Activity, AppWindow, BookOpen, CalendarClock, ChevronDown, ChevronRight, ChevronUp, CircleCheck, CircleHelp, Clapperboard, Code, CreditCard, ExternalLink, FileText, Home, Inbox, Info, KeyRound, LayoutGrid, Menu, MessageSquare, Monitor, MoreVertical, Repeat, Search, Send, ShoppingCart, Users, Wrench, X, type LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import report from '../fidelity/real-report.json';
 import './concept.css';
 
-const DASHBOARD_URL = 'http://localhost:8080/';
-const FREE_TESTS = 3;
+const DASHBOARD_URL = 'http://localhost:8080/?embed=1';
 
 interface Route {
   id: string;
@@ -637,79 +636,10 @@ function InfoPage({ route, go }: { route: Route; go: Go }) {
   );
 }
 
-const PLAYED: [string, string, LucideIcon][] = [
-  ['Renewals', 'Months of billing cycles, in seconds', RefreshCw],
-  ['Failed cards', 'Retries, then a suspended subscription', CreditCard],
-  ['Disputes', 'A customer complains, and the clock runs', Flag],
-  ['Duplicate notices', 'The same webhook, delivered twice', Copy],
-];
-
-function ClockPage({ credits, running, start, stop, say }: { credits: number; running: boolean; start: () => void; stop: () => void; say: Say }) {
-  const left = `${credits} free ${credits === 1 ? 'test' : 'tests'} left`;
-  if (running) {
-    return (
-      <div className="running">
-        <div className="running-bar">
-          <span>
-            <CalendarClock size={18} aria-hidden="true" /> Test Clock
-          </span>
-          <span className="credits">
-            <Coins size={16} aria-hidden="true" /> {left}
-            <button type="button" className="pill soft" onClick={stop}>
-              End test
-            </button>
-          </span>
-        </div>
-        <iframe title="Fastforward, running inside the concept" src={DASHBOARD_URL} />
-      </div>
-    );
-  }
+function ClockPage() {
   return (
-    <div className="content">
-      <h1>Test Clock</h1>
-      <p className="lead">Play months of renewals, failed cards and disputes against your app, in seconds, on the sandbox.</p>
-      <div className="note warm">
-        <Info size={18} aria-hidden="true" />
-        <span>
-          <strong>Before each test</strong> we check that your app is integrated with PayPal and that you have credits. One test costs $1, and your first {FREE_TESTS} are free.
-        </span>
-      </div>
-      <ul className="checks">
-        <li>
-          <KeyRound size={22} aria-hidden="true" />
-          <div>
-            <strong>PayPal integration found</strong>
-            <span>Coffee Club: a billing plan and a webhook are set up</span>
-          </div>
-          <CircleCheck size={20} className="passed" aria-hidden="true" />
-        </li>
-        <li>
-          <Coins size={22} aria-hidden="true" />
-          <div>
-            <strong>{credits > 0 ? 'Credits available' : 'No credits left'}</strong>
-            <span>{credits > 0 ? left : '$10 buys 10 tests'}</span>
-          </div>
-          {credits > 0 && <CircleCheck size={20} className="passed" aria-hidden="true" />}
-        </li>
-      </ul>
-      {credits > 0 ? (
-        <button type="button" className="pill" onClick={start}>
-          <Play size={15} aria-hidden="true" /> Start test
-        </button>
-      ) : (
-        <button type="button" className="pill" onClick={() => say('Buying credits is planned, not built. This mock-up takes no payments.')}>
-          <Coins size={15} aria-hidden="true" /> Buy credits
-        </button>
-      )}
-      <ul className="played" aria-label="What a test plays">
-        {PLAYED.map(([title, detail, Icon]) => (
-          <li key={title}>
-            <Icon size={26} aria-hidden="true" />
-            <strong>{title}</strong>
-            <span>{detail}</span>
-          </li>
-        ))}
-      </ul>
+    <div className="running">
+      <iframe title="Test Clock" src={DASHBOARD_URL} />
     </div>
   );
 }
@@ -745,8 +675,6 @@ function App() {
   const [route, setRoute] = useState(routeFromHash);
   const [navOpen, setNavOpen] = useState(() => window.innerWidth > 900);
   const [toast, setToast] = useState<string | null>(null);
-  const [credits, setCredits] = useState(FREE_TESTS);
-  const [running, setRunning] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -798,16 +726,7 @@ function App() {
         <div className="strip">You're in sandbox mode. Concept, not PayPal: a Fastforward mock-up, not a PayPal product.</div>
         <Banner go={go} />
         {route === 'clock' ? (
-          <ClockPage
-            credits={credits}
-            running={running}
-            say={say}
-            start={() => {
-              setCredits(credits - 1);
-              setRunning(true);
-            }}
-            stop={() => setRunning(false)}
-          />
+          <ClockPage />
         ) : (
           <div className="scroll">
             <div className="content">

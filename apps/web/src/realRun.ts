@@ -20,7 +20,7 @@ export interface RealStep {
   opensTimeline?: true;
 }
 
-const CHOICE: Record<CustomerDecision['action'], string> = {
+export const CHOICE: Record<CustomerDecision['action'], string> = {
   update_card: 'update their card',
   ignore: 'do nothing',
   cancel: 'cancel',

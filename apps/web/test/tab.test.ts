@@ -3,13 +3,12 @@ import { parseTab } from '../src/useTab.js';
 
 describe('parseTab', () => {
   it('reads the tab from the address', () => {
-    expect(parseTab('#deliveries')).toBe('deliveries');
-    expect(parseTab('match')).toBe('match');
-    expect(parseTab('#real')).toBe('real');
+    expect(parseTab('#result')).toBe('result');
+    expect(parseTab('details')).toBe('details');
   });
-  it('falls back to the overview for an empty or unknown tab', () => {
-    expect(parseTab('')).toBe('overview');
-    expect(parseTab('#report')).toBe('overview');
-    expect(parseTab('#constructor')).toBe('overview');
+  it('falls back to the first step for an empty or unknown tab', () => {
+    expect(parseTab('')).toBe('choose');
+    expect(parseTab('#deliveries')).toBe('choose');
+    expect(parseTab('#constructor')).toBe('choose');
   });
 });
