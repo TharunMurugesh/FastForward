@@ -210,6 +210,17 @@ describe('RealSession', () => {
     expect(report.decision?.by).toBe('scripted');
   });
 
+  it('removes the webhook once when a run is stopped by hand', async () => {
+    const { session, sandbox } = await setUp({}, {}, 300);
+    const running = session.run();
+    while (!sandbox.calls.some((c) => c.url === '/v1/billing/subscriptions')) await new Promise((resolve) => setTimeout(resolve, 5));
+    await session.abort();
+    const deletes = () => sandbox.calls.filter((c) => c.method === 'DELETE' && c.url === '/v1/notifications/webhooks/REAL-WEBHOOK-ID');
+    expect(deletes()).toHaveLength(1);
+    await running;
+    expect(deletes()).toHaveLength(1);
+  });
+
   it('marks the resent notice as a duplicate', async () => {
     const { session } = await setUp();
     const report = await session.run();

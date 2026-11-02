@@ -193,6 +193,12 @@ async function realCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
     if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') throw new ToolError(`port ${twinPort} is already in use. Stop the twin that is running, or pick another port with --twin-port.`);
     throw err;
   }
+  // Ctrl+C would otherwise leave the test webhook on PayPal's list, pointing at nothing.
+  const onInterrupt = () => {
+    io.stdout('\nStopping: removing the test webhook from PayPal...\n');
+    void session.abort().finally(() => process.exit(130));
+  };
+  process.once('SIGINT', onInterrupt);
   try {
     const report = await session.run();
     if (lock.size > 0) lock.save();
@@ -206,6 +212,7 @@ async function realCommand(args: string[], io: CliIo): Promise<0 | 1 | 2> {
     const arrived = report.actions.every((a) => !a.expects || a.noticeSeconds !== undefined);
     return arrived && report.notices.length > 0 && report.notices.every(handled) ? 0 : 1;
   } finally {
+    process.removeListener('SIGINT', onInterrupt);
     await twin.close();
   }
 }

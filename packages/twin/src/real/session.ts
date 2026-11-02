@@ -102,6 +102,7 @@ export class RealSession implements RealVerifier {
   private readonly verified = new Map<string, 'SUCCESS' | 'FAILURE'>();
   private readonly log: (line: string) => void;
   private webhookId: string | null = null;
+  private webhookRemoved = false;
   private server: Server | null = null;
   private certFetched = false;
 
@@ -132,6 +133,11 @@ export class RealSession implements RealVerifier {
 
   forward(method: string, url: string, body: unknown): Promise<{ status: number; body: unknown }> {
     return this.api(method, url, body);
+  }
+
+  /** For a run being stopped by hand: take the test webhook off PayPal's list, so it does not stay there pointing at nothing. */
+  async abort(): Promise<void> {
+    await this.removeWebhook();
   }
 
   async run(): Promise<RealReport> {
@@ -358,10 +364,15 @@ export class RealSession implements RealVerifier {
     return `http://127.0.0.1:${(this.server!.address() as AddressInfo).port}${this.path}`;
   }
 
+  private async removeWebhook(): Promise<void> {
+    const id = this.webhookId;
+    if (!id || this.webhookRemoved) return;
+    this.webhookRemoved = true;
+    await this.api('DELETE', `/v1/notifications/webhooks/${id}`).catch((err) => this.log(`could not remove the test webhook ${id}: ${(err as Error).message}`));
+  }
+
   private async cleanUp(): Promise<void> {
-    if (this.webhookId) {
-      await this.api('DELETE', `/v1/notifications/webhooks/${this.webhookId}`).catch((err) => this.log(`could not remove the test webhook ${this.webhookId}: ${(err as Error).message}`));
-    }
+    await this.removeWebhook();
     await new Promise<void>((resolve) => (this.server ? this.server.close(() => resolve()) : resolve()));
   }
 }
