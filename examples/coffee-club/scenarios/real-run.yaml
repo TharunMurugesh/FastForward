@@ -1,0 +1,22 @@
+# For `fastforward real`: one customer with a reason to act when PayPal suspends them.
+# Claude still decides what they do; the persona only says who they are.
+name: real-run
+seed: 42
+start: 2026-11-01T00:00:00.000Z
+duration: P40D
+
+app:
+  webhookUrl: http://127.0.0.1:3000/webhooks/paypal
+  subscribeUrl: http://127.0.0.1:3000/subscribe
+  probeUrl: http://127.0.0.1:3000/__ff/probe
+
+plan:
+  name: Coffee Club Monthly
+  price: "12.00"
+  currency: USD
+  interval: MONTH
+
+customers:
+  - name: Sam
+    persona: Runs a small cafe and depends on this coffee delivery every month. Deals with payment problems the day they happen.
+    card: fails_from:2026-12-01
