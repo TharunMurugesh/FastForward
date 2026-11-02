@@ -35,9 +35,10 @@ PayPal product. We check the app is integrated and has credits. Everything after
 **Show:** the Real PayPal page: the step cards, then the table of notices.
 
 **Say:** First, the real sandbox. A real subscription, and real notices with PayPal's own signatures passed to the app.
-PayPal itself answered success on every signature. Each step says whether it was real PayPal or simulated. The sandbox
-can't fail a renewal, so the declined card is simulated, but the suspension is real. Then Claude plays the customer. Here,
-Leo, who rarely reads his email, ignored it, so his subscription stayed suspended.
+PayPal itself answered success on every signature it received. One notice never arrived, and the page says so. Each step
+says whether it was real PayPal or simulated. The sandbox can't fail a renewal, so the declined card is simulated, but the
+suspension is real. Then Claude plays the customer. Sam runs a cafe and needs the delivery, so Claude updates the card,
+and that reactivates the subscription on real PayPal.
 
 ## 5. The months the sandbox can't reach [1:25 to 1:50]
 
