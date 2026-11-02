@@ -1,24 +1,19 @@
 # Fastforward
 
-**A flight simulator for PayPal subscriptions.** Skip a month ahead, let AI customers misbehave, and find
-your billing bugs before real money does.
+**The testing tool PayPal's sandbox is missing.** Test months of renewals, failed cards and disputes in seconds,
+with AI customers, and find your billing bugs before real money does. Built as a proposal for a Test Clock in PayPal's
+developer dashboard. It is not a PayPal product, and PayPal has not reviewed or endorsed it.
 
 **Live demo:** https://fastforward-production.up.railway.app/ (a recorded bad month, no login needed)
 
-## Who pays, how much, why now
+## The problem, and who it is for
 
-- **Customer:** a developer or small team whose app takes recurring payments through PayPal Subscriptions.
-- **The pain, in money:** the code that handles a failed payment, a duplicate webhook, a suspended
-  subscription or a dispute meets its first test with real money, because PayPal's sandbox has no clock and no
-  misbehaving customers. Get one wrong and you keep serving people who stopped paying, or cut off people who
-  would have paid.
-- **Price (a target, not revenue):** pay per test, like API credits: **$1 per AI test run**, sold as a $10 pack of 10, with the first 3 free.
-  Running on your own machine with scripted customers stays free.
-  No one has paid yet, and Fastforward has no revenue today.
-- **Why now:** PayPal has no test clock. Stripe's test clocks cover Stripe billing only and have no AI
+- **Who it is for:** a developer whose app takes recurring payments through PayPal Subscriptions.
+- **The problem:** the code that handles a failed payment, a duplicate webhook, a suspended subscription or a dispute
+  meets its first test with real money, because PayPal's sandbox has no clock and no misbehaving customers. Get one
+  wrong and you keep serving people who stopped paying, or cut off people who would have paid.
+- **Why it does not exist yet:** PayPal has no test clock. Stripe's test clocks cover Stripe billing only and have no AI
   customers. We found nothing that gives PayPal Subscriptions this.
-- **What we do not know:** the market size. Nobody publishes how many teams use PayPal Subscriptions directly.
-  Path to scale: PayPal first, then other processors.
 
 ## Quickstart (three commands, no `.env`, no PayPal login)
 

@@ -23,8 +23,8 @@ month, and no customers who misbehave. So a developer first meets these problems
 through months in seconds, sends every kind of messy delivery, and then the inspector reads the whole day's record and
 says which mistakes the restaurant made.
 
-**Who pays:** developers and small teams who take PayPal subscriptions. They pay per test: our target is $1 per AI test run, in
-packs of 10, with the first 3 free. Scripted runs on your own machine stay free. That is a target, not revenue: nobody has paid yet.
+**Who it is for:** developers who take PayPal subscriptions. It is built as a proposal for PayPal's developer dashboard; PayPal has
+not reviewed or endorsed it, and any charging would be PayPal's decision.
 
 ## 2. The pieces (each one is a folder)
 
@@ -178,4 +178,4 @@ files' code, the spend guard in `client.ts`. `apps/web/src/`: `App.tsx` and `pan
 5. Who decides pass or fail, and why is that not the AI?
 6. What does Claude do, and how can the demo show Claude without calling it?
 7. How do we know the twin behaves like real PayPal, and what are the two honest limits?
-8. Who pays, how much, and what is the weakest part of that answer?
+8. Who is it for, and what is the weakest part of that answer?

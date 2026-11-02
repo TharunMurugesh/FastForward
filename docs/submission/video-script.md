@@ -1,9 +1,7 @@
 # Fastforward: demo video script
 
-**The video for the Devpost form is now `voiceover.md`.** It replaces the "(cut)" lines below, which are out of date:
-ignore them. This file is only the optional full tour (scenes 1 to 15, about 12 to 15 minutes), an extra for YouTube.
-Film it only if there is time left after submitting. Each scene has **Show** (what is on screen), **Do** (the exact
-clicks or commands) and **Say** (the words).
+**The video for the Devpost form is `voiceover.md`. Do not film from this file.** It describes the old dashboard. It is
+kept only for the setup of scenes 11, 12 and 14 (the Inkwell app, the safety demo and the coding assistant).
 
 Numbers to expect (check them on screen; if a take shows something else, say what the screen shows):
 **3 of 6 checks fail** with the recorded Claude customers, **6 of 6 pass** with the bugs off, Inkwell passes
@@ -45,10 +43,9 @@ message arrives twice, when a customer disputes a charge. It's the code you test
 
 ## Scene 2. Who pays **(CUT)** [cut: 0:20 to 0:35]
 
-**Show:** a plain slide: "$1 per AI test run. First 3 free. Scripted runs on your machine stay free."
+**Show:** a plain slide: who it is for.
 
-**Say (cut):** "Fastforward is for developers and small teams who take recurring payments through PayPal. They pay
-per test: our target is one dollar a test, with the first three free. That's a target: we have no paying customers yet."
+**Say (cut):** "Fastforward is for developers and small teams who take recurring payments through PayPal. We built it as a proposal for PayPal's developer dashboard."
 
 **Say (tour, add):** "Why now? PayPal has no test clock at all. Stripe has test clocks, but only for Stripe, and with
 no customers who behave like people. We found nothing that does this for PayPal Subscriptions. We start with PayPal,

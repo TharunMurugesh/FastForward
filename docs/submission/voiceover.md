@@ -1,21 +1,20 @@
 # Fastforward: voice-over for the Devpost video
 
 The video on the form. Must stay under 3 minutes. Generate this voice first in Vinay's ElevenLabs voice, then record
-the screen to it. Only the **Say** lines are sent to ElevenLabs. About 400 words, roughly 2:50 at a calm pace.
+the screen to it. Only the **Say** lines are sent to ElevenLabs. Film the Test Clock inside the concept frame
+(`npm run demo`, then `npm run concept`, then <http://127.0.0.1:5180/#clock>).
 
-**Before generating:** record a real run (`fastforward real <scenario.yaml> --public-url <https://...> --report-dir
-fidelity`), then make scene 4 say what the customer actually chose in that run. The choice is saved, so a rerun
-repeats it. Sandbox delivery varies, so film the recording on the Real PayPal page, not a run in progress.
+Never say PayPal owns, paid for or endorsed this: it is a proposal.
 
-## 1. What it is, who pays [0:00 to 0:18]
+## 1. What it is [0:00 to 0:15]
 
-**Show:** title card, then the price: $1 per test, first 3 free.
+**Show:** title card.
 
-**Say:** Fastforward is the test clock PayPal's sandbox is missing. It's for developers who bill through PayPal
-Subscriptions, and they pay per test: our target is one dollar per test, with the first three free. We have no paying
-customers yet.
+**Say:** Test Clock is the testing tool PayPal's sandbox is missing. It lets developers who bill through PayPal
+Subscriptions test months of renewals, failed cards and disputes in seconds. We built it as a proposal for PayPal's
+developer dashboard.
 
-## 2. Today in PayPal [0:18 to 0:38]
+## 2. Today in PayPal [0:15 to 0:35]
 
 **Show:** the real PayPal webhook simulator page, with its sentence highlighted.
 
@@ -23,55 +22,56 @@ customers yet.
 verify, resend, or show details for those events. There's no way to reach next month's renewal. So the code that handles
 a failed payment first runs with real money.
 
-## 3. With Fastforward [0:38 to 0:50]
+## 3. Step one: choose [0:35 to 0:50]
 
-**Show:** the concept screen: Test Clock under Testing Tools, with "Concept, not PayPal" visible.
+**Show:** the concept frame, Test Clock under Testing Tools, on the Choose step. "Concept, not PayPal" stays visible.
 
-**Say:** This is how it would work inside PayPal's dashboard, if PayPal gives us permission. It's a concept, not a
-PayPal product. We check the app is integrated and has credits. Everything after that is our working app.
+**Say:** This is how it could look inside PayPal's dashboard. It's a concept, not a PayPal product. Step one: choose the
+app and the test. This is a demo shop with bugs we planted on purpose, facing a bad month. And before anything plays, the
+page says what will be real and what will be simulated.
 
-## 4. Real PayPal first [0:50 to 1:25]
+## 4. Step two: real sandbox first [0:50 to 1:20]
 
-**Show:** the Real PayPal page: the step cards, then the table of notices.
+**Show:** the Watch step, the real sandbox column filling in.
 
-**Say:** First, the real sandbox. A real subscription, and real notices with PayPal's own signatures passed to the app.
-PayPal itself answered success on every signature it received. One notice never arrived, and the page says so. Each step
-says whether it was real PayPal or simulated. The sandbox can't fail a renewal, so the declined card is simulated, but the
-suspension is real. Then Claude plays the customer. Sam runs a cafe and needs the delivery, so Claude updates the card,
-and that reactivates the subscription on real PayPal.
+**Say:** Step two. First, the real sandbox: a real subscription, and real notices with PayPal's own signatures. PayPal
+answered success on every signature it received. One notice never arrived, and the screen says so. The sandbox can't fail
+a renewal, so the declined card is simulated, but the suspension is real. Then Claude plays the customer. Sam runs a cafe
+and needs the delivery, so Claude updates the card, and that reactivates the subscription on real PayPal.
 
-## 5. The months the sandbox can't reach [1:25 to 1:50]
+## 5. Step two: the months the sandbox can't reach [1:20 to 1:45]
 
-**Show:** the Timeline tab: drag back to 1 November, step forward, stop on Leo's failed payments.
+**Show:** the Watch step, the clock running and the events appearing.
 
 **Say:** PayPal's sandbox can't move time, so our simulator takes over, built from PayPal's official specifications.
-Seventy-five days play in about three seconds. Claude plays the customers: one pays, one's card fails, one disputes.
-Webhooks arrive twice, late, out of order, and one is forged.
+Seventy-five days play in seconds. Claude plays the customers: one pays, one's card fails, one disputes. Webhooks arrive
+twice, late, out of order, and one is forged.
 
-## 6. What it finds [1:50 to 2:15]
+## 6. Step three: the result [1:45 to 2:10]
 
-**Show:** Overview: the six check tiles, one problem card, then all six green with the bugs off.
+**Show:** the Result step: the six check tiles, then one problem card and its fix.
 
-**Say:** Three of six checks fail. The shop never checked that messages came from PayPal, it shipped one payment twice,
-and it ignored a dispute. Each one says where to look and how to fix it. Plain checks decide the result, not the AI.
-Switch the bugs off, and all six pass.
+**Say:** Step three. Three of six checks fail. The shop never checked that messages came from PayPal, it shipped one
+payment twice, and it ignored a dispute. Each one says where to look and how to fix it. Plain checks decide the result,
+not the AI. Switch the planted bugs off, and all six pass.
 
-## 7. Why you can trust it [2:15 to 2:30]
+## 7. Step four: the details, and why you can trust it [2:10 to 2:30]
 
-**Show:** the PayPal match page.
+**Show:** the Details step: the notices table, then PayPal match.
 
-**Say:** We sent the same seventeen requests to PayPal's real sandbox and to our simulator. The first runs found
-forty-nine differences. We fixed them, and all seventeen steps now match.
+**Say:** Step four is every notice and every attempt. And to prove the simulator behaves like PayPal, we sent the same
+seventeen requests to the real sandbox and to our simulator. The first runs found forty-nine differences. We fixed them,
+and all seventeen steps now match.
 
 ## 8. Your own app [2:30 to 2:48]
 
 **Show:** Inkwell in VS Code, the run failing on one check, then Claude Code fixing it and six of six green.
 
-**Say:** It's not only our demo shop. This writing app uses only our npm packages. One forgotten check, and Fastforward
-finds exactly that bug. A coding assistant can run the month, read why it failed, fix the code, and run it again.
+**Say:** It's not only our demo shop. This writing app uses only our npm packages. One forgotten check, and it finds
+exactly that bug. A coding assistant can run the month, read why it failed, fix the code, and run it again.
 
 ## 9. Close [2:48 to 2:55]
 
 **Show:** title card with the live demo and GitHub addresses.
 
-**Say:** Fastforward. The test clock PayPal's sandbox is missing. Try it on your PayPal app.
+**Say:** Test Clock. The testing tool PayPal's sandbox is missing, ready for PayPal to adopt.

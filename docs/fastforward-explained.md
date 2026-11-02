@@ -35,16 +35,12 @@ Proof it is faithful: we compared the twin against PayPal's real sandbox. It had
 27 differences at first, and 22 more when we tested an active subscription. We fixed them all, and now 17 of 17
 steps match.
 
-## 3. Who pays, how much, why now
+## 3. Who it is for
 
-- **Who pays:** small teams and developers whose app takes PayPal subscriptions.
-  Their cost of a missed failed payment is real money, because failed payments
-  are a large part of lost subscription revenue (vendor figures: about 9% of
-  monthly recurring revenue; unverified).
-- **How much (not yet tested with anyone):** $1 per AI test run, sold as a $10
-  pack of 10, with the first 3 free. Scripted runs on your own machine stay
-  free. Simulators can be a business: LocalStack (an AWS simulator) has raised
-  about $25M.
+- **Who it is for:** developers whose app takes PayPal subscriptions. A missed failed
+  payment costs them real money.
+- **Built for PayPal:** a proposal for PayPal's developer dashboard. PayPal has not
+  reviewed or endorsed it, and any charging would be PayPal's decision.
 - **Why now:** PayPal has no test clock. Stripe has one but only for billing,
   with no AI customers. Chargebee has a "Time Machine" only for its own
   billing. Nobody offers this for PayPal.
@@ -75,5 +71,5 @@ steps match.
 1. What problem does Fastforward solve, in one sentence, for a stranger?
 2. What is a webhook, using the delivery driver idea or your own?
 3. What does the AI do, and what does the twin do? (They are different jobs.)
-4. Who pays, how much, and why would they pay now?
+4. Who is it for, and why does it matter now?
 5. Why is "we compared it to the real sandbox" our strongest line?
