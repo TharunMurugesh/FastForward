@@ -41,11 +41,10 @@ steps match.
   Their cost of a missed failed payment is real money, because failed payments
   are a large part of lost subscription revenue (vendor figures: about 9% of
   monthly recurring revenue; unverified).
-- **How much (my proposal, not yet tested with anyone):** free for one developer
-  locally; a team plan at about $39 per developer per month. Similar tools
-  charge that: LocalStack (an AWS simulator) $39 to $89 per developer per month,
-  and it has raised about $25M, which shows simulators can be a business.
-  Hookdeck (webhook tooling) is about $39 per month.
+- **How much (not yet tested with anyone):** $1 per AI test run, sold as a $10
+  pack of 10, with the first 3 free. Scripted runs on your own machine stay
+  free. Simulators can be a business: LocalStack (an AWS simulator) has raised
+  about $25M.
 - **Why now:** PayPal has no test clock. Stripe has one but only for billing,
   with no AI customers. Chargebee has a "Time Machine" only for its own
   billing. Nobody offers this for PayPal.

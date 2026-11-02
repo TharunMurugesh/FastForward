@@ -45,12 +45,10 @@ message arrives twice, when a customer disputes a charge. It's the code you test
 
 ## Scene 2. Who pays **(CUT)** [cut: 0:20 to 0:35]
 
-**Show:** a plain slide with three lines: "Free for one developer." "Team target: $39 per developer per month."
-"Similar tools: LocalStack $39 to $89, Hookdeck about $39."
+**Show:** a plain slide: "$1 per AI test run. First 3 free. Scripted runs on your machine stay free."
 
-**Say (cut):** "Fastforward is for developers and small teams who take recurring payments through PayPal. It's free
-for one developer. Our target for teams is thirty-nine dollars per developer per month, in line with similar tools.
-That's a target: we have no paying customers yet."
+**Say (cut):** "Fastforward is for developers and small teams who take recurring payments through PayPal. They pay
+per test: our target is one dollar a test, with the first three free. That's a target: we have no paying customers yet."
 
 **Say (tour, add):** "Why now? PayPal has no test clock at all. Stripe has test clocks, but only for Stripe, and with
 no customers who behave like people. We found nothing that does this for PayPal Subscriptions. We start with PayPal,

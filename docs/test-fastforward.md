@@ -94,7 +94,7 @@ Where did setup get stuck, and what exact message did you see?
 1. **What was confusing,** or what did you expect that was not there?
 2. **Has a payment bug like these ever hit you** or a team you know (fulfilling twice, missing a failed payment, an
    unanswered dispute)? Roughly what did it cost?
-3. **Would your team pay $39 per developer per month for this?** If not, what would make it worth it, or what price
+3. **Would you pay $1 per test run for this?** If not, what would make it worth it, or what price
    would?
 
 Send your answers to Vinay G on LinkedIn, or open an issue at <https://github.com/VinayG759/FastForward/issues>.

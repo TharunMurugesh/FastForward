@@ -15,12 +15,12 @@ Decisions and evidence are in the project memory `project-paypal-time-machine`.
 **Decided:**
 - **Real PayPal run:** real sandbox first, the twin only for the months the sandbox can't reach. Every step labelled
   Real PayPal or Simulated.
-- **Pitch:** "the test clock PayPal's sandbox is missing." Teams still pay $39; PayPal adopting it is upside only. No
+- **Pitch:** "the test clock PayPal's sandbox is missing." Developers pay per test ($1, packs of 10, first 3 free; decided 2 Nov); with PayPal's permission we would integrate it, which is upside only. No
   story opening.
 - **Exact clone of the PayPal developer dashboard for the video, with the logo.** Vinay's decision, risk accepted, do
   not re-argue. Conditions: video only, no public URL, no sign-in or payment screens, "Concept, not PayPal" always
   visible (use the purple sandbox strip). "Test Clock" sits under Testing Tools beside Webhook Simulator, and holds our
-  whole app with every section. Whether this goes in the public repo is still open: the rules want all source there.
+  whole app with every section. Decided 2 Nov: it goes in the public repo, in `concept/`, kept out of the Railway build.
   Screenshots: `screenshots/` (excluded through `.git/info/exclude`; they show sandbox emails and partial client ids).
 - **Video:** AI voice-over, generated first, then record the screen to it. Add a "today in PayPal versus with us"
   comparison on real pages. PayPal's simulator page says it itself: "you cannot verify, resend an event notification
@@ -113,7 +113,7 @@ said not to raise BidReady.
    3 of 6 live, 17 of 17 steps.
 3. **Vinay: film the video** from the updated script (Sara rehearses it with him), upload to YouTube.
 4. **Vinay: put the one YouTube link in `docs/submission/devpost.md` and submit.** Before he submits, Sara checks the text
-   leads with the money: who pays, $39 per developer per month (free for one developer, a target, not revenue
+   leads with the money: who pays, $1 per test (first 3 free, a target, not revenue
    claimed), why they would pay now. Lesson from Citizen's Voice (see ~/.claude/CLAUDE.md).
 5. Good to have: try Fastforward on a real open-source Node shop with PayPal; 2 or 3 outside developers (not entrants;
    Vinay will not reveal the idea on Discord, do not raise Discord again) trying it for quotes.
@@ -124,7 +124,7 @@ said not to raise BidReady.
 - None.
 
 ## Settled (do not reopen)
-- Price $39 per developer per month, free for one. AI model `claude-opus-5-5`. AG Grid Community only (never Enterprise).
+- Price $1 per AI test run, packs of 10, first 3 free; scripted local runs free. AI model `claude-opus-5-5`. AG Grid Community only (never Enterprise).
 - The scenario has exactly one dispute on purpose (Maya healthy, Leo's card fails, Ana disputes). Vinay confirmed on
   27 Oct: no second dispute in bad-month.
 - `docs/details.txt` is Vinay's raw paste of the rules, already digested into `docs/hackathon-details.md`. Leave it

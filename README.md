@@ -12,8 +12,8 @@ your billing bugs before real money does.
   subscription or a dispute meets its first test with real money, because PayPal's sandbox has no clock and no
   misbehaving customers. Get one wrong and you keep serving people who stopped paying, or cut off people who
   would have paid.
-- **Price (a target, not revenue):** free for one developer running it locally. Team plan target:
-  **$39 per developer per month**, in line with similar tools (LocalStack $39 to $89, Hookdeck about $39).
+- **Price (a target, not revenue):** pay per test, like API credits: **$1 per AI test run**, sold as a $10 pack of 10, with the first 3 free.
+  Running on your own machine with scripted customers stays free.
   No one has paid yet, and Fastforward has no revenue today.
 - **Why now:** PayPal has no test clock. Stripe's test clocks cover Stripe billing only and have no AI
   customers. We found nothing that gives PayPal Subscriptions this.

@@ -23,8 +23,8 @@ month, and no customers who misbehave. So a developer first meets these problems
 through months in seconds, sends every kind of messy delivery, and then the inspector reads the whole day's record and
 says which mistakes the restaurant made.
 
-**Who pays:** developers and small teams who take PayPal subscriptions. Free for one developer; our target for a team is
-$39 per developer per month, in line with similar tools. That is a target, not revenue: nobody has paid yet.
+**Who pays:** developers and small teams who take PayPal subscriptions. They pay per test: our target is $1 per AI test run, in
+packs of 10, with the first 3 free. Scripted runs on your own machine stay free. That is a target, not revenue: nobody has paid yet.
 
 ## 2. The pieces (each one is a folder)
 

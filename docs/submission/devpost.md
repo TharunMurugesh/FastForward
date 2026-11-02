@@ -13,9 +13,9 @@ The test clock PayPal's sandbox is missing: run a real sandbox subscription, ski
 
 **The pain, in money.** The code that handles a failed payment, a duplicate webhook, a suspended subscription or a dispute is first run with real money, because PayPal's sandbox cannot test it. It has no clock, so you cannot skip to next month's renewal, and it has no misbehaving customers. Get one of these wrong and you either keep serving people who stopped paying, or cut off people who would have paid. Vendors report that failed payments drive a large share of subscription revenue loss (about 9% of monthly recurring revenue is a figure vendors quote; we have not verified it, so treat it as indicative).
 
-**The price (a target, not revenue).** Free for one developer, running locally. A team plan at a target of **$39 per developer per month**. This is a proposed price, in line with similar developer tools: LocalStack (an AWS simulator) charges $39 to $89 per developer per month, and Hookdeck (webhook tooling) is about $39 per month. No one has been asked to pay yet, and Fastforward has no revenue today.
+**The price (a target, not revenue).** Pay per test, like API credits: **$1 per AI test run**, sold as a $10 pack of 10, with the first 3 free. A credit buys Claude playing the customers and explaining the failures. Running on your own machine with scripted customers stays free, so nobody is ever stuck. Paying for credits is planned, not built. No one has been asked to pay yet, and Fastforward has no revenue today.
 
-**Why now.** PayPal has no test clock. Stripe has test clocks, but only for Stripe billing and with no AI customers. Chargebee has a "Time Machine" only for its own billing. We found nothing that gives PayPal Subscriptions this. Teams paying is the business; PayPal adopting the idea would be upside, not the plan.
+**Why now.** PayPal has no test clock. Stripe has test clocks, but only for Stripe billing and with no AI customers. Chargebee has a "Time Machine" only for its own billing. We found nothing that gives PayPal Subscriptions this. Developers paying per test is the business. With PayPal's permission we would integrate it into PayPal's developer dashboard, which the video shows as a concept; that is upside, not the plan.
 
 **First customers.** PayPal developers who try it before the deadline. We will ask them what it caught and whether they would pay.
 
@@ -45,7 +45,7 @@ Run the same 75-day month twice, changing nothing but the bugs:
 
 ## How PayPal is used
 
-- **A real run on the real PayPal sandbox.** `fastforward real` registers a real webhook and creates a real product, plan and card-funded subscription, then suspends it and carries out the customer's choice. PayPal's notices go to the app byte for byte, and when the app asks, real PayPal's verify-webhook-signature answers. In the recorded run, shown on the dashboard's Real PayPal page, [N of N] notices reached the app and PayPal answered SUCCESS on [N of N] signatures. PayPal's own resend makes a genuine duplicate. Sandbox delivery varies (10 to 54 seconds usually, once over 2 minutes), so the page and the video show a recording.
+- **A real run on the real PayPal sandbox.** `fastforward real` registers a real webhook and creates a real product, plan and card-funded subscription, then suspends it and carries out the customer's choice. PayPal's notices go to the app byte for byte, and when the app asks, real PayPal's verify-webhook-signature answers. In the recorded run, shown on the dashboard's Real PayPal page, 5 of 5 notices reached the app and PayPal answered SUCCESS on 5 of 5 signatures, including a genuine duplicate from PayPal's own resend. Sandbox delivery varies (10 to 54 seconds usually, once over 2 minutes), so the page and the video show a recording.
 - **The twin implements PayPal's real API surface.** It is built from PayPal's official OpenAPI specifications: Subscriptions (products, plans, subscriptions), Disputes, and the webhook verification endpoint. Responses are checked against those specs.
 - **The official SDK runs in the demo app.** Coffee Club uses `@paypal/paypal-server-sdk`, unmodified. A small add-on redirects its sandbox calls to the twin and blocks any call to live PayPal before a socket opens.
 - **Webhooks are signed and verified the way PayPal does it.** The twin signs events, serves the certificate, and implements the verify-webhook-signature endpoint.
@@ -93,9 +93,8 @@ Video: [public YouTube URL]
 ## Checklist for Vinay (delete this section before pasting)
 
 - [ ] Fill in the YouTube URL (GitHub and the hosted demo are done).
-- [ ] Fill in the [N of N] numbers in "How PayPal is used" from the recorded real run, and commit `fidelity/real-report.json` so the Real PayPal page shows it.
 - [ ] Confirm `npm run demo` is merged before submitting; this text says it exists. The MCP server (Task 16) is merged.
 - [ ] Confirm "three of six" matches the live page when you film (the recorded Claude customers give 3; scripted customers give 4; adding the slow-reply bug adds one more).
 - [ ] Devpost "Tools used" field: Claude Opus 5.5, PayPal Subscriptions and Disputes APIs, PayPal Node SDK, AG Grid Community, Fastify, React, Vite.
-- [ ] The $39 price and the 9% figure are labelled as a target and as unverified. Keep it that way if you edit.
-- [ ] Rules: no third-party logos or copyrighted music in screenshots or the video. This text uses no logos. The concept screen in the video follows the conditions in `docs/handoff.md`.
+- [ ] The $1 price and the 9% figure are labelled as a target and as unverified. Keep it that way if you edit.
+- [ ] Rules: no third-party logos or copyrighted music in screenshots or the video. This text uses no logos. The concept screen in the video is labelled "Concept, not PayPal" and its source is in `concept/`.

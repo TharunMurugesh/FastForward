@@ -4,16 +4,16 @@ The video on the form. Must stay under 3 minutes. Generate this voice first in V
 the screen to it. Only the **Say** lines are sent to ElevenLabs. About 400 words, roughly 2:50 at a calm pace.
 
 **Before generating:** record a real run (`fastforward real <scenario.yaml> --public-url <https://...> --report-dir
-fidelity`), then fill in the bracket in scene 4 with what the customer actually chose. The choice is saved, so a rerun
+fidelity`), then make scene 4 say what the customer actually chose in that run. The choice is saved, so a rerun
 repeats it. Sandbox delivery varies, so film the recording on the Real PayPal page, not a run in progress.
 
 ## 1. What it is, who pays [0:00 to 0:18]
 
-**Show:** title card, then the three pricing lines.
+**Show:** title card, then the price: $1 per test, first 3 free.
 
 **Say:** Fastforward is the test clock PayPal's sandbox is missing. It's for developers who bill through PayPal
-Subscriptions. It's free for one developer, and our target for teams is thirty-nine dollars per developer per month,
-the same range as LocalStack and Hookdeck. We have no paying customers yet.
+Subscriptions, and they pay per test: our target is one dollar per test, with the first three free. We have no paying
+customers yet.
 
 ## 2. Today in PayPal [0:18 to 0:38]
 
@@ -27,8 +27,8 @@ a failed payment first runs with real money.
 
 **Show:** the concept screen: Test Clock under Testing Tools, with "Concept, not PayPal" visible.
 
-**Say:** This is what it could look like inside PayPal's dashboard. It's a concept, not a PayPal product. Everything
-inside it is our working app.
+**Say:** This is how it would work inside PayPal's dashboard, if PayPal gives us permission. It's a concept, not a
+PayPal product. We check the app is integrated and has credits. Everything after that is our working app.
 
 ## 4. Real PayPal first [0:50 to 1:25]
 
@@ -37,7 +37,7 @@ inside it is our working app.
 **Say:** First, the real sandbox. A real subscription, and real notices with PayPal's own signatures passed to the app.
 PayPal itself answered success on every signature. Each step says whether it was real PayPal or simulated. The sandbox
 can't fail a renewal, so the declined card is simulated, but the suspension is real. Then Claude plays the customer. Here,
-Leo [chose to ...], and that choice is carried out on the real sandbox.
+Leo, who rarely reads his email, ignored it, so his subscription stayed suspended.
 
 ## 5. The months the sandbox can't reach [1:25 to 1:50]
 
