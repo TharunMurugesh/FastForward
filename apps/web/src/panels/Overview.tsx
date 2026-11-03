@@ -8,6 +8,8 @@ import { firstSentence, problemFacts } from '../problems.js';
 
 interface Props {
   report: Report;
+  /** The customers were decided by Claude in this run (the twin, not the runner, made those calls, so the report cannot count them). */
+  liveClaude?: boolean;
   /** The deliveries table's rows, so the counts here match what the table shows. */
   notices: NoticeRow[];
   trace: TraceEntry[];
@@ -109,7 +111,7 @@ export function ProblemCard({ check, notices, trace, subscriptions, onExplain, o
 }
 
 /** The first tab: did the app pass, and if not, what to fix first. `children` goes under the cards (the timeline). */
-export function Overview({ report, children, ...rest }: Props & { children?: ReactNode }) {
+export function Overview({ report, liveClaude, children, ...rest }: Props & { children?: ReactNode }) {
   const failing = report.checks.filter((c) => c.status === 'fail');
   return (
     <div className="overview">
@@ -122,7 +124,7 @@ export function Overview({ report, children, ...rest }: Props & { children?: Rea
           {report.ai && (
             <p className="ai-line small" title={describeAi(report.ai)}>
               <Sparkles size={14} aria-hidden="true" /> Explanations and customers by {report.ai.model}
-              {(report.ai.calls ?? 0) === 0 && ', replayed from a recording'}
+              {(report.ai.calls ?? 0) === 0 && (liveClaude ? ', decided live' : ', replayed from a recording')}
             </p>
           )}
         </div>

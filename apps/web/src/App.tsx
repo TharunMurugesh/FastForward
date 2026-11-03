@@ -300,7 +300,7 @@ export function App() {
                     </span>
                   )}
                 </p>
-                <Overview report={report} notices={notices} trace={trace} subscriptions={subs} onExplain={setExplaining} onShowNotices={showNotices} />
+                <Overview report={report} liveClaude={liveClaude} notices={notices} trace={trace} subscriptions={subs} onExplain={setExplaining} onShowNotices={showNotices} />
                 <div className="watch-actions">
                   <button type="button" className="primary" onClick={() => openDetail('deliveries')}>
                     See the details <ArrowRight size={16} aria-hidden="true" />
