@@ -40,7 +40,11 @@ const TITLE: Record<string, string> = {
 };
 
 function actionDetail(action: RealRunFile['actions'][number]): string {
-  if (action.expects) return action.noticeSeconds === undefined ? `${action.expects} did not arrive in time` : `${action.expects} reached the app after ${action.noticeSeconds.toFixed(0)} s`;
+  if (action.expects) {
+    return action.noticeSeconds === undefined
+      ? "PayPal's notice did not come within 3 minutes. Sandbox delivery is slow and varies; the other notices arrived."
+      : `PayPal's notice reached the app in ${action.noticeSeconds.toFixed(0)} s`;
+  }
   return action.sandboxId ? `PayPal's id: ${action.sandboxId}` : `PayPal answered ${action.status}`;
 }
 

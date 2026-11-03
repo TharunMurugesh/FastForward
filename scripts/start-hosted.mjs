@@ -11,7 +11,7 @@
  * Build first: npm run build && npm run build -w @fastforward/web
  */
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer, request } from 'node:http';
 import { connect } from 'node:net';
 import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
@@ -103,6 +103,15 @@ let demoRunId = null;
 const LOCAL = process.argv.includes('--local');
 let localBusy = false;
 let bugsOn = true;
+/** Local mode only: the Anthropic key from .env, so the page can ask for one live Claude run. Never passed on otherwise. */
+let liveKey = null;
+if (LOCAL) {
+  try {
+    liveKey = /^ANTHROPIC_API_KEY=(.+)$/m.exec(readFileSync(join(root, '.env'), 'utf8'))?.[1]?.trim().replace(/^["']|["']$/g, '') || null;
+  } catch {
+    // no .env: live Claude is simply not offered
+  }
+}
 
 /** Forwards the request untouched (streams included, so the dashboard's event stream works). */
 function proxy(req, res, port, path) {
@@ -124,7 +133,7 @@ const server = createServer((req, res) => {
 
   if (LOCAL && path === '/_local') {
     res.writeHead(200, { 'content-type': 'application/json' });
-    return res.end(JSON.stringify({ bugsOn, busy: localBusy }));
+    return res.end(JSON.stringify({ bugsOn, busy: localBusy, claudeAvailable: Boolean(liveKey) }));
   }
   if (LOCAL && path === '/_local/run' && req.method === 'POST') return localRun(req, res);
 
@@ -187,25 +196,73 @@ await waitForPort(COFFEE_PORT, 'Coffee Club').catch((e) => fail(e.message));
 await new Promise((done, reject) => server.once('error', reject).listen(PORT, '0.0.0.0', done)).catch((e) => fail(e.message));
 console.log(`Fastforward is up: dashboard http://localhost:${PORT}  (Coffee Club bugs: ${bugs})`);
 
-/** Plays the scenario once against Coffee Club, through the twin, and resolves with the run's id (null if it failed). */
-function playScenario() {
+/**
+ * Plays a scenario once through the twin. Resolves with the run's id, or with the tool's own error line when it
+ * stopped (for example "can't reach your app"), so the page can say what went wrong.
+ */
+function playScenario(file = SCENARIO, env = childEnv) {
   return new Promise((done) => {
     const run = spawn(
       process.execPath,
-      ['packages/cli/dist/bin.js', 'run', SCENARIO, '--twin-url', `http://127.0.0.1:${TWIN_PORT}`, '--dashboard-url', `http://localhost:${PORT}`],
-      { cwd: root, env: childEnv, stdio: ['ignore', 'pipe', 'pipe'] },
+      ['packages/cli/dist/bin.js', 'run', file, '--twin-url', `http://127.0.0.1:${TWIN_PORT}`, '--dashboard-url', `http://localhost:${PORT}`],
+      { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] },
     );
     let output = '';
+    let errors = '';
     run.stdout.on('data', (d) => {
       output += d;
       process.stdout.write(d);
     });
-    run.stderr.on('data', (d) => process.stderr.write(d));
-    run.on('exit', () => done(/[?&]run=([\w-]+)/.exec(output)?.[1] ?? null));
+    run.stderr.on('data', (d) => {
+      errors += d;
+      process.stderr.write(d);
+    });
+    run.on('exit', () => {
+      const runId = /[?&]run=([\w-]+)/.exec(output)?.[1] ?? null;
+      const error = errors.trim().split('\n').at(-1)?.replace(/^fastforward:\s*/, '') || 'the run did not finish; see the terminal';
+      done(runId ? { runId } : { error });
+    });
   });
 }
 
-/** POST /_local/run {bugsOn}: switch Coffee Club's planted bugs, play a fresh month, answer with its run id. One at a time. */
+const LOCAL_DIR = join(root, '.fastforward', 'local');
+const localHost = (value) => {
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'http:' || url.protocol === 'https:') && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * A copy of the demo scenario for this run: pointed at another app if one is given, with fresh ids, and with
+ * the recorded customer decisions copied beside it unless Claude is to decide live.
+ */
+function localScenario(name, app, claudeLive) {
+  let text = readFileSync(SCENARIO, 'utf8').replace(/^name: .*$/m, `name: ${name}`).replace(/^ids: repeat\s*$/m, '');
+  if (app) {
+    text = text
+      .replace(/^(\s*webhookUrl:).*$/m, `$1 ${app.webhookUrl}`)
+      .replace(/^(\s*subscribeUrl:).*$/m, `$1 ${app.subscribeUrl}`)
+      .replace(/^(\s*probeUrl:).*$/m, `$1 ${app.probeUrl}`);
+  }
+  mkdirSync(LOCAL_DIR, { recursive: true });
+  const file = join(LOCAL_DIR, `${name}.yaml`);
+  writeFileSync(file, text);
+  const lock = join(LOCAL_DIR, `${name}.lock.json`);
+  rmSync(lock, { force: true });
+  rmSync(join(LOCAL_DIR, `${name}.narration.lock.json`), { force: true });
+  const recorded = SCENARIO.replace(/\.ya?ml$/, '.lock.json');
+  if (!claudeLive && existsSync(recorded)) copyFileSync(recorded, lock);
+  return file;
+}
+
+/**
+ * POST /_local/run {bugsOn, app?, claudeLive?}: play a fresh month and answer with its run id, one at a time.
+ * Without `app` it tests Coffee Club with its planted bugs on or off. With `app` it tests that app instead, which
+ * must run on this machine with the register add-on. `claudeLive` lets Claude decide afresh with the key in .env.
+ */
 async function localRun(req, res) {
   const reply = (status, body) => {
     res.writeHead(status, { 'content-type': 'application/json' });
@@ -219,21 +276,33 @@ async function localRun(req, res) {
       text += chunk;
       if (text.length > 1000) return reply(413, { error: 'too large' });
     }
-    const wanted = JSON.parse(text || '{}').bugsOn !== false;
-    const set = await fetch(`http://127.0.0.1:${COFFEE_PORT}/__ff/bugs`, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ bugs: wanted ? bugs : 'none' }),
-    });
-    if (!set.ok) return reply(502, { error: 'Coffee Club did not accept the bug switch' });
-    // Every run of the scenario reuses its ids, so the shop must forget the last run or it double-counts.
-    const reset = await fetch(`http://127.0.0.1:${COFFEE_PORT}/__ff/reset`, { method: 'POST' });
-    if (!reset.ok) return reply(502, { error: 'Coffee Club could not start afresh' });
-    bugsOn = wanted;
-    const runId = await playScenario();
-    if (!runId) return reply(500, { error: 'the run did not finish; see the terminal' });
-    demoRunId = runId;
-    return reply(200, { runId });
+    const body = JSON.parse(text || '{}');
+    const claudeLive = body.claudeLive === true;
+    if (claudeLive && !liveKey) return reply(400, { error: 'Claude live needs ANTHROPIC_API_KEY in .env' });
+    let app = null;
+    if (body.app) {
+      app = { webhookUrl: String(body.app.webhookUrl ?? ''), subscribeUrl: String(body.app.subscribeUrl ?? ''), probeUrl: String(body.app.probeUrl ?? '') };
+      // Only apps on this machine: the page must not be able to send the twin's traffic anywhere else.
+      if (!Object.values(app).every(localHost)) return reply(400, { error: 'your app must run on this machine: use http://localhost:<port>/... addresses' });
+    } else {
+      const wanted = body.bugsOn !== false;
+      const set = await fetch(`http://127.0.0.1:${COFFEE_PORT}/__ff/bugs`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ bugs: wanted ? bugs : 'none' }),
+      });
+      if (!set.ok) return reply(502, { error: 'Coffee Club did not accept the bug switch' });
+      // The demo scenario repeats its ids, so the shop must forget the last run or it double-counts.
+      const reset = await fetch(`http://127.0.0.1:${COFFEE_PORT}/__ff/reset`, { method: 'POST' });
+      if (!reset.ok) return reply(502, { error: 'Coffee Club could not start afresh' });
+      bugsOn = wanted;
+    }
+    const file = app || claudeLive ? localScenario(app ? 'your-app' : 'coffee-club-live', app, claudeLive) : SCENARIO;
+    const env = claudeLive ? { ...childEnv, FF_AI: 'on', ANTHROPIC_API_KEY: liveKey } : childEnv;
+    const result = await playScenario(file, env);
+    if (!result.runId) return reply(422, { error: result.error });
+    demoRunId = result.runId;
+    return reply(200, { runId: result.runId });
   } catch (err) {
     return reply(400, { error: err.message });
   } finally {
@@ -243,7 +312,7 @@ async function localRun(req, res) {
 
 if (process.argv.includes('--run') || process.env.FF_DEMO_RUN === '1') {
   console.log('Playing the bad-month scenario once (this takes a little while)...');
-  demoRunId = await playScenario();
+  demoRunId = (await playScenario()).runId ?? null;
   if (demoRunId) console.log(`\nOpen the dashboard: http://localhost:${PORT}/?run=${demoRunId}`);
 }
 if (LOCAL) console.log('Local mode: the page can start fresh runs with the planted bugs on or off.');

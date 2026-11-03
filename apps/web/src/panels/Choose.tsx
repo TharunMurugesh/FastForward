@@ -1,5 +1,5 @@
 import type { Report } from '@fastforward/contracts';
-import { Bot, Bug, CalendarClock, CircleCheck, CreditCard, Flag, FlaskConical, Landmark, LoaderCircle, Play, Store, UserCheck, Waves } from 'lucide-react';
+import { AppWindow, Bot, Bug, CalendarClock, CircleCheck, CreditCard, Flag, FlaskConical, Landmark, LoaderCircle, Play, Sparkles, Store, UserCheck, Waves } from 'lucide-react';
 
 const CUSTOMERS = [
   { icon: UserCheck, name: 'Maya', text: 'Pays on time' },
@@ -8,11 +8,37 @@ const CUSTOMERS = [
   { icon: Waves, name: 'Bad weather', text: 'Notices arrive twice, late, out of order, and one is forged' },
 ];
 
+export interface OwnApp {
+  webhookUrl: string;
+  subscribeUrl: string;
+  probeUrl: string;
+}
+
+export interface LocalChoice {
+  target: 'demo' | 'own';
+  setTarget: (t: 'demo' | 'own') => void;
+  bugsOn: boolean;
+  setBugsOn: (on: boolean) => void;
+  own: OwnApp;
+  setOwn: (app: OwnApp) => void;
+  claudeAvailable: boolean;
+  claudeLive: boolean;
+  setClaudeLive: (live: boolean) => void;
+  running: boolean;
+  error: string | null;
+}
+
+const FIELDS: [keyof OwnApp, string][] = [
+  ['webhookUrl', 'Webhook address'],
+  ['subscribeUrl', 'Subscribe address'],
+  ['probeUrl', 'Probe address (what the checks read your app\'s state from)'],
+];
+
 interface Props {
   report: Report | null;
   disabled: boolean;
-  /** Set only when the demo runs on this machine: then the test is played afresh, with the bugs on or off. */
-  local: { bugsOn: boolean; setBugsOn: (on: boolean) => void; running: boolean; error: string | null } | null;
+  /** Set only when the demo runs on this machine: then the test is played afresh. */
+  local: LocalChoice | null;
   onStart: () => void;
 }
 
@@ -22,14 +48,38 @@ export function Choose({ report, disabled, local, onStart }: Props) {
     <div className="choose">
       <section className="card" aria-label="Your app">
         <h2>Your app</h2>
-        <div className="choose-app">
-          <Store size={26} aria-hidden="true" />
-          <div>
-            <strong>Coffee Club</strong>
-            <p className="muted">A demo subscription shop we built, with billing bugs planted on purpose. In real use, this is your own app.</p>
-          </div>
-        </div>
         {local && (
+          <div className="seg choose-target" role="group" aria-label="Which app to test">
+            <button type="button" className={local.target === 'demo' ? 'on' : ''} aria-pressed={local.target === 'demo'} disabled={local.running} onClick={() => local.setTarget('demo')}>
+              <Store size={15} aria-hidden="true" /> Demo shop
+            </button>
+            <button type="button" className={local.target === 'own' ? 'on' : ''} aria-pressed={local.target === 'own'} disabled={local.running} onClick={() => local.setTarget('own')}>
+              <AppWindow size={15} aria-hidden="true" /> Your own app
+            </button>
+          </div>
+        )}
+        {local?.target === 'own' ? (
+          <div className="own-app">
+            {FIELDS.map(([key, label]) => (
+              <label key={key}>
+                {label}
+                <input value={local.own[key]} onChange={(e) => local.setOwn({ ...local.own, [key]: e.target.value })} disabled={local.running} spellCheck={false} />
+              </label>
+            ))}
+            <p className="muted small">
+              Start your app on this machine with <code>FASTFORWARD=1 node --import fastforward-register your-server.js</code>, so its PayPal calls reach the stand-in.
+            </p>
+          </div>
+        ) : (
+          <div className="choose-app">
+            <Store size={26} aria-hidden="true" />
+            <div>
+              <strong>Coffee Club</strong>
+              <p className="muted">A demo subscription shop we built, with billing bugs planted on purpose. In real use, this is your own app.</p>
+            </div>
+          </div>
+        )}
+        {local && local.target === 'demo' && (
           <div className="bug-switch">
             <span>
               <Bug size={18} aria-hidden="true" /> Planted bugs
@@ -44,7 +94,23 @@ export function Choose({ report, disabled, local, onStart }: Props) {
             </div>
           </div>
         )}
-        {report && report.counts.deliveries > 0 && (
+        {local?.claudeAvailable && (
+          <div className="bug-switch">
+            <span>
+              <Sparkles size={18} aria-hidden="true" /> Claude's customers
+            </span>
+            <div className="seg" role="group" aria-label="Claude's customers">
+              <button type="button" className={local.claudeLive ? '' : 'on'} aria-pressed={!local.claudeLive} disabled={local.running} onClick={() => local.setClaudeLive(false)}>
+                Recorded
+              </button>
+              <button type="button" className={local.claudeLive ? 'on' : ''} aria-pressed={local.claudeLive} disabled={local.running} onClick={() => local.setClaudeLive(true)}>
+                Live
+              </button>
+            </div>
+          </div>
+        )}
+        {local?.claudeLive && <p className="muted small">Live: Claude decides each customer and writes the explanations now, using your Anthropic key. A run costs a few cents.</p>}
+        {(!local || local.target === 'demo') && report && report.counts.deliveries > 0 && (
           <p className="choose-check">
             <CircleCheck size={18} aria-hidden="true" /> PayPal integration found: its webhook handler answered {report.counts.deliveries} deliveries.
           </p>
@@ -96,7 +162,7 @@ export function Choose({ report, disabled, local, onStart }: Props) {
             </span>
             <span className="muted">
               {local
-                ? 'Start test plays the month now, on this machine, against the demo shop. Watch then plays that run at a pace you can follow.'
+                ? `Start test plays the month now, on this machine, against ${local.target === 'own' ? 'your app' : 'the demo shop'}. Watch then plays that run at a pace you can follow.`
                 : 'This public page replays a finished run, so it is the same for everyone and needs no keys. Run it on your machine to play it afresh.'}
             </span>
           </li>

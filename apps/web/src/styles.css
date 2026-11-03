@@ -1890,8 +1890,52 @@ button.link {
 .watch-steps li.real svg {
   color: var(--info);
 }
-.watch-feed li.failed svg {
-  color: var(--warn);
+.watch-steps strong,
+.watch-feed strong {
+  font-size: 16px;
+}
+.watch-steps span,
+.watch-feed span {
+  font-size: 14px;
+}
+.watch-feed li {
+  align-items: flex-start;
+}
+.watch-feed li.decision > svg {
+  color: var(--accent);
+}
+.feed-problems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: auto;
+}
+.own-app {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.own-app label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.own-app input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+}
+.own-app p {
+  margin: 0;
+}
+.choose-target {
+  margin-top: 12px;
 }
 .watch-clock {
   display: flex;

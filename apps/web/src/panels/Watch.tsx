@@ -1,10 +1,24 @@
-import { ArrowRight, Bot, CalendarClock, FastForward, FlaskConical, Landmark, Radio, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Ban, Bot, CalendarClock, CircleDollarSign, CirclePause, CirclePlay, CirclePlus, CreditCard, FastForward, Flag, FlaskConical, Hourglass, Landmark, Radio, type LucideIcon } from 'lucide-react';
+import { CheckChip, CHECK_LOOK } from '../checkLook.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fmtDate, fmtDateYear } from '../format.js';
 import { realSteps, type RealRunFile } from '../realRun.js';
 import type { FeedItem } from '../watch.js';
 
 const REAL_STEP_MS = 1100;
+
+/** One icon per kind of event, the same in every run, so an icon never means "problem". Problems get their own tags. */
+function eventIcon(eventType: string): LucideIcon {
+  if (eventType === 'PAYMENT.SALE.COMPLETED') return CircleDollarSign;
+  if (eventType.endsWith('PAYMENT.FAILED')) return CreditCard;
+  if (eventType.endsWith('SUSPENDED')) return CirclePause;
+  if (eventType.endsWith('ACTIVATED') || eventType.endsWith('RE-ACTIVATED')) return CirclePlay;
+  if (eventType.endsWith('CREATED') && eventType.startsWith('BILLING')) return CirclePlus;
+  if (eventType.endsWith('CANCELLED')) return Ban;
+  if (eventType.endsWith('EXPIRED')) return Hourglass;
+  if (eventType.startsWith('CUSTOMER.DISPUTE')) return Flag;
+  return Radio;
+}
 const DAY_STEP_MS = 180;
 const DAY_MS = 86_400_000;
 
@@ -59,12 +73,10 @@ export function Watch({ realRun, start, end, now, feed, moveTo, onDone }: Props)
         <ol className="watch-steps">
           {steps.slice(0, shown).map((s, i) => (
             <li key={i} className={s.source}>
-              {s.source === 'real' ? <Landmark size={16} aria-hidden="true" /> : <FlaskConical size={16} aria-hidden="true" />}
+              {s.source === 'real' ? <Landmark size={20} aria-label="Real sandbox" /> : <FlaskConical size={20} aria-label="Simulated" />}
               <div>
                 <strong>{s.title}</strong>
-                <span className="muted small">
-                  {s.source === 'real' ? 'Real sandbox' : 'Simulated'}: {s.detail}
-                </span>
+                <span className="muted">{s.detail}</span>
               </div>
             </li>
           ))}
@@ -89,17 +101,27 @@ export function Watch({ realRun, start, end, now, feed, moveTo, onDone }: Props)
         </div>
         <ul className="watch-feed">
           {realDone &&
-            feed.slice(0, 7).map((f) => (
-              <li key={f.key} className={f.failed ? 'failed' : ''}>
-                {f.kind === 'decision' ? <Bot size={16} aria-hidden="true" /> : f.failed ? <TriangleAlert size={16} aria-hidden="true" /> : <Radio size={16} aria-hidden="true" />}
-                <div>
-                  <strong>{f.title}</strong>
-                  <span className="muted small">
-                    {fmtDate(f.at)}, {f.detail}
-                  </span>
-                </div>
-              </li>
-            ))}
+            feed.slice(0, 6).map((f) => {
+              const Icon = f.kind === 'decision' ? Bot : eventIcon(f.eventType);
+              return (
+                <li key={f.key} className={f.kind}>
+                  <Icon size={20} aria-hidden="true" />
+                  <div>
+                    <strong>{f.title}</strong>
+                    <span className="muted">
+                      {fmtDate(f.at)}, {f.detail}
+                    </span>
+                  </div>
+                  {f.problems.length > 0 && (
+                    <span className="feed-problems">
+                      {f.problems.map((p) => (
+                        <CheckChip key={p} id={p} title={`Evidence for: ${CHECK_LOOK[p].short}`} />
+                      ))}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
         </ul>
       </section>
       <div className="watch-actions">

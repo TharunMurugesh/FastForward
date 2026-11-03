@@ -27,8 +27,8 @@ describe('realSteps', () => {
 
   it('says how long a notice took, and never invents one that did not arrive', () => {
     const steps = realSteps(base);
-    expect(steps[0]!.detail).toBe('BILLING.SUBSCRIPTION.ACTIVATED reached the app after 12 s');
-    expect(steps[2]!.detail).toBe('BILLING.SUBSCRIPTION.SUSPENDED did not arrive in time');
+    expect(steps[0]!.detail).toBe("PayPal's notice reached the app in 12 s");
+    expect(steps[2]!.detail).toContain('did not come within 3 minutes');
   });
 
   it('does not credit Claude for a scripted default', () => {

@@ -5,7 +5,7 @@ import { BUG_LABELS, fmtDate, fmtDateYear } from './format.js';
 import { DeliveriesGrid } from './grids/DeliveriesGrid.js';
 import { FidelityGrid } from './grids/FidelityGrid.js';
 import { toDeliveryRows, toNoticeRows } from './grids/rows.js';
-import { Choose } from './panels/Choose.js';
+import { Choose, type OwnApp } from './panels/Choose.js';
 import { DisputeChat } from './panels/DisputeChat.js';
 import { EventInspector } from './panels/EventInspector.js';
 import { FixDrawer } from './panels/FixDrawer.js';
@@ -52,12 +52,30 @@ export function App() {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const embedded = params.has('embed');
   const bugsOff = params.get('bugs') === 'off';
+  const ownApp = params.get('app') === 'own';
+  const liveClaude = params.get('claude') === 'live';
   // On this machine (`npm run demo`) the test is played afresh; the public site only replays.
-  const [local, setLocal] = useState<{ bugsOn: boolean } | null>(null);
+  const [local, setLocal] = useState<{ bugsOn: boolean; claudeAvailable: boolean } | null>(null);
+  // Which app the Choose step tests is remembered, so coming back to the page keeps your own app selected.
+  const [target, setTargetState] = useState<'demo' | 'own'>(() => (ownApp || localStorage.getItem('ff-target') === 'own' ? 'own' : 'demo'));
+  const setTarget = useCallback((t: 'demo' | 'own') => {
+    localStorage.setItem('ff-target', t);
+    setTargetState(t);
+  }, []);
+  const [own, setOwn] = useState<OwnApp>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('ff-own-app') ?? 'null') as OwnApp | null;
+      if (saved?.webhookUrl) return saved;
+    } catch {
+      // nothing saved yet
+    }
+    return { webhookUrl: 'http://localhost:3001/webhooks/paypal', subscribeUrl: 'http://localhost:3001/subscribe', probeUrl: 'http://localhost:3001/__ff/probe' };
+  });
+  const [claudeLive, setClaudeLive] = useState(liveClaude);
   const [localRunning, setLocalRunning] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   useEffect(() => {
-    void api.local().then((l) => l && setLocal({ bugsOn: !bugsOff }));
+    void api.local().then((l) => l && setLocal({ bugsOn: !bugsOff, claudeAvailable: l.claudeAvailable }));
   }, [bugsOff]);
   const startTest = useCallback(async () => {
     if (!local) {
@@ -67,20 +85,22 @@ export function App() {
     setLocalRunning(true);
     setLocalError(null);
     try {
-      const runId = await api.localRun(local.bugsOn);
-      window.location.href = `/?run=${encodeURIComponent(runId)}${embedded ? '&embed=1' : ''}${local.bugsOn ? '' : '&bugs=off'}#watch`;
+      if (target === 'own') localStorage.setItem('ff-own-app', JSON.stringify(own));
+      const runId = await api.localRun({ bugsOn: local.bugsOn, claudeLive, ...(target === 'own' ? { app: own } : {}) });
+      const extra = `${embedded ? '&embed=1' : ''}${target === 'own' ? '&app=own' : local.bugsOn ? '' : '&bugs=off'}${claudeLive ? '&claude=live' : ''}`;
+      window.location.href = `/?run=${encodeURIComponent(runId)}${extra}#watch`;
     } catch (err) {
       setLocalError((err as Error).message);
       setLocalRunning(false);
     }
-  }, [local, embedded, openTab]);
+  }, [local, embedded, openTab, target, own, claudeLive]);
 
   const { info, trace, report, start, mode } = run;
   const subs = info.subscriptions;
   const rows = useMemo(() => toDeliveryRows(trace, subs, report ?? undefined), [trace, subs, report]);
   const notices = useMemo(() => toNoticeRows(rows), [rows]);
   const model = useMemo(() => toTimeline(trace, subs), [trace, subs]);
-  const feed = useMemo(() => watchFeed(notices, trace), [notices, trace]);
+  const feed = useMemo(() => watchFeed(notices, trace, liveClaude), [notices, trace, liveClaude]);
   const disputes = useMemo(() => disputeThreads(trace, subs).length, [trace, subs]);
   const disputeCheck = report?.checks.find((c) => c.id === 'DISPUTE_ANSWERED');
   const disputeHelp = disputeCheck?.status === 'fail' ? disputeCheck.findings.find((f) => f.fix || f.explanation) : undefined;
@@ -236,7 +256,21 @@ export function App() {
             <Choose
               report={run.report}
               disabled={loading}
-              local={local && { bugsOn: local.bugsOn, setBugsOn: (on) => setLocal({ bugsOn: on }), running: localRunning, error: localError }}
+              local={
+                local && {
+                  target,
+                  setTarget,
+                  bugsOn: local.bugsOn,
+                  setBugsOn: (on) => setLocal({ ...local, bugsOn: on }),
+                  own,
+                  setOwn,
+                  claudeAvailable: local.claudeAvailable,
+                  claudeLive,
+                  setClaudeLive,
+                  running: localRunning,
+                  error: localError,
+                }
+              }
               onStart={() => void startTest()}
             />
           )}
@@ -251,9 +285,15 @@ export function App() {
                 <p className="match-note">
                   <Info size={18} aria-hidden="true" />
                   {report.checks.some((c) => c.status === 'fail') ? (
-                    <span>
-                      <strong>These failures come from bugs we planted in the demo shop.</strong> The checks really ran against it, over simulated months. With your own app, they would be your bugs.
-                    </span>
+                    ownApp ? (
+                      <span>
+                        <strong>These failures were found in your app.</strong> The month was played against it just now, over simulated months.
+                      </span>
+                    ) : (
+                      <span>
+                        <strong>These failures come from bugs we planted in the demo shop.</strong> The checks really ran against it, over simulated months. With your own app, they would be your bugs.
+                      </span>
+                    )
                   ) : (
                     <span>
                       <strong>Nothing failed.</strong> {bugsOff ? 'This run had the planted bugs switched off: the same month, the same customers, the same bad weather.' : 'Every check passed in this run.'}
