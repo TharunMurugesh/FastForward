@@ -39,6 +39,23 @@ export const api = {
     source.onerror = onError;
     return () => source.close();
   },
+  /** Only when the demo was started on this machine with `npm run demo`: whether fresh runs can be started. */
+  async local(): Promise<{ bugsOn: boolean } | null> {
+    try {
+      const res = await fetch('/_local');
+      if (!res.ok || !(res.headers.get('content-type') ?? '').includes('json')) return null;
+      return (await res.json()) as { bugsOn: boolean };
+    } catch {
+      return null;
+    }
+  },
+  /** Plays a fresh month against the demo shop, with its planted bugs on or off. */
+  async localRun(bugsOn: boolean): Promise<string> {
+    const res = await fetch('/_local/run', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ bugsOn }) });
+    const body = (await res.json().catch(() => ({}))) as { runId?: string; error?: string };
+    if (!res.ok || !body.runId) throw new Error(body.error ?? `the run failed (${res.status})`);
+    return body.runId;
+  },
   /** Committed evidence from `npm run fidelity`; null when the file has not been generated yet. */
   async fidelity(): Promise<FidelityFile | null> {
     try {

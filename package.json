@@ -18,7 +18,7 @@
     "test:e2e": "vitest run --project=e2e",
     "typecheck": "tsc -b",
     "fidelity": "vitest run --project fidelity",
-    "demo": "npm run build && npm run build -w @fastforward/web && node scripts/start-hosted.mjs --run",
+    "demo": "npm run build && npm run build -w @fastforward/web && node scripts/start-hosted.mjs --run --local",
     "concept": "vite concept",
     "bundle": "node scripts/bundle.mjs",
     "pack:check": "node scripts/pack-check.mjs",

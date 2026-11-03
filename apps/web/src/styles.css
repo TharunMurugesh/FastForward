@@ -1773,6 +1773,31 @@ button.link {
 .choose-app p {
   margin: 4px 0 0;
 }
+.bug-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.bug-switch > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.bug-switch .seg button {
+  min-width: 56px;
+}
+.choose-error {
+  margin: 10px 0 0;
+  color: var(--bad);
+}
 .choose-check {
   display: flex;
   align-items: center;

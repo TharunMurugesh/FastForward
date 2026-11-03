@@ -115,6 +115,26 @@ export function createApp(config: AppConfig): express.Express {
     else if (type === 'BILLING.SUBSCRIPTION.CANCELLED' || type === 'BILLING.SUBSCRIPTION.EXPIRED') member.access = false;
   }
 
+  // The local demo switches the planted bugs between runs, so the same month can be watched with them on and then off.
+  app.put('/__ff/bugs', (req, res) => {
+    let next: Set<Bug>;
+    try {
+      next = parseBugs(String(req.body?.bugs ?? ''));
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+      return;
+    }
+    bugs.clear();
+    for (const bug of next) bugs.add(bug);
+    res.json({ bugs: [...bugs] });
+  });
+
+  // Runs of one scenario reuse its subscription and event ids, so the local demo starts each run with an empty shop.
+  app.post('/__ff/reset', (_req, res) => {
+    store.clear();
+    res.status(204).end();
+  });
+
   app.get('/__ff/probe', (req, res) => {
     const m = store.find(String(req.query.subscription_id ?? ''));
     if (!m) {

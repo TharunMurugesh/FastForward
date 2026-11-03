@@ -6,7 +6,8 @@
  *   - the built dashboard on $PORT (default 8080), which also proxies /_ff/* to the twin,
  *     /demo/* to Coffee Club, and serves the evidence in fidelity/
  * With `--run` (or FF_DEMO_RUN=1) it then plays the bad-month scenario once, and the dashboard's
- * front page opens on that run. AI is off and no PayPal sandbox keys are passed on: it needs no .env.
+ * front page opens on that run. With `--local` (only `npm run demo` passes it, never the Dockerfile) the page can
+ * also start a fresh run, with Coffee Club's planted bugs switched on or off: POST /_local/run. AI is off and no PayPal sandbox keys are passed on: it needs no .env.
  * Build first: npm run build && npm run build -w @fastforward/web
  */
 import { spawn } from 'node:child_process';
@@ -99,6 +100,9 @@ const TYPES = {
 };
 
 let demoRunId = null;
+const LOCAL = process.argv.includes('--local');
+let localBusy = false;
+let bugsOn = true;
 
 /** Forwards the request untouched (streams included, so the dashboard's event stream works). */
 function proxy(req, res, port, path) {
@@ -117,6 +121,12 @@ function proxy(req, res, port, path) {
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const path = url.pathname;
+
+  if (LOCAL && path === '/_local') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify({ bugsOn, busy: localBusy }));
+  }
+  if (LOCAL && path === '/_local/run' && req.method === 'POST') return localRun(req, res);
 
   // The public site only reads. The twin's control API can start and advance runs, and Coffee Club
   // accepts subscriptions, so anything that is not GET or HEAD is refused before it reaches them.
@@ -162,6 +172,7 @@ for (const [port, name] of [[TWIN_PORT, 'the twin'], [COFFEE_PORT, 'Coffee Club'
 }
 
 const bugs = process.env.COFFEE_BUGS ?? DEFAULT_BUGS;
+bugsOn = bugs !== 'none';
 // The twin decides what the customers do. Pointed at the scenario's recorded decisions, a demo with no API key repeats
 // exactly the recorded run (bad-month.lock.json is committed once someone has recorded it with `npm run record:ai`).
 start('twin', ['packages/cli/dist/bin.js', 'twin', '--port', String(TWIN_PORT), '--decisions', SCENARIO.replace(/\.ya?ml$/, '.lock.json')]);
@@ -176,21 +187,63 @@ await waitForPort(COFFEE_PORT, 'Coffee Club').catch((e) => fail(e.message));
 await new Promise((done, reject) => server.once('error', reject).listen(PORT, '0.0.0.0', done)).catch((e) => fail(e.message));
 console.log(`Fastforward is up: dashboard http://localhost:${PORT}  (Coffee Club bugs: ${bugs})`);
 
-if (process.argv.includes('--run') || process.env.FF_DEMO_RUN === '1') {
-  console.log('Playing the bad-month scenario once (this takes a little while)...');
-  const run = spawn(
-    process.execPath,
-    ['packages/cli/dist/bin.js', 'run', SCENARIO, '--twin-url', `http://127.0.0.1:${TWIN_PORT}`, '--dashboard-url', `http://localhost:${PORT}`],
-    { cwd: root, env: childEnv, stdio: ['ignore', 'pipe', 'pipe'] },
-  );
-  let output = '';
-  run.stdout.on('data', (d) => {
-    output += d;
-    process.stdout.write(d);
-  });
-  run.stderr.on('data', (d) => process.stderr.write(d));
-  run.on('exit', () => {
-    demoRunId = /[?&]run=([\w-]+)/.exec(output)?.[1] ?? null;
-    if (demoRunId) console.log(`\nOpen the dashboard: http://localhost:${PORT}/?run=${demoRunId}`);
+/** Plays the scenario once against Coffee Club, through the twin, and resolves with the run's id (null if it failed). */
+function playScenario() {
+  return new Promise((done) => {
+    const run = spawn(
+      process.execPath,
+      ['packages/cli/dist/bin.js', 'run', SCENARIO, '--twin-url', `http://127.0.0.1:${TWIN_PORT}`, '--dashboard-url', `http://localhost:${PORT}`],
+      { cwd: root, env: childEnv, stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+    let output = '';
+    run.stdout.on('data', (d) => {
+      output += d;
+      process.stdout.write(d);
+    });
+    run.stderr.on('data', (d) => process.stderr.write(d));
+    run.on('exit', () => done(/[?&]run=([\w-]+)/.exec(output)?.[1] ?? null));
   });
 }
+
+/** POST /_local/run {bugsOn}: switch Coffee Club's planted bugs, play a fresh month, answer with its run id. One at a time. */
+async function localRun(req, res) {
+  const reply = (status, body) => {
+    res.writeHead(status, { 'content-type': 'application/json' });
+    res.end(JSON.stringify(body));
+  };
+  if (localBusy) return reply(409, { error: 'a run is already playing' });
+  localBusy = true;
+  try {
+    let text = '';
+    for await (const chunk of req) {
+      text += chunk;
+      if (text.length > 1000) return reply(413, { error: 'too large' });
+    }
+    const wanted = JSON.parse(text || '{}').bugsOn !== false;
+    const set = await fetch(`http://127.0.0.1:${COFFEE_PORT}/__ff/bugs`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ bugs: wanted ? bugs : 'none' }),
+    });
+    if (!set.ok) return reply(502, { error: 'Coffee Club did not accept the bug switch' });
+    // Every run of the scenario reuses its ids, so the shop must forget the last run or it double-counts.
+    const reset = await fetch(`http://127.0.0.1:${COFFEE_PORT}/__ff/reset`, { method: 'POST' });
+    if (!reset.ok) return reply(502, { error: 'Coffee Club could not start afresh' });
+    bugsOn = wanted;
+    const runId = await playScenario();
+    if (!runId) return reply(500, { error: 'the run did not finish; see the terminal' });
+    demoRunId = runId;
+    return reply(200, { runId });
+  } catch (err) {
+    return reply(400, { error: err.message });
+  } finally {
+    localBusy = false;
+  }
+}
+
+if (process.argv.includes('--run') || process.env.FF_DEMO_RUN === '1') {
+  console.log('Playing the bad-month scenario once (this takes a little while)...');
+  demoRunId = await playScenario();
+  if (demoRunId) console.log(`\nOpen the dashboard: http://localhost:${PORT}/?run=${demoRunId}`);
+}
+if (LOCAL) console.log('Local mode: the page can start fresh runs with the planted bugs on or off.');

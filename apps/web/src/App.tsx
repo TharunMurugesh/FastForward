@@ -18,6 +18,7 @@ import { Skeleton } from './panels/Skeleton.js';
 import { disputeThreads } from './panels/thread.js';
 import { toTimeline } from './timeline/model.js';
 import { Timeline } from './timeline/Timeline.js';
+import { api } from './api.js';
 import { useRun } from './useRun.js';
 import { useTab, TABS, type Tab } from './useTab.js';
 import { watchFeed } from './watch.js';
@@ -48,7 +49,31 @@ export function App() {
   const [selected, setSelected] = useState<string | null>(null);
   const [checkFilter, setCheckFilter] = useState<CheckId | null>(null);
   const [explaining, setExplaining] = useState<CheckId | null>(null);
-  const embedded = useMemo(() => new URLSearchParams(window.location.search).has('embed'), []);
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const embedded = params.has('embed');
+  const bugsOff = params.get('bugs') === 'off';
+  // On this machine (`npm run demo`) the test is played afresh; the public site only replays.
+  const [local, setLocal] = useState<{ bugsOn: boolean } | null>(null);
+  const [localRunning, setLocalRunning] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  useEffect(() => {
+    void api.local().then((l) => l && setLocal({ bugsOn: !bugsOff }));
+  }, [bugsOff]);
+  const startTest = useCallback(async () => {
+    if (!local) {
+      openTab('watch');
+      return;
+    }
+    setLocalRunning(true);
+    setLocalError(null);
+    try {
+      const runId = await api.localRun(local.bugsOn);
+      window.location.href = `/?run=${encodeURIComponent(runId)}${embedded ? '&embed=1' : ''}${local.bugsOn ? '' : '&bugs=off'}#watch`;
+    } catch (err) {
+      setLocalError((err as Error).message);
+      setLocalRunning(false);
+    }
+  }, [local, embedded, openTab]);
 
   const { info, trace, report, start, mode } = run;
   const subs = info.subscriptions;
@@ -207,7 +232,14 @@ export function App() {
         )}
 
         <main aria-label={STEPS[tab].label}>
-          {tab === 'choose' && <Choose report={run.report} disabled={loading} onStart={() => openTab('watch')} />}
+          {tab === 'choose' && (
+            <Choose
+              report={run.report}
+              disabled={loading}
+              local={local && { bugsOn: local.bugsOn, setBugsOn: (on) => setLocal({ bugsOn: on }), running: localRunning, error: localError }}
+              onStart={() => void startTest()}
+            />
+          )}
 
           {tab === 'watch' && (loading ? <Skeleton shape="timeline" /> : <Watch realRun={run.realRun} start={start} end={info.end} now={info.now} feed={feed} moveTo={run.moveTo} onDone={toResult} />)}
 
@@ -218,9 +250,15 @@ export function App() {
               <div className="stack">
                 <p className="match-note">
                   <Info size={18} aria-hidden="true" />
-                  <span>
-                    <strong>These failures come from bugs we planted in the demo shop.</strong> The checks really ran against it, over simulated months. With your own app, they would be your bugs.
-                  </span>
+                  {report.checks.some((c) => c.status === 'fail') ? (
+                    <span>
+                      <strong>These failures come from bugs we planted in the demo shop.</strong> The checks really ran against it, over simulated months. With your own app, they would be your bugs.
+                    </span>
+                  ) : (
+                    <span>
+                      <strong>Nothing failed.</strong> {bugsOff ? 'This run had the planted bugs switched off: the same month, the same customers, the same bad weather.' : 'Every check passed in this run.'}
+                    </span>
+                  )}
                 </p>
                 <Overview report={report} notices={notices} trace={trace} subscriptions={subs} onExplain={setExplaining} onShowNotices={showNotices} />
                 <div className="watch-actions">

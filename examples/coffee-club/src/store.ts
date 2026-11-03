@@ -19,6 +19,12 @@ export class Store {
     return m;
   }
 
+  /** Forgets everyone and every event: a fresh shop for the next run. */
+  clear(): void {
+    this.members.clear();
+    this.seenEvents.clear();
+  }
+
   find(subscriptionId: string): Member | undefined {
     return this.members.get(subscriptionId);
   }

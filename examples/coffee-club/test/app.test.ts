@@ -109,6 +109,37 @@ describe('Coffee Club', () => {
     expect(JSON.parse(created!.body)).toMatchObject({ plan_id: 'P-COFFEE', custom_id: 'maya@example.test' });
   });
 
+  it('the planted bugs can be switched off between runs', async () => {
+    await startApp('no-dedupe');
+    const res = await fetch(`${base}/__ff/bugs`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bugs: 'none' }) });
+    expect(await res.json()).toEqual({ bugs: [] });
+    await subscribe();
+    await deliver(sale('WH-A'));
+    await deliver(sale('WH-A'));
+    expect(await probe('I-TEST1')).toEqual({ access: true, fulfilments: 1 });
+  });
+
+  it('refuses an unknown bug name and keeps the bugs it had', async () => {
+    await startApp('no-dedupe');
+    const res = await fetch(`${base}/__ff/bugs`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bugs: 'no-such-bug' }) });
+    expect(res.status).toBe(400);
+    await subscribe();
+    await deliver(sale('WH-A'));
+    await deliver(sale('WH-A'));
+    expect(await probe('I-TEST1')).toEqual({ access: true, fulfilments: 2 });
+  });
+
+  it('reset forgets members and handled notices', async () => {
+    await startApp();
+    await subscribe();
+    await deliver(sale('WH-A'));
+    expect((await fetch(`${base}/__ff/reset`, { method: 'POST' })).status).toBe(204);
+    expect((await fetch(`${base}/__ff/probe?subscription_id=I-TEST1`)).status).toBe(404);
+    await subscribe();
+    await deliver(sale('WH-A'));
+    expect(await probe('I-TEST1')).toEqual({ access: true, fulfilments: 1 });
+  });
+
   it('probe answers 404 for unknown ids', async () => {
     await startApp();
     expect((await fetch(`${base}/__ff/probe?subscription_id=I-NOPE`)).status).toBe(404);
