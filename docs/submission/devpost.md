@@ -15,7 +15,15 @@ The test clock PayPal's sandbox is missing: run a real sandbox subscription, ski
 
 **Why it does not exist yet.** PayPal has no test clock. Stripe has test clocks, but only for Stripe billing and with no AI customers. Chargebee has a "Time Machine" only for its own billing. We found nothing that gives PayPal Subscriptions this.
 
+**Who pays.** PayPal, as a free feature in its developer dashboard. Merchants whose billing code breaks lose subscribers, and PayPal loses that payment volume. Catching these bugs before launch keeps both, and cuts integration support.
+
 **Built for PayPal.** We built it as a proposal for a Test Clock under Testing Tools in PayPal's developer dashboard, beside the Webhook Simulator. PayPal has not reviewed or endorsed it, and whether and how to offer it would be PayPal's decision. Everything is open source under the MIT licence, so it can be used today.
+
+## Two questions we expect
+
+**Why not just write unit tests?** Unit tests check the code you thought of. They do not produce PayPal's bad weather: the same notice delivered twice, a notice arriving late or out of order, a forged notice, or a card that fails on the third renewal two months from now. Test Clock produces all of these against your running app, over months of renewals, and checks what the app actually did.
+
+**Won't the simulator drift away from real PayPal?** It can, so we measure it. `npm run fidelity` sends the same requests to PayPal's real sandbox and to the simulator and compares status, response shape and PayPal's published spec. The first runs found 49 differences; all 17 steps match now. Running it again shows at once if PayPal changes.
 
 ## What it does
 
@@ -80,7 +88,7 @@ TypeScript (strict), Node 24, Fastify, zod, React and Vite, **AG Grid Community*
 
 ## Try it
 
-Setup and run instructions are in the repository README. It is on npm (`npx fastforward-cli init`; `fastforward-register` and `fastforward-mcp` are the other two packages). Judges can use https://fastforward-production.up.railway.app/ or run it locally in three commands. The demo needs no PayPal login. To run your own AI scenarios, set `ANTHROPIC_API_KEY` in a `.env` file; without it, the scripted fallback runs. The hosted demo stays up until the judging period ends on 15 December 2026.
+Setup and run instructions are in the repository README. It is on npm (`npx fastforward-cli init`; `fastforward-register` and `fastforward-mcp` are the other two packages). Judges can use https://fastforward-production.up.railway.app/, which replays a finished run, or run it locally in three commands (Node 24; the first build takes about 2 to 3 minutes). Locally, Start test plays a fresh month on your machine, and a switch turns the demo shop's planted bugs on or off: 3 of 6 checks fail with them on, all 6 pass with them off. The demo needs no PayPal login. To run your own AI scenarios, set `ANTHROPIC_API_KEY` in a `.env` file; without it, the scripted fallback runs. The hosted demo stays up until the judging period ends on 15 December 2026.
 
 Repository: https://github.com/VinayG759/FastForward (MIT licence)
 Video: [public YouTube URL]

@@ -15,7 +15,14 @@ developer dashboard. It is not a PayPal product, and PayPal has not reviewed or 
 - **Why it does not exist yet:** PayPal has no test clock. Stripe's test clocks cover Stripe billing only and have no AI
   customers. We found nothing that gives PayPal Subscriptions this.
 
+- **Who pays:** PayPal, as a free feature in its developer dashboard. Merchants whose billing code breaks lose
+  subscribers, and PayPal loses that payment volume. Catching these bugs before launch keeps both, and cuts
+  integration support.
+
 ## Quickstart (three commands, no `.env`, no PayPal login)
+
+**Needs Node 24 or newer** (`node --version`). The first `npm run demo` builds everything, which takes about 2 to 3
+minutes; later starts take seconds.
 
 ```
 git clone https://github.com/VinayG759/FastForward.git
@@ -31,8 +38,9 @@ Node 24 and no API key: the customers' decisions and the explanations replay a r
 labels them "Written by Claude". (With scripted customers a fourth check fails: the scripted customer lets his card keep
 failing until he is suspended, while Claude's customer updated his card in time.)
 
-Change one thing to see the checks go quiet: `COFFEE_BUGS=none npm run demo` plays the same month with the
-bugs off, and all 6 checks pass.
+Then see the checks go quiet: on the Choose step, switch **Planted bugs** to Off and press Start test. The page plays
+the same month afresh on your machine, and all 6 checks pass. (The public demo only replays a finished run, so it has
+no switch.)
 
 ## What it does
 
