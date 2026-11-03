@@ -1,4 +1,55 @@
-STATUS: taken over 2026-11-01
+STATUS: waiting for the next Sara
+
+# Handoff: 3 Nov 2026 (read this section first; it overrides older ones where they differ)
+
+**Video made, needs Vinay's watch.** `C:\Users\vinay\Desktop\my discussions\test-clock-demo.mp4`, 2:31, in his
+ElevenLabs voice (Turbo, his pick). Captions: `test-clock-demo.srt` beside it. Narration: `test-clock-narration.md`.
+Recorded from the concept frame (`npm run demo`, then `npx vite concept --port 5180`) driving the recorded real run.
+Scenes: hook, PayPal's own simulator note, Choose, real sandbox (5/5 signatures, Claude as Sam reactivates on real
+PayPal), 75 simulated days, Result (3 of 6 fail, Claude's fix), Details + PayPal match 17/17, close card (repo, live
+demo, `npm i fastforward-register`, MCP). Every number was checked on screen first.
+
+**Update 3 Nov evening: v2 video replaces the first cut.** `my discussions	est-clock-v2.mp4` (2:12) with `test-clock-v2.srt` and `test-clock-v2-narration.md`. Voice C: ElevenLabs `eleven_v3`, stability 0.5, similarity 0.9 (his pick by ear). Follows the judge report: product on screen from 0:00 under a 3 s title, simulator page about 8 s, zooms on narrated cards, live bugs-on (3 of 6) then bugs-off (all 6) runs played on the laptop via `npm run demo` local mode, who-pays line, ends on the card. Real-sandbox part said as recorded; months said as played just now. Plain Fetch Shop scene not added. Scripts: `record2.js`, `voice2.js`, `scenes2.json` in the same scratchpad.
+
+**For the next cut (Vinay, 3 Nov):** open with his own short intro, in his voice, e.g. "Hi, I'm Vinay" plus one line on who he is, before the hook. Keep the whole video under 3 minutes. v2 is going to judging now.
+
+**Pitch evidence used:** five equal criteria (judges may score from video alone, maybe with AI analysis), stage one is
+pass/fail on PayPal use, so real PayPal is shown in the first minute. Separate prizes for Best Use of PayPal + AI and
+Best Demo Delivery. PayPal's last hackathon winner was an AI agent on PayPal APIs.
+
+**Not in the video:** the "your own app in VS Code / Claude Code fixes it" scene from the old voice-over (needs his
+screen); it is only on the close card. `docs/submission/voiceover.md` and `video-script.md` still describe the older
+cut: update them to match `test-clock-narration.md`.
+
+**Next, in order:** 1) Vinay watches and lists changes; the recorder and voice files are in this session's scratchpad
+(`...\ad65acaef56bda0b\...\scratchpad`, `record.js`, `voice.js`, `scenes.json`); changing one line means regenerating
+only that line. 2) Upload to YouTube (public), add the .srt as captions. 3) Bring `docs/submission/devpost.md` in line
+with the video. 4) Submit by 13 Nov 01:30 IST.
+
+**Keys:** his ElevenLabs key is in that scratchpad `.env`. Do not delete or blank any key without asking him (his rule).
+
+**Product changes, 3 Nov (the product session; all committed, 47692b7..fc09092, not yet live until pushed):**
+- Judge round 2 (35.5/50) answered outside the video. The judge's main objection: "you planted the bugs, so of
+  course you found them".
+- **Your own app:** on the Choose step (local mode only, `npm run demo`) you can point Test Clock at any app on this
+  machine (webhook, subscribe and probe addresses; anything not on localhost is refused). Tested against Plain Fetch
+  Shop with one bug: it caught "Paid twice" and said "found in your app". Inkwell no longer exists on this machine, so
+  the video needs a new outside app for this moment: one forgotten line, fail, fix, pass.
+- **Claude live:** a Live switch (only with `ANTHROPIC_API_KEY` in `.env`) lets Claude decide customers and write
+  explanations during the run, about 8 s and a few cents. Recorded locks are never touched (runs use copies in
+  `.fastforward/local/`).
+- **Fresh ids per run** unless a scenario says `ids: repeat` (both bad-month scenarios do, so recordings match).
+  Fixes false "paid twice" for apps that keep data between runs. The demo shop is also reset before each local run.
+- **Watch:** one icon per event type, problems as coloured check tags, bigger and shorter text, the missing notice
+  explains itself. **Concept:** neutral "Developer Dashboard" title, no PayPal product names or brand colours.
+- **Text:** who pays line plus two sourced numbers (PayPal's 94.5% recurring success rate; Recurly's $129B
+  estimate), answers to "why not unit tests" and "won't it drift", Node 24 and build time in the README.
+- **The v2 video predates these.** It still shows the PayPal-style logo and no own-app or live-Claude scene. A v3
+  should: restart `npm run demo`, show the own-app fail-fix-pass and one Live run, use a plain quote instead of the
+  PayPal page screenshot, check the voice says "Claude" not "Cloud", and trim the black ending.
+- **Still open:** GitHub About section (Vinay sets it on the website, or later via `gh` once logged in; the GitHub CLI
+  is installed at `C:\Program Files\GitHub CLI\gh.exe` but its login failed once). `docs/testing-guide.md`,
+  section 6 of `docs/how-it-works.md` and `voiceover.md` still describe older screens. npm packages are still 0.1.2.
 
 > For the next Sara: you are lead engineer and orchestrator (method in ~/.claude/CLAUDE.md). Project: the
 > **PayPal AI Hackathon**, product **Fastforward**. Read the project memories first (they load with MEMORY.md),
