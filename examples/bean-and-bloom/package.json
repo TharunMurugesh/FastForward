@@ -1,0 +1,14 @@
+{
+  "name": "bean-and-bloom",
+  "version": "0.1.2",
+  "private": true,
+  "type": "commonjs",
+  "license": "MIT",
+  "description": "The flower shop from the demo video: an outside app with one real, unplanted bug.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}

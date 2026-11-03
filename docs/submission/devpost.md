@@ -17,7 +17,7 @@ The test clock PayPal's sandbox is missing: run a real sandbox subscription, ski
 
 **Who pays.** PayPal, as a free feature in its developer dashboard: every merchant whose subscription billing works keeps its subscribers paying through PayPal.
 
-**Why it matters, in numbers.** By PayPal's own figure, merchants using PayPal for recurring billing see an average payment success rate of 94.5% (PayPal's recurring payments page), so about 1 renewal in 18 fails and the failed-payment code runs all the time. Recurly, a subscription billing company, estimates that failed payments could cost subscription businesses more than $129 billion in 2025. Both are vendor figures.
+**Why it matters, in numbers.** By PayPal's own figure, merchants using PayPal for recurring billing see an average payment success rate of 94.5% (PayPal's recurring payments page), so about 1 renewal in 18 fails and the failed-payment code runs all the time. Recurly, a subscription billing company, estimates that failed payments could cost subscription businesses more than $129 billion in 2025. Both are vendor figures. Most of those failures are declined cards, and Test Clock does not stop a card from declining. It tests the code that has to handle each decline (and each repeated, late or forged notice), because that code decides whether a lapsed subscriber keeps getting served or a paying one gets cut off.
 
 **Built for PayPal.** We built it as a proposal for a Test Clock under Testing Tools in PayPal's developer dashboard, beside the Webhook Simulator. PayPal has not reviewed or endorsed it, and whether and how to offer it would be PayPal's decision. Everything is open source under the MIT licence, so it can be used today.
 
@@ -84,9 +84,9 @@ TypeScript (strict), Node 24, Fastify, zod, React and Vite, **AG Grid Community*
 - **The real-sandbox comparison uses card-funded subscriptions** (US merchant, non-3DS test card), the only way to get an active subscription without a person approving it in a browser. Subscriptions approved with a PayPal wallet follow the same states but were not compared. Just after creation the sandbox lists no transactions yet, while the twin lists the payment at once; that difference is recorded. Remaining guesses are marked verified or unverified in `packages/twin/src/fidelity.ts`.
 - **One timing is a guess.** PayPal's retry schedule (5 days, twice per cycle), how failures are counted and the suspension threshold are verified from its documentation and API spec. PayPal does not say whether the final failure suspends on its first attempt or only after that cycle's retries; we follow its worked example, and the sandbox has no clock to test it.
 - **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and events delayed past the end of the run are never delivered. Ids follow the scenario seed, so a rerun has the same shape, timing and ids (run ids and signature transmission ids are still random).
-- **Scope is narrow.** Six checks, two example apps, subscriptions and disputes only. Other PayPal products are out of scope.
+- **Scope is narrow.** Six checks, three example apps, subscriptions and disputes only. Other PayPal products are out of scope.
 - **The audience size is unproven.** Nobody publishes how many teams use PayPal Subscriptions directly.
-- **The hosted demo replays finished runs.** It shows the demo shop, so its failures come from bugs we planted. To test your own app, run it locally from npm.
+- **The hosted demo replays finished runs.** It shows the demo shop, so its failures come from bugs we planted. To see a mistake nobody planted, run Bean & Bloom, the flower shop from the video (`examples/bean-and-bloom`, two minutes, steps in its README). To test your own app, run it locally from npm.
 
 ## Try it
 

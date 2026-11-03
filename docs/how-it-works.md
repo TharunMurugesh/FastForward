@@ -38,6 +38,7 @@ not reviewed or endorsed it, and any charging would be PayPal's decision.
 | `packages/mcp` | A walkie-talkie for coding assistants | Lets an assistant like Claude Code write, run and explain scenarios. |
 | `apps/web` | The monitor in the control room | The dashboard: a page that replays the day with tables, a timeline and the report. |
 | `examples/coffee-club`, `examples/plain-fetch-shop` | Two practice restaurants | Small shop apps with bugs you can switch on. They are what we test against. |
+| `examples/bean-and-bloom` | A restaurant we didn't build for testing | The flower shop from the video: one file, no bug switch, one real forgotten check. |
 | `scripts/` | The delivery and packing crew | Build the npm packages, check them, start the hosted demo, record an AI run, check versions. |
 | `fidelity/latest.json` | The lab report | Proof, from the real PayPal sandbox, that the fake supplier behaves like the real one. |
 

@@ -6,3 +6,5 @@ dist/
 # Decision lock files (*.lock.json) are committed on purpose so reruns match.
 .gstack/
 publish/
+# Written and removed by test/e2e/bean-and-bloom.e2e.test.ts
+examples/bean-and-bloom/server.fixed.e2e.js
