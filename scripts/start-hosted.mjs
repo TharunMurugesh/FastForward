@@ -186,12 +186,13 @@ bugsOn = bugs !== 'none';
 // The twin decides what the customers do. Pointed at the scenario's recorded decisions, a demo with no API key repeats
 // exactly the recorded run (bad-month.lock.json is committed once someone has recorded it with `npm run record:ai`).
 const RECORDED = SCENARIO.replace(/\.ya?ml$/, '.lock.json');
+let twinIsLive = false;
 let twinChild = start('twin', ['packages/cli/dist/bin.js', 'twin', '--port', String(TWIN_PORT), '--decisions', RECORDED]);
 await waitForPort(TWIN_PORT, 'twin').catch((e) => fail(e.message));
 
 /**
  * The twin above replays recorded customer decisions. For a live Claude run it is swapped for one with no
- * recordings and the key, then put back, so the customers really are decided afresh.
+ * recordings and the key (and back again for the next recorded run), so the customers really are decided afresh.
  */
 async function swapTwin(live) {
   swappingTwin = true;
@@ -321,13 +322,13 @@ async function localRun(req, res) {
     }
     const file = app || claudeLive ? localScenario(app ? 'your-app' : 'coffee-club-live', app, claudeLive) : SCENARIO;
     const env = claudeLive ? { ...childEnv, FF_AI: 'on', ANTHROPIC_API_KEY: liveKey } : childEnv;
-    if (claudeLive) await swapTwin(true);
-    let result;
-    try {
-      result = await playScenario(file, env);
-    } finally {
-      if (claudeLive) await swapTwin(false);
+    // The twin keeps a run's data until it restarts, so it is only swapped before a run, never after one.
+    // A live twin remembers what it decided, so every live run gets a fresh one or it would replay its own answers.
+    if (claudeLive || twinIsLive) {
+      await swapTwin(claudeLive);
+      twinIsLive = claudeLive;
     }
+    const result = await playScenario(file, env);
     if (!result.runId) return reply(422, { error: result.error });
     demoRunId = result.runId;
     return reply(200, { runId: result.runId });
