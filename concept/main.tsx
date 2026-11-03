@@ -229,16 +229,16 @@ function Banner({ go }: { go: Go }) {
 
 const SOLUTIONS: Record<string, { title: string; text: string; colour: string; icon: LucideIcon }[]> = {
   'Most popular': [
-    { title: 'PayPal Checkout', text: 'Set up standard payments on your checkout page for your buyers.', colour: '#ffc439', icon: ShoppingCart },
-    { title: 'Expanded Checkout', text: 'Build and customize a card payment form to accept debit and credit cards.', colour: '#0070e0', icon: CreditCard },
-    { title: 'Subscriptions', text: 'Create subscriptions to bill customers at regular intervals.', colour: '#6cc000', icon: Repeat },
+    { title: 'Checkout', text: 'Set up standard payments on your checkout page for your buyers.', colour: '#e8e1da', icon: ShoppingCart },
+    { title: 'Expanded Checkout', text: 'Build and customize a card payment form to accept debit and credit cards.', colour: '#dbe7f5', icon: CreditCard },
+    { title: 'Subscriptions', text: 'Create subscriptions to bill customers at regular intervals.', colour: '#dcefe2', icon: Repeat },
   ],
   Online: [
-    { title: 'PayPal Checkout', text: 'Set up standard payments on your checkout page for your buyers.', colour: '#ffc439', icon: ShoppingCart },
-    { title: 'Subscriptions', text: 'Create subscriptions to bill customers at regular intervals.', colour: '#6cc000', icon: Repeat },
+    { title: 'Checkout', text: 'Set up standard payments on your checkout page for your buyers.', colour: '#e8e1da', icon: ShoppingCart },
+    { title: 'Subscriptions', text: 'Create subscriptions to bill customers at regular intervals.', colour: '#dcefe2', icon: Repeat },
   ],
-  Payouts: [{ title: 'Payouts', text: 'Send money to many recipients at once.', colour: '#0070e0', icon: Send }],
-  'Multi-party': [{ title: 'Multiparty', text: 'Take payments on behalf of the sellers on your platform.', colour: '#6cc000', icon: Users }],
+  Payouts: [{ title: 'Payouts', text: 'Send money to many recipients at once.', colour: '#dbe7f5', icon: Send }],
+  'Multi-party': [{ title: 'Multiparty', text: 'Take payments on behalf of the sellers on your platform.', colour: '#dcefe2', icon: Users }],
 };
 
 const SHORTCUTS: [string, string, LucideIcon][] = [
