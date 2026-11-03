@@ -101,8 +101,9 @@ function Sidebar({ route, go, say, open }: { route: string; go: Go; say: Say; op
   );
   return (
     <aside className={`side${open ? '' : ' closed'}`}>
-      <button type="button" className="wordmark" aria-label="Home of the concept, not PayPal" onClick={() => go('home')}>
-        PayPal
+      <button type="button" className="wordmark" aria-label="Home of the concept" onClick={() => go('home')}>
+        Developer Dashboard
+        <span>concept</span>
       </button>
       <div className="env" role="group" aria-label="Environment">
         <button type="button" className="on">
