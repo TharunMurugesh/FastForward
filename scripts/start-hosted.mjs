@@ -46,13 +46,14 @@ const childEnv = { ...process.env, FF_AI: 'off' };
 for (const key of ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'ANTHROPIC_API_KEY']) delete childEnv[key];
 
 let shuttingDown = false;
+let swappingTwin = false;
 function start(name, args, env = {}) {
   const child = spawn(process.execPath, args, { cwd: root, env: { ...childEnv, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
   const pipe = (stream) => stream.on('data', (d) => process.stdout.write(`[${name}] ${d}`));
   pipe(child.stdout);
   pipe(child.stderr);
   child.on('exit', (code) => {
-    if (!shuttingDown) fail(`${name} stopped unexpectedly (exit ${code})`);
+    if (!shuttingDown && !swappingTwin) fail(`${name} stopped unexpectedly (exit ${code})`);
   });
   children.push(child);
   return child;
@@ -184,8 +185,29 @@ const bugs = process.env.COFFEE_BUGS ?? DEFAULT_BUGS;
 bugsOn = bugs !== 'none';
 // The twin decides what the customers do. Pointed at the scenario's recorded decisions, a demo with no API key repeats
 // exactly the recorded run (bad-month.lock.json is committed once someone has recorded it with `npm run record:ai`).
-start('twin', ['packages/cli/dist/bin.js', 'twin', '--port', String(TWIN_PORT), '--decisions', SCENARIO.replace(/\.ya?ml$/, '.lock.json')]);
+const RECORDED = SCENARIO.replace(/\.ya?ml$/, '.lock.json');
+let twinChild = start('twin', ['packages/cli/dist/bin.js', 'twin', '--port', String(TWIN_PORT), '--decisions', RECORDED]);
 await waitForPort(TWIN_PORT, 'twin').catch((e) => fail(e.message));
+
+/**
+ * The twin above replays recorded customer decisions. For a live Claude run it is swapped for one with no
+ * recordings and the key, then put back, so the customers really are decided afresh.
+ */
+async function swapTwin(live) {
+  swappingTwin = true;
+  try {
+    twinChild.kill();
+    children.splice(children.indexOf(twinChild), 1);
+    for (let i = 0; i < 50 && (await inUse(TWIN_PORT)); i++) await new Promise((r) => setTimeout(r, 100));
+    const scratch = join(LOCAL_DIR, 'live-twin.lock.json');
+    mkdirSync(LOCAL_DIR, { recursive: true });
+    rmSync(scratch, { force: true });
+    twinChild = start('twin', ['packages/cli/dist/bin.js', 'twin', '--port', String(TWIN_PORT), '--decisions', live ? scratch : RECORDED], live ? { FF_AI: 'on', ANTHROPIC_API_KEY: liveKey } : {});
+    await waitForPort(TWIN_PORT, 'twin');
+  } finally {
+    swappingTwin = false;
+  }
+}
 start('coffee-club', ['--import', 'fastforward-register', 'examples/coffee-club/dist/server.js'], {
   FASTFORWARD: '1',
   PORT: String(COFFEE_PORT),
@@ -299,7 +321,13 @@ async function localRun(req, res) {
     }
     const file = app || claudeLive ? localScenario(app ? 'your-app' : 'coffee-club-live', app, claudeLive) : SCENARIO;
     const env = claudeLive ? { ...childEnv, FF_AI: 'on', ANTHROPIC_API_KEY: liveKey } : childEnv;
-    const result = await playScenario(file, env);
+    if (claudeLive) await swapTwin(true);
+    let result;
+    try {
+      result = await playScenario(file, env);
+    } finally {
+      if (claudeLive) await swapTwin(false);
+    }
     if (!result.runId) return reply(422, { error: result.error });
     demoRunId = result.runId;
     return reply(200, { runId: result.runId });
