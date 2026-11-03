@@ -24,7 +24,7 @@ export function createRunRegistry(makeRun: (scenario: Scenario) => Run): RunRegi
     async create(body) {
       if (current) throw new Error('a run is already active; finish it first');
       const scenario = checkScenario(body);
-      seedIds(scenario.seed); // ids follow the scenario seed, so a replay matches its recording
+      seedIds(scenario.ids === 'repeat' ? scenario.seed : null); // repeat: a replay matches its recording
       const run = makeRun(scenario);
       // Active before start(): the app's subscribe calls during start() must reach this run's engine.
       current = run;
@@ -68,6 +68,7 @@ export function checkScenario(body: unknown): Scenario {
   const s = isObject(body) ? body : {};
   need(typeof s.name === 'string' && s.name !== '', 'name', 'required');
   need(Number.isInteger(s.seed), 'seed', 'must be an integer');
+  need(s.ids === undefined || s.ids === 'repeat' || s.ids === 'fresh', 'ids', 'must be repeat or fresh');
   need(isInstant(s.start), 'start', 'must be an ISO-8601 timestamp');
   need(isInt(s.durationDays, 1), 'durationDays', 'must be a whole number of days, at least 1');
 

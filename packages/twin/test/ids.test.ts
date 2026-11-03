@@ -41,7 +41,7 @@ describe('two runs of one scenario', { timeout: 60_000 }, () => {
     while (closers.length > 0) await closers.pop()!();
   });
 
-  it('produce the same notice ids, so a recording of one matches a replay of the other', async () => {
+  it('with ids: repeat, produce the same notice ids, so a recording of one matches a replay of the other', async () => {
     const twin: Twin = await createTwin({ port: 0 });
     closers.push(() => twin.close());
     const app = new FakeApp({ twinUrl: twin.url });
@@ -50,6 +50,7 @@ describe('two runs of one scenario', { timeout: 60_000 }, () => {
     const scenario: Scenario = {
       name: 'same-ids',
       seed: 11,
+      ids: 'repeat',
       start: '2026-11-01T00:00:00.000Z',
       durationDays: 40,
       app: { webhookUrl: app.webhookUrl, webhookId: 'WH-FF-LOCAL', subscribeUrl: app.subscribeUrl, probeUrl: app.probeUrl },
@@ -69,5 +70,35 @@ describe('two runs of one scenario', { timeout: 60_000 }, () => {
     const second = await runOnce();
     expect(first.length).toBeGreaterThanOrEqual(4); // created, activated and two months of sales, plus any weather extras
     expect(second).toEqual(first);
+  });
+
+  it('by default, get fresh ids, so an app that keeps its data never sees a repeat', async () => {
+    const twin: Twin = await createTwin({ port: 0 });
+    closers.push(() => twin.close());
+    const app = new FakeApp({ twinUrl: twin.url });
+    await app.start();
+    closers.push(() => app.close());
+    const scenario: Scenario = {
+      name: 'fresh-ids',
+      seed: 11,
+      start: '2026-11-01T00:00:00.000Z',
+      durationDays: 40,
+      app: { webhookUrl: app.webhookUrl, webhookId: 'WH-FF-LOCAL', subscribeUrl: app.subscribeUrl, probeUrl: app.probeUrl },
+      plan: { name: 'Monthly', price: '12.00', currency: 'USD', interval: 'MONTH', trialDays: 0, totalCycles: 0, paymentFailureThreshold: 2 },
+      customers: [{ name: 'Maya', email: 'maya@example.test', persona: '', card: { kind: 'ok' }, actions: [] }],
+      weather: { duplicates: 0, reorder: 0, delayMinutes: [0, 0], forged: 0, burst: false },
+      expect: { accessWhile: ['ACTIVE'] },
+    };
+    const headers = { 'content-type': 'application/json' };
+    const ids = async (): Promise<string[]> => {
+      const { runId } = (await (await fetch(`${twin.url}/_ff/runs`, { method: 'POST', headers, body: JSON.stringify({ scenario }) })).json()) as { runId: string };
+      await fetch(`${twin.url}/_ff/runs/${runId}/finish`, { method: 'POST', headers, body: '{}' });
+      const trace = (await (await fetch(`${twin.url}/_ff/runs/${runId}/trace`)).json()) as TraceEntry[];
+      return trace.flatMap((t) => (t.kind === 'event' ? [t.event.id] : []));
+    };
+    const first = await ids();
+    const second = await ids();
+    expect(first.length).toBeGreaterThan(0);
+    expect(second.filter((id) => first.includes(id))).toEqual([]);
   });
 });

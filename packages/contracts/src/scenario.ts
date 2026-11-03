@@ -45,6 +45,12 @@ export interface Weather {
 export interface Scenario {
   name: string;
   seed: number;
+  /**
+   * `repeat`: every run of this scenario gets the same ids, so saved explanations that quote ids still match a replay.
+   * Fresh (the default): new ids each run, because an app that keeps its data between runs would take a repeated id
+   * for a notice it has already handled.
+   */
+  ids?: 'repeat' | 'fresh';
   start: string;
   durationDays: number;
   app: { webhookUrl: string; webhookId: string; subscribeUrl?: string; probeUrl?: string };
@@ -95,6 +101,7 @@ export const ScenarioSchema = z
   .object({
     name: z.string().min(1),
     seed: z.number().int(),
+    ids: z.enum(['repeat', 'fresh']).optional(),
     start: isoInstant,
     duration: z.string().regex(/^P[1-9]\d*D$/, 'expected P<n>D, e.g. P60D'),
     app: z.object({

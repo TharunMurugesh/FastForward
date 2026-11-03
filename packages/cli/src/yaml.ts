@@ -6,6 +6,7 @@ export function scenarioToYaml(s: Scenario): string {
   const doc = {
     name: s.name,
     seed: s.seed,
+    ...(s.ids ? { ids: s.ids } : {}),
     start: s.start,
     duration: `P${s.durationDays}D`,
     app: s.app,
