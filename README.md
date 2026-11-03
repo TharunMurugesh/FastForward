@@ -15,9 +15,13 @@ developer dashboard. It is not a PayPal product, and PayPal has not reviewed or 
 - **Why it does not exist yet:** PayPal has no test clock. Stripe's test clocks cover Stripe billing only and have no AI
   customers. We found nothing that gives PayPal Subscriptions this.
 
-- **Who pays:** PayPal, as a free feature in its developer dashboard. Merchants whose billing code breaks lose
-  subscribers, and PayPal loses that payment volume. Catching these bugs before launch keeps both, and cuts
-  integration support.
+- **Who pays:** PayPal, as a free feature in its developer dashboard: every merchant whose subscription billing
+  works keeps its subscribers paying through PayPal.
+- **Why it matters:** PayPal says merchants using it for recurring billing see an average payment success rate of
+  94.5% ([PayPal](https://www.paypal.com/us/webapps/mpp/subscription-payments)), so about 1 renewal in 18 fails and
+  that code runs all the time. Recurly estimates failed payments could cost subscription businesses more than
+  $129 billion in 2025 ([Recurly](https://recurly.com/press/failed-payments-could-cost-subscription-companies-more-than-129-billion-in-2025-us)).
+  Both are vendor figures.
 
 ## Quickstart (three commands, no `.env`, no PayPal login)
 
@@ -41,6 +45,11 @@ failing until he is suspended, while Claude's customer updated his card in time.
 Then see the checks go quiet: on the Choose step, switch **Planted bugs** to Off and press Start test. The page plays
 the same month afresh on your machine, and all 6 checks pass. (The public demo only replays a finished run, so it has
 no switch.)
+
+To test **your own app** instead, start it with `FASTFORWARD=1 node --import fastforward-register your-server.js`, pick
+"Your own app" on the Choose step and give its webhook, subscribe and probe addresses. With `ANTHROPIC_API_KEY` in
+`.env`, the **Live** switch lets Claude decide the customers and write the explanations during the run (a few cents
+per run); otherwise the recorded decisions replay.
 
 ## What it does
 
