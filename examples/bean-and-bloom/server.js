@@ -1,13 +1,10 @@
-// Bean & Bloom: a small flower-subscription shop, written the way a busy developer would.
-// It is not part of Test Clock: it talks to PayPal's sandbox with plain fetch and knows nothing about the twin.
-// This is the shop from the demo video, with the one thing its developer forgot (see the handler below).
+// Bean & Bloom: a small flower-subscription shop. It talks to PayPal's sandbox with plain fetch.
 const express = require('express');
 const app = express();
 app.use(express.json());
 
 const PAYPAL = 'https://api-m.sandbox.paypal.com';
 const members = {};
-const seen = new Set();
 
 async function token() {
   const basic = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
@@ -46,10 +43,6 @@ app.post('/webhooks/paypal', async (req, res) => {
   });
   if ((await check.json()).verification_status !== 'SUCCESS') return res.sendStatus(400);
 
-  // The forgotten check: PayPal can send the same notice more than once. To fix, uncomment the two lines below.
-  // if (seen.has(event.id)) return res.sendStatus(200);
-  // seen.add(event.id);
-
   const sale = event.event_type === 'PAYMENT.SALE.COMPLETED';
   const id = sale ? event.resource.billing_agreement_id : event.resource.id;
   if (id && (sale || event.event_type.startsWith('BILLING.SUBSCRIPTION.'))) {
@@ -70,7 +63,6 @@ app.post('/webhooks/paypal', async (req, res) => {
   res.sendStatus(200);
 });
 
-// What Test Clock's checks read: does this subscriber have access, and how many boxes were sent.
 app.get('/__ff/probe', (req, res) => {
   const m = members[req.query.subscription_id];
   if (!m) return res.status(404).json({ error: 'unknown subscription' });

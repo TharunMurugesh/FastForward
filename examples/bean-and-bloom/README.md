@@ -3,9 +3,9 @@
 Bean & Bloom is the flower-subscription shop from the demo video. It is an ordinary Express app in one file,
 [`server.js`](server.js). It calls PayPal's sandbox with plain `fetch`, and it knows nothing about Test Clock.
 
-**Nothing in it is planted, and it has no bug switch.** It verifies PayPal's signatures, reads the subscription's
-real state, and answers disputes. Its developer forgot one thing: PayPal can deliver the same notice more than once,
-and the shop never checks whether it has already seen one. That check is in the file as two commented-out lines.
+**We wrote it as an ordinary shop and left one check out**, the way a busy developer would. It has no bug switch and
+no markers in the code. It verifies PayPal's signatures, reads the subscription's real state and answers disputes. What
+it does not do is check whether it has already handled a notice, and PayPal can deliver the same notice more than once.
 
 ## Run it yourself (about two minutes after the first build)
 
@@ -42,8 +42,20 @@ Needs Node 24, from the repository root.
    Press **Start test**. One check fails: **Paid twice**. A repeated payment notice gave a customer a second box.
    The other five pass.
 
-4. **Fix it.** In `server.js`, uncomment the two lines under "The forgotten check". Stop the shop (Ctrl+C), start it
-   again as in step 2, and press **Start test**. All six checks pass.
+4. **Fix it.** In `server.js`, add a memory of notices already handled, under `const members = {};`:
+
+   ```js
+   const seen = new Set();
+   ```
+
+   and skip repeats, right after the signature check (`... return res.sendStatus(400);`):
+
+   ```js
+   if (seen.has(event.id)) return res.sendStatus(200);
+   seen.add(event.id);
+   ```
+
+   Stop the shop (Ctrl+C), start it again as in step 2, and press **Start test**. All six checks pass.
 
 ## Or let the test do it
 
@@ -52,4 +64,4 @@ npx vitest run --project=e2e test/e2e/bean-and-bloom.e2e.test.ts
 ```
 
 This runs the shop exactly as committed against the twin. It expects Paid twice to be the only check that fails.
-Then it uncomments the two lines in a temporary copy and expects all six checks to pass.
+Then it adds the fix from step 4 to a temporary copy and expects all six checks to pass.

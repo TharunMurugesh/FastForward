@@ -10,9 +10,9 @@ import { runScenarioFile } from '@fastforward/cli';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 /**
- * E2E: Bean & Bloom, the outside shop from the demo video, exactly as committed. Nothing is planted and there is
- * no bug switch: its developer forgot one check. Test Clock must find that one, and only that one, and the shop
- * must pass once the two commented lines are put back.
+ * E2E: Bean & Bloom, the shop from the demo video, exactly as committed. It has no bug switch; it was written as an
+ * ordinary shop with one check left out (repeated notices). Test Clock must find that one, and only that one, and the
+ * shop must pass once the fix from its README is added.
  */
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -94,9 +94,14 @@ describe('Bean & Bloom against the twin', () => {
     expect(statusOf(report, 'NO_LIVE_CALLS')).toBe('pass');
   });
 
-  it('with the two lines uncommented: all six checks pass', async () => {
+  it('with the repeat check from the README added: all six checks pass', async () => {
     const source = readFileSync(join(SHOP, 'server.js'), 'utf8');
-    const fixed = source.replace('// if (seen.has(event.id))', 'if (seen.has(event.id))').replace('// seen.add(event.id);', 'seen.add(event.id);');
+    const fixed = source
+      .replace('const members = {};', 'const members = {};
+const seen = new Set();')
+      .replace("return res.sendStatus(400);", "return res.sendStatus(400);
+  if (seen.has(event.id)) return res.sendStatus(200);
+  seen.add(event.id);");
     expect(fixed).not.toBe(source);
     writeFileSync(FIXED, fixed);
     const report = await runAgainst(FIXED, 'fixed');

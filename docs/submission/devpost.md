@@ -86,7 +86,7 @@ TypeScript (strict), Node 24, Fastify, zod, React and Vite, **AG Grid Community*
 - **Bad weather is limited.** Reordering and bursts happen only among events at the same virtual instant, and events delayed past the end of the run are never delivered. Ids follow the scenario seed, so a rerun has the same shape, timing and ids (run ids and signature transmission ids are still random).
 - **Scope is narrow.** Six checks, three example apps, subscriptions and disputes only. Other PayPal products are out of scope.
 - **The audience size is unproven.** Nobody publishes how many teams use PayPal Subscriptions directly.
-- **The hosted demo replays finished runs.** It shows the demo shop, so its failures come from bugs we planted. To see a mistake nobody planted, run Bean & Bloom, the flower shop from the video (`examples/bean-and-bloom`, two minutes, steps in its README). To test your own app, run it locally from npm.
+- **The hosted demo replays finished runs.** It shows the demo shop, so its failures come from bugs we planted. To see an ordinary shop with one check left out, run Bean & Bloom, the flower shop from the video (`examples/bean-and-bloom`, two minutes, steps in its README). To test your own app, run it locally from npm.
 
 ## Try it
 

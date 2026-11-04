@@ -54,9 +54,9 @@ To test **your own app** instead, start it with `FASTFORWARD=1 node --import fas
 per run); otherwise the recorded decisions replay.
 
 **Reproduce the demo video's flower shop.** Bean & Bloom (`examples/bean-and-bloom`) is the outside app from the
-video, in one file, with no planted bugs and no bug switch: its developer forgot to check for repeated notices. Its
-[README](examples/bean-and-bloom/README.md) walks through failing it, uncommenting the two missing lines and passing
-it, in about two minutes.
+video: one ordinary file with no bug switch, written with one check left out (repeated notices). Its
+[README](examples/bean-and-bloom/README.md) walks through failing it, adding the fix and passing it, in about two
+minutes.
 
 ## What it does
 
@@ -78,8 +78,8 @@ Plain checks, not the AI, decide pass or fail, so the AI cannot talk a bug into 
   its responses are validated against them.
 - Three example apps are included: **Coffee Club** (`examples/coffee-club`), which uses PayPal's official Node SDK
   (`@paypal/paypal-server-sdk`), unmodified; **Plain Fetch Shop** (`examples/plain-fetch-shop`), which uses Node's
-  global `fetch` with no SDK; and **Bean & Bloom** (`examples/bean-and-bloom`), the shop from the demo video, with
-  one real mistake and nothing planted. A small add-on (`fastforward-register`) redirects their sandbox calls to the
+  global `fetch` with no SDK; and **Bean & Bloom** (`examples/bean-and-bloom`), the shop from the demo video, an
+  ordinary file with one check left out. A small add-on (`fastforward-register`) redirects their sandbox calls to the
   twin and blocks any call to live PayPal before a socket opens.
 - Webhooks are **signed and verified the way PayPal does it**: the twin signs events, serves the certificate and
   implements the verify-webhook-signature endpoint.
