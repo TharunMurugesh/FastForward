@@ -109,7 +109,7 @@ function Sidebar({ route, go, say, open }: { route: string; go: Go; say: Say; op
         <button type="button" className="on">
           Sandbox
         </button>
-        <button type="button" onClick={() => say('This concept only runs on the sandbox. Fastforward never touches live PayPal.')}>
+        <button type="button" onClick={() => say('This concept only runs on the sandbox. Test Clock never touches live PayPal.')}>
           Live
         </button>
       </div>
@@ -215,7 +215,7 @@ function Banner({ go }: { go: Go }) {
     <div className="banner">
       <Info size={16} aria-hidden="true" />
       <span>
-        Fastforward Test Clock is now in Testing Tools.{' '}
+        Test Clock is now in Testing Tools.{' '}
         <button type="button" className="strong" onClick={() => go('clock')}>
           Get Started
         </button>
@@ -252,7 +252,7 @@ const SHORTCUTS: [string, string, LucideIcon][] = [
   ['Dev docs', 'docs-start', FileText],
 ];
 
-const STAMP = 'From a recorded Fastforward run on the real sandbox';
+const STAMP = 'From a recorded Test Clock run on the real sandbox';
 
 function HomePage({ go }: { go: Go }) {
   const [app, setApp] = useState('Coffee Club');
@@ -724,7 +724,7 @@ function App() {
           </button>
           <AvatarMenu />
         </header>
-        <div className="strip">You're in sandbox mode. Concept, not PayPal: a Fastforward mock-up, not a PayPal product.</div>
+        <div className="strip">You're in sandbox mode. Concept, not PayPal: a Test Clock mock-up, not a PayPal product.</div>
         <Banner go={go} />
         {route === 'clock' ? (
           <ClockPage />
