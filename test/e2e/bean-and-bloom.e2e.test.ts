@@ -97,11 +97,8 @@ describe('Bean & Bloom against the twin', () => {
   it('with the repeat check from the README added: all six checks pass', async () => {
     const source = readFileSync(join(SHOP, 'server.js'), 'utf8');
     const fixed = source
-      .replace('const members = {};', 'const members = {};
-const seen = new Set();')
-      .replace("return res.sendStatus(400);", "return res.sendStatus(400);
-  if (seen.has(event.id)) return res.sendStatus(200);
-  seen.add(event.id);");
+      .replace('const members = {};', 'const members = {};\nconst seen = new Set();')
+      .replace('return res.sendStatus(400);', 'return res.sendStatus(400);\n  if (seen.has(event.id)) return res.sendStatus(200);\n  seen.add(event.id);');
     expect(fixed).not.toBe(source);
     writeFileSync(FIXED, fixed);
     const report = await runAgainst(FIXED, 'fixed');
