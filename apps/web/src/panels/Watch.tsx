@@ -22,6 +22,22 @@ function eventIcon(eventType: string): LucideIcon {
 const DAY_STEP_MS = 180;
 const DAY_MS = 86_400_000;
 
+/** Says once what each tag on the feed means, so a tag is never a mystery warning. */
+function TagKey({ feed }: { feed: FeedItem[] }) {
+  const ids = [...new Set(feed.flatMap((f) => f.problems))];
+  if (ids.length === 0) return null;
+  return (
+    <ul className="watch-tagkey" aria-label="What the tags mean">
+      {ids.map((id) => (
+        <li key={id}>
+          <CheckChip id={id} title={CHECK_LOOK[id].short} />
+          <span className="muted">{CHECK_LOOK[id].story[1].text}. The check that judges this fails on the Result step.</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 interface Props {
   realRun: RealRunFile | null;
   start: string;
@@ -123,6 +139,7 @@ export function Watch({ realRun, start, end, now, feed, moveTo, onDone }: Props)
               );
             })}
         </ul>
+        {realDone && <TagKey feed={feed.slice(0, 6)} />}
       </section>
       <div className="watch-actions">
         {finished ? (

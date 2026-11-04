@@ -1,6 +1,6 @@
 import type { CheckId, Report } from '@fastforward/contracts';
 import { BookOpen, CircleCheckBig, ListFilter, Sparkles, Wrench, X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckBadge, Story } from '../checkLook.js';
 import { CHECK_TITLES, explanationLabel, fmtDateTime } from '../format.js';
 
@@ -13,11 +13,13 @@ interface Props {
   onShowNotices: (check: CheckId) => void;
 }
 
-const EXAMPLES = 5;
+const EXAMPLES = 3;
 
 /** A panel from the right with everything about one failed check: the fix first, then why, then examples. */
 export function FixDrawer({ check, report, onClose, onOpenNotice, onShowNotices }: Props) {
   const close = useRef<HTMLButtonElement>(null);
+  const [all, setAll] = useState(false);
+  useEffect(() => setAll(false), [check]);
   const result = check ? report?.checks.find((c) => c.id === check) : undefined;
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export function FixDrawer({ check, report, onClose, onOpenNotice, onShowNotices 
               <ListFilter size={16} aria-hidden="true" /> {result.findings.length === 1 ? 'The finding' : `${result.findings.length} findings`}
             </h3>
             <ul className="examples">
-              {result.findings.slice(0, EXAMPLES).map((f, i) => (
+              {result.findings.slice(0, all ? undefined : EXAMPLES).map((f, i) => (
                 <li key={i}>
                   <span>{f.summary}</span> <span className="muted small">{fmtDateTime(f.at)}</span>
                   {f.eventIds[0] && (
@@ -94,7 +96,13 @@ export function FixDrawer({ check, report, onClose, onOpenNotice, onShowNotices 
                   )}
                 </li>
               ))}
-              {result.findings.length > EXAMPLES && <li className="muted">and {result.findings.length - EXAMPLES} more</li>}
+              {!all && result.findings.length > EXAMPLES && (
+                <li>
+                  <button type="button" className="link" onClick={() => setAll(true)}>
+                    Show {result.findings.length - EXAMPLES} more
+                  </button>
+                </li>
+              )}
             </ul>
             {withNotice.length > 0 && (
               <button type="button" onClick={() => onShowNotices(result.id)}>

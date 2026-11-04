@@ -147,20 +147,21 @@ const whenColumn = (headerName: string): ColDef<DeliveryRow> => ({
 // One row per notice: the story of each notice at a glance. Most useful columns first; the rest scroll sideways.
 const noticeColumns: ColDef<DeliveryRow>[] = [
   whenColumn('First sent (virtual)'),
-  { field: 'customer', width: 84 },
+  { field: 'customer', width: 124 },
   eventColumn,
   findingsColumn,
   { field: 'status', headerName: 'Last answer', width: 108, cellRenderer: Status, filter: 'agNumberColumnFilter' },
   { headerName: 'Tries', width: 82, cellRenderer: Tries, valueGetter: (p) => (p.data as NoticeRow | undefined)?.tries ?? 1, filter: 'agNumberColumnFilter' },
   signatureColumn,
   { headerName: 'Worst', width: 92, cellRenderer: Worst, valueGetter: (p) => (p.data as NoticeRow | undefined)?.worstStatus ?? null, filter: 'agNumberColumnFilter' },
-  { field: 'eventId', headerName: 'Event id', width: 150, cellClass: 'mono' },
+  // Hidden here so the grid fits beside the inspector, which shows the selected notice's id.
+  { field: 'eventId', headerName: 'Event id', width: 150, cellClass: 'mono', hide: true },
 ];
 
 // Every attempt to deliver every notice.
 const attemptColumns: ColDef<DeliveryRow>[] = [
   whenColumn('When (virtual)'),
-  { field: 'customer', width: 84 },
+  { field: 'customer', width: 124 },
   eventColumn,
   findingsColumn,
   { field: 'status', headerName: 'App answered', width: 130, cellRenderer: Status, filter: 'agNumberColumnFilter' },
@@ -177,7 +178,8 @@ const attemptColumns: ColDef<DeliveryRow>[] = [
   { field: 'eventId', headerName: 'Event id', width: 150, cellClass: 'mono' },
 ];
 
-const defaultColDef: ColDef<DeliveryRow> = { sortable: true, filter: true, resizable: true };
+// Long headers wrap onto two lines instead of being cut off.
+const defaultColDef: ColDef<DeliveryRow> = { sortable: true, filter: true, resizable: true, wrapHeaderText: true, autoHeaderHeight: true };
 
 export function DeliveriesGrid({ rows, notices, selectedEventId, onSelect, checkFilter, onClearCheck }: Props) {
   const api = useRef<GridApi<DeliveryRow> | null>(null);

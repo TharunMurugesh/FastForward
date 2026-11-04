@@ -1999,3 +1999,38 @@ button.link {
   gap: 10px;
   margin: 0;
 }
+
+/* Choose and Watch tags: larger text so the step reads on a video at 1080p (same scale as the Watch step). */
+.choose {
+  font-size: 17px;
+}
+.choose h2,
+.watch h2 {
+  font-size: 21px;
+}
+.choose-list strong,
+.choose-app strong {
+  font-size: 18px;
+}
+.choose .small,
+.choose .own-app label,
+.choose .own-app p {
+  font-size: 15px;
+}
+.choose .own-app input {
+  font-size: 15px;
+}
+.watch-tagkey {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 8px;
+}
+.watch-tagkey li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+}
