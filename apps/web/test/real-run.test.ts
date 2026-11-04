@@ -28,7 +28,7 @@ describe('realSteps', () => {
   it('says how long a notice took, and never invents one that did not arrive', () => {
     const steps = realSteps(base);
     expect(steps[0]!.detail).toBe("PayPal's notice reached the app in 12 s");
-    expect(steps[2]!.detail).toContain('did not come within 3 minutes');
+    expect(steps[2]!.detail).toContain('Sandbox delay, not an app problem');
   });
 
   it('does not credit Claude for a scripted default', () => {

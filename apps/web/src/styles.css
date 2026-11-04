@@ -1892,11 +1892,11 @@ button.link {
 }
 .watch-steps strong,
 .watch-feed strong {
-  font-size: 16px;
+  font-size: 18px;
 }
 .watch-steps span,
 .watch-feed span {
-  font-size: 14px;
+  font-size: 16px;
 }
 .watch-feed li {
   align-items: flex-start;

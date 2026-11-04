@@ -4,7 +4,7 @@
   "private": true,
   "type": "commonjs",
   "license": "MIT",
-  "description": "The flower shop from the demo video: an outside app with one real, unplanted bug.",
+  "description": "The flower shop from the demo video: an ordinary shop written with one check left out.",
   "scripts": {
     "start": "node server.js"
   },
