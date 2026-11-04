@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-23T12:47:01.387Z",
+  "ranAt": "2026-11-04T15:37:15.374Z",
   "sandboxBase": "https://api-m.sandbox.paypal.com",
   "checks": [
     {
@@ -83,19 +83,19 @@
       "allowedDiffs": [
         {
           "field": "links",
-          "reason": "Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026)."
+          "reason": "Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026)."
         },
         {
           "field": "total_items",
-          "reason": "Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026)."
+          "reason": "Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026)."
         },
         {
           "field": "total_pages",
-          "reason": "Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026)."
+          "reason": "Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026)."
         },
         {
           "field": "transactions",
-          "reason": "Just after a card subscription is created the sandbox sends none of these fields: the payment shows up in the list later. The twin lists a payment as soon as it is taken, which is what an app under test needs (observed 23 Oct 2026)."
+          "reason": "Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026)."
         }
       ]
     },
