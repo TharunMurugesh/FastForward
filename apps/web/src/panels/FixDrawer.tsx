@@ -15,11 +15,24 @@ interface Props {
 
 const EXAMPLES = 3;
 
+/** PayPal's ids are about 50 characters; on screen the first part is enough, and the full text stays on hover. */
+export const shortIds = (text: string) => text.replace(/\b((?:WH|I|PAYID|PP-D)-[A-Z0-9]{8})[A-Z0-9-]{6,}/g, '$1…');
+
+/** The first sentence, so a long explanation opens short; the rest is one click away. */
+export function firstSentence(text: string): string {
+  const m = /^[\s\S]*?[.!?](?=\s|$)/.exec(text);
+  return m ? m[0] : text;
+}
+
 /** A panel from the right with everything about one failed check: the fix first, then why, then examples. */
 export function FixDrawer({ check, report, onClose, onOpenNotice, onShowNotices }: Props) {
   const close = useRef<HTMLButtonElement>(null);
   const [all, setAll] = useState(false);
-  useEffect(() => setAll(false), [check]);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    setAll(false);
+    setMore(false);
+  }, [check]);
   const result = check ? report?.checks.find((c) => c.id === check) : undefined;
 
   useEffect(() => {
@@ -70,7 +83,17 @@ export function FixDrawer({ check, report, onClose, onOpenNotice, onShowNotices 
               <h3>
                 <BookOpen size={16} aria-hidden="true" /> What happened in this run
               </h3>
-              <p>{help.explanation}</p>
+              <p>
+                {more ? help.explanation : firstSentence(help.explanation)}
+                {!more && firstSentence(help.explanation) !== help.explanation && (
+                  <>
+                    {' '}
+                    <button type="button" className="link" onClick={() => setMore(true)}>
+                      Read more
+                    </button>
+                  </>
+                )}
+              </p>
             </section>
           )}
           {label && (
@@ -85,7 +108,7 @@ export function FixDrawer({ check, report, onClose, onOpenNotice, onShowNotices 
             <ul className="examples">
               {result.findings.slice(0, all ? undefined : EXAMPLES).map((f, i) => (
                 <li key={i}>
-                  <span>{f.summary}</span> <span className="muted small">{fmtDateTime(f.at)}</span>
+                  <span title={f.summary}>{shortIds(f.summary)}</span> <span className="muted small">{fmtDateTime(f.at)}</span>
                   {f.eventIds[0] && (
                     <>
                       {' '}
