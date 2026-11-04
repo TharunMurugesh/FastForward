@@ -19,9 +19,9 @@ const Match = ({ value }: CustomCellRendererProps<FidelityCheck, boolean>) =>
 const Status = ({ value }: CustomCellRendererProps<FidelityCheck, number>) => <span className="muted">{value}</span>;
 
 const columnDefs: ColDef<FidelityCheck>[] = [
-  { field: 'step', headerName: 'Step', minWidth: 220, flex: 1 },
-  { field: 'method', width: 84, cellClass: 'mono' },
-  { field: 'endpoint', minWidth: 280, flex: 1, cellClass: 'mono' },
+  { field: 'step', headerName: 'Step', minWidth: 170, flex: 1 },
+  { field: 'method', headerName: 'Method', width: 100, cellClass: 'mono' },
+  { field: 'endpoint', minWidth: 340, flex: 2, cellClass: 'mono' },
   { field: 'sandboxStatus', headerName: 'Real sandbox', width: 124, cellRenderer: Status, filter: 'agNumberColumnFilter' },
   { field: 'twinStatus', headerName: 'Test Clock', width: 124, cellRenderer: Status, filter: 'agNumberColumnFilter' },
   { field: 'shapeMatch', headerName: 'Response shape', width: 142, cellRenderer: Match },
@@ -41,7 +41,8 @@ const columnDefs: ColDef<FidelityCheck>[] = [
   },
 ];
 
-const defaultColDef: ColDef<FidelityCheck> = { sortable: true, filter: true, resizable: true };
+// Long headers wrap onto two lines instead of being cut off.
+const defaultColDef: ColDef<FidelityCheck> = { sortable: true, filter: true, resizable: true, wrapHeaderText: true, autoHeaderHeight: true };
 
 /** How closely Fastforward behaves like the real PayPal sandbox: the score first, then every step. */
 export function FidelityGrid({ file, isSample }: { file: FidelityFile; isSample: boolean }) {
