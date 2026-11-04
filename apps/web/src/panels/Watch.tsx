@@ -57,8 +57,14 @@ export function Watch({ realRun, start, end, now, feed, moveTo, onDone }: Props)
   const realDone = shown >= steps.length;
   const finished = realDone && Date.parse(now) >= Date.parse(end);
 
+  const endRef = useRef(end);
+  endRef.current = end;
+  // Watch rewinds the view to the start so it can replay the month. However the step is left (its own buttons, the
+  // step bar, the address bar, Back), put the view back at the end, or the other steps would show the month cut at
+  // whatever day the replay had reached: for example "All 6 checks passed, 0 notices" for a run that failed.
   useEffect(() => {
     moveRef.current(start);
+    return () => moveRef.current(endRef.current);
   }, [start]);
 
   useEffect(() => {
