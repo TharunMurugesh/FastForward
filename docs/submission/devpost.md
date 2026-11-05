@@ -15,7 +15,11 @@ The testing tool PayPal's sandbox is missing: run a real sandbox subscription, s
 
 **Why it does not exist yet.** PayPal's sandbox has no way to skip time. Stripe can skip time, but only for Stripe billing and with no AI customers. Chargebee has a "Time Machine" only for its own billing. We found nothing that gives PayPal Subscriptions this.
 
-**Who pays.** PayPal, as a free feature in its developer dashboard: every merchant whose subscription billing works keeps its subscribers paying through PayPal.
+**Who pays.** PayPal, as a feature in its developer dashboard. PayPal earns a fee on every renewal that goes through, so every billing bug is a lost fee plus a support ticket. Developers can start today without waiting for PayPal: Fastforward ships on npm and as an MCP server for coding assistants.
+
+**A worked example (illustrative, using PayPal's own figure).** A shop with 1,000 monthly subscribers sees about 56 renewals fail every month (1 in 18). Each one runs the failed-payment code. If that code is wrong, it is wrong 56 times a month, from the first month.
+
+**How we found the idea.** While testing an earlier idea on PayPal's sandbox on 3 Oct 2026, we tried to play out a dispute. Opening it through the API was refused, the option to rule on it appeared only more than 20 minutes after we escalated, and nothing could skip ahead to next month. Every test meant waiting in real time.
 
 **Why it matters, in numbers.** By PayPal's own figure, merchants using PayPal for recurring billing see an average payment success rate of 94.5% (PayPal's recurring payments page), so about 1 renewal in 18 fails and the failed-payment code runs all the time. Recurly, a subscription billing company, estimates that failed payments could cost subscription businesses more than $129 billion in 2025. Both are vendor figures. Most of those failures are declined cards, and Fastforward does not stop a card from declining. It tests the code that has to handle each decline (and each repeated, late or forged notice), because that code decides whether a lapsed subscriber keeps getting served or a paying one gets cut off.
 

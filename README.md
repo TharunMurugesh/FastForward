@@ -17,8 +17,9 @@ developer dashboard. It is not a PayPal product, and PayPal has not reviewed or 
 - **Why it does not exist yet:** PayPal's sandbox has no way to skip time. Stripe can skip time, but only for Stripe billing, and has no AI
   customers. We found nothing that gives PayPal Subscriptions this.
 
-- **Who pays:** PayPal, as a free feature in its developer dashboard: every merchant whose subscription billing
-  works keeps its subscribers paying through PayPal.
+- **Who pays:** PayPal, as a feature in its developer dashboard. PayPal earns a fee on every renewal that goes
+  through, so every billing bug is a lost fee plus a support ticket. Developers can start today without waiting
+  for PayPal: Fastforward ships on npm and as an MCP server for coding assistants.
 - **Why it matters:** PayPal says merchants using it for recurring billing see an average payment success rate of
   94.5% ([PayPal](https://www.paypal.com/us/webapps/mpp/subscription-payments)), so about 1 renewal in 18 fails and
   that code runs all the time. Recurly estimates failed payments could cost subscription businesses more than
@@ -26,6 +27,18 @@ developer dashboard. It is not a PayPal product, and PayPal has not reviewed or 
   Both are vendor figures. Most of those failures are declined cards, and Fastforward does not stop a card from
   declining. It tests the code that has to handle each decline (and each repeated, late or forged notice), because
   that code decides whether a lapsed subscriber keeps getting served or a paying one gets cut off.
+- **A worked example (illustrative, using PayPal's own figure):** a shop with 1,000 monthly subscribers sees about
+  56 renewals fail every month (1 in 18). Each one runs the failed-payment code: does the customer keep access,
+  get a retry, get suspended? If that code is wrong, it is wrong 56 times a month, from the first month.
+
+## How we found the idea
+
+While testing an earlier idea on PayPal's sandbox on 3 Oct 2026, we tried to play out a dispute from start to
+finish. Opening the dispute through PayPal's API was refused ("No permissions to set target_client_id"), so the buyer
+had to file it by hand on the sandbox site. After we escalated it, the option to rule on it did not appear until
+more than 20 minutes later (we found it within about 3 hours). Its status also changed on its own while we waited.
+There was no way to skip ahead to see what happens next month. Every test meant waiting in real time, and that is the
+gap Fastforward fills.
 
 ## Quickstart (three commands, no `.env`, no PayPal login)
 
