@@ -40,6 +40,42 @@ more than 20 minutes later (we found it within about 3 hours). Its status also c
 There was no way to skip ahead to see what happens next month. Every test meant waiting in real time, and that is the
 gap Fastforward fills.
 
+## Tested on real code
+
+On 5 Nov 2026 we ran Fastforward, unedited, on one of PayPal's own tutorial apps:
+[paypaldev/video-kubowania-paypal-tutorial](https://github.com/paypaldev/video-kubowania-paypal-tutorial) (commit
+`d4a1c7c`), a membership app from PayPal's developer account that teaches subscriptions. Not a line of its code was
+changed. **2 of 6 checks failed:**
+
+- **It accepted all 21 notices without checking that PayPal sent them, including a forged one.** Anyone who finds its
+  webhook address could send a fake "cancelled" and remove a paying supporter.
+- **A customer's dispute went unanswered** past its deadline, so PayPal would side with the buyer.
+
+The tutorial says "Do not use in production", and that is the point: it is the code developers learn from and copy.
+PayPal's other subscription tutorial, [video-saimon24-paypal-tutorial](https://github.com/paypaldev/video-saimon24-paypal-tutorial),
+does verify signatures and skip repeated notices (from reading its code; it needs a database to run, so we did not run
+it). We describe the tutorial's code here and do not copy it.
+
+**Repeat it** (PowerShell, about 5 minutes):
+
+```
+mkdir ff-tools; cd ff-tools; npm init -y; npm install --save-dev fastforward-register fastforward-cli; cd ..
+git clone https://github.com/paypaldev/video-kubowania-paypal-tutorial; cd video-kubowania-paypal-tutorial
+npm install --ignore-scripts
+$env:FASTFORWARD="1"; $env:FF_TWIN_URL="http://127.0.0.1:4510"; $env:PAYPAL_CLIENT_ID="x"; $env:PAYPAL_CLIENT_SECRET="x"
+$env:PAYPAL_API_BASE="https://api-m.sandbox.paypal.com"; $env:NEXT_PUBLIC_PAYPAL_CLIENT_ID="x"
+$env:NODE_OPTIONS="--import file:///C:/full/path/to/ff-tools/node_modules/fastforward-register/index.js"
+npx next dev -p 3400
+```
+
+Write the full path to your `ff-tools` folder in `NODE_OPTIONS`, with forward slashes. Then, in a second window,
+inside `ff-tools`:
+
+```
+npx fastforward-cli init -o tutorial.yaml --webhook-url http://127.0.0.1:3400/api/webhooks/paypal
+npx fastforward-cli run tutorial.yaml --twin-port 4510
+```
+
 ## Quickstart (three commands, no `.env`, no PayPal login)
 
 **Needs Node 24 or newer** (`node --version`). The first `npm run demo` builds everything, which takes about 2 to 3

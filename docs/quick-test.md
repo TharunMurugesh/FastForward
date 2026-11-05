@@ -70,6 +70,9 @@ app as in step 2 and run step 4 again.
 
 - **Every message is rejected as fake:** your signature check is not using `WH-FF-LOCAL` (step 2).
 - **"Fastforward blocked a call to live PayPal":** your app points at live PayPal. Point it at `api-m.sandbox.paypal.com`.
+- **Your app is Next.js:** start it with `next dev` and put the add-on in `NODE_OPTIONS` instead
+  (PowerShell: `$env:NODE_OPTIONS="--import file:///C:/path/to/node_modules/fastforward-register/index.js"`).
+  This is how we tested a PayPal tutorial app.
 - **Your app starts with `tsx`, `ts-node` or `nodemon`:** tell me which, and I will help.
 - **Not a Node app:** not supported yet, sorry.
 
