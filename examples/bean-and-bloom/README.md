@@ -1,7 +1,7 @@
 # Bean & Bloom: reproduce the demo
 
 Bean & Bloom is the flower-subscription shop from the demo video. It is an ordinary Express app in one file,
-[`server.js`](server.js). It calls PayPal's sandbox with plain `fetch`, and it knows nothing about Test Clock.
+[`server.js`](server.js). It calls PayPal's sandbox with plain `fetch`, and it knows nothing about Fastforward.
 
 **We wrote it as an ordinary shop and left one check out**, the way a busy developer would. It has no bug switch and
 no markers in the code. It verifies PayPal's signatures, reads the subscription's real state and answers disputes. What
@@ -11,14 +11,14 @@ it does not do is check whether it has already handled a notice, and PayPal can 
 
 Needs Node 24, from the repository root.
 
-1. **Start Test Clock.** This also opens the dashboard at <http://localhost:8080>.
+1. **Start Fastforward.** This also opens the dashboard at <http://localhost:8080>.
 
    ```
    npm install
    npm run demo
    ```
 
-2. **Start Bean & Bloom in a second terminal.** The add-on sends its PayPal calls to Test Clock instead of PayPal,
+2. **Start Bean & Bloom in a second terminal.** The add-on sends its PayPal calls to Fastforward instead of PayPal,
    so no keys are needed: any client id works.
 
    PowerShell:

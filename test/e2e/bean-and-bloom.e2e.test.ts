@@ -11,7 +11,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 /**
  * E2E: Bean & Bloom, the shop from the demo video, exactly as committed. It has no bug switch; it was written as an
- * ordinary shop with one check left out (repeated notices). Test Clock must find that one, and only that one, and the
+ * ordinary shop with one check left out (repeated notices). Fastforward must find that one, and only that one, and the
  * shop must pass once the fix from its README is added.
  */
 

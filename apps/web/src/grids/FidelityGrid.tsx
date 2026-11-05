@@ -23,7 +23,7 @@ const columnDefs: ColDef<FidelityCheck>[] = [
   { field: 'method', headerName: 'Method', width: 100, cellClass: 'mono' },
   { field: 'endpoint', minWidth: 340, flex: 2, cellClass: 'mono' },
   { field: 'sandboxStatus', headerName: 'Real sandbox', width: 124, cellRenderer: Status, filter: 'agNumberColumnFilter' },
-  { field: 'twinStatus', headerName: 'Test Clock', width: 124, cellRenderer: Status, filter: 'agNumberColumnFilter' },
+  { field: 'twinStatus', headerName: 'Fastforward', width: 124, cellRenderer: Status, filter: 'agNumberColumnFilter' },
   { field: 'shapeMatch', headerName: 'Response shape', width: 142, cellRenderer: Match },
   { field: 'specMatch', headerName: "PayPal's OpenAPI spec", width: 176, cellRenderer: Match },
   {
@@ -54,7 +54,7 @@ export function FidelityGrid({ file, isSample }: { file: FidelityFile; isSample:
     <section className="card" aria-label="Checked against the real PayPal sandbox">
       <header className="card-head">
         <div>
-          <h2>Does Test Clock's stand-in behave like real PayPal?</h2>
+          <h2>Does Fastforward's stand-in behave like real PayPal?</h2>
           <p className="muted">Last measured {fmtDateYear(file.ranAt)}. Only response shapes and status codes are compared, never values or tokens.</p>
         </div>
         {isSample && <span className="chip warn">Sample data, not a real run</span>}
@@ -62,7 +62,7 @@ export function FidelityGrid({ file, isSample }: { file: FidelityFile; isSample:
       <p className="match-note">
         <Info size={18} aria-hidden="true" />
         <span>
-          <strong>This page tests Test Clock itself, not your app.</strong> It shows the stand-in answers like real PayPal, so what it finds in
+          <strong>This page tests Fastforward itself, not your app.</strong> It shows the stand-in answers like real PayPal, so what it finds in
           your app is real. Your app's bugs show on the Result step and do not change this score.
         </span>
       </p>
@@ -72,7 +72,7 @@ export function FidelityGrid({ file, isSample }: { file: FidelityFile; isSample:
         </span>
         <GitCompareArrows size={18} className="muted" aria-hidden="true" />
         <span>
-          <FastForward size={18} aria-hidden="true" /> Test Clock's stand-in
+          <FastForward size={18} aria-hidden="true" /> Fastforward's stand-in
         </span>
         <span className="muted small">the same {n} requests sent to both</span>
       </div>

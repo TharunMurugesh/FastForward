@@ -1,4 +1,4 @@
-# Test Clock: Devpost submission text
+# Fastforward: Devpost submission text
 
 Paste each section below into the matching Devpost field. Items in [square brackets] are filled in by Vinay
 before submitting (see the checklist at the bottom).
@@ -17,19 +17,19 @@ The test clock PayPal's sandbox is missing: run a real sandbox subscription, ski
 
 **Who pays.** PayPal, as a free feature in its developer dashboard: every merchant whose subscription billing works keeps its subscribers paying through PayPal.
 
-**Why it matters, in numbers.** By PayPal's own figure, merchants using PayPal for recurring billing see an average payment success rate of 94.5% (PayPal's recurring payments page), so about 1 renewal in 18 fails and the failed-payment code runs all the time. Recurly, a subscription billing company, estimates that failed payments could cost subscription businesses more than $129 billion in 2025. Both are vendor figures. Most of those failures are declined cards, and Test Clock does not stop a card from declining. It tests the code that has to handle each decline (and each repeated, late or forged notice), because that code decides whether a lapsed subscriber keeps getting served or a paying one gets cut off.
+**Why it matters, in numbers.** By PayPal's own figure, merchants using PayPal for recurring billing see an average payment success rate of 94.5% (PayPal's recurring payments page), so about 1 renewal in 18 fails and the failed-payment code runs all the time. Recurly, a subscription billing company, estimates that failed payments could cost subscription businesses more than $129 billion in 2025. Both are vendor figures. Most of those failures are declined cards, and Fastforward does not stop a card from declining. It tests the code that has to handle each decline (and each repeated, late or forged notice), because that code decides whether a lapsed subscriber keeps getting served or a paying one gets cut off.
 
-**Built for PayPal.** We built it as a proposal for a Test Clock under Testing Tools in PayPal's developer dashboard, beside the Webhook Simulator. PayPal has not reviewed or endorsed it, and whether and how to offer it would be PayPal's decision. Everything is open source under the MIT licence, so it can be used today.
+**Built for PayPal.** We built it as a proposal for Fastforward under Testing Tools in PayPal's developer dashboard, beside the Webhook Simulator. PayPal has not reviewed or endorsed it, and whether and how to offer it would be PayPal's decision. Everything is open source under the MIT licence, so it can be used today.
 
 ## Two questions we expect
 
-**Why not just write unit tests?** Unit tests check the code you thought of. They do not produce PayPal's bad weather: the same notice delivered twice, a notice arriving late or out of order, a forged notice, or a card that fails on the third renewal two months from now. Test Clock produces all of these against your running app, over months of renewals, and checks what the app actually did.
+**Why not just write unit tests?** Unit tests check the code you thought of. They do not produce PayPal's bad weather: the same notice delivered twice, a notice arriving late or out of order, a forged notice, or a card that fails on the third renewal two months from now. Fastforward produces all of these against your running app, over months of renewals, and checks what the app actually did.
 
 **Won't the simulator drift away from real PayPal?** It can, so we measure it. `npm run fidelity` sends the same requests to PayPal's real sandbox and to the simulator and compares status, response shape and PayPal's published spec. The first runs found 49 differences; all 17 steps match now. Running it again shows at once if PayPal changes.
 
 ## What it does
 
-The Test Clock takes you through four steps: choose your app and test, watch it play, read the result, then open the details. You can describe a scenario in plain words, such as "a bad month for a coffee subscription." It starts on the real PayPal sandbox with a real subscription, then uses a twin for the months the sandbox cannot reach. Every step is labelled Real PayPal or Simulated.
+Fastforward takes you through four steps: choose your app and test, watch it play, read the result, then open the details. You can describe a scenario in plain words, such as "a bad month for a coffee subscription." It starts on the real PayPal sandbox with a real subscription, then uses a twin for the months the sandbox cannot reach. Every step is labelled Real PayPal or Simulated.
 
 1. **The real sandbox goes first.** Real notices with PayPal's own signatures reach your app unchanged, and real PayPal checks each signature your app asks about. Claude plays a customer whose subscription is suspended and chooses what they do; updating the card or cancelling becomes a real sandbox call.
 2. **A twin of PayPal Subscriptions plays the month.** The twin is our stand-in for PayPal. It runs on a fast-forwarded clock, so a 75-day scenario plays in seconds (about 3 seconds on our machine with the demo bugs).
@@ -66,7 +66,7 @@ Claude Opus 5.5 does three jobs:
 2. **Plays the customers.** At each decision point, a customer with a persona picks an action, in the twin and on the real sandbox. Decisions are saved so a rerun is identical.
 3. **Explains failures.** For each failed check, it reads the trace and writes what went wrong and how to fix it.
 
-Without an API key, Test Clock still runs: customers follow a scripted default and failures use template explanations. The deterministic checks, not the AI, decide pass or fail, so the AI cannot talk a bug into passing.
+Without an API key, Fastforward still runs: customers follow a scripted default and failures use template explanations. The deterministic checks, not the AI, decide pass or fail, so the AI cannot talk a bug into passing.
 
 **The hosted demo replays one real recorded run.** The customer decisions and the failure explanations on the page were written once by Claude Opus 5.5 (a recording of 10 model calls, about 16 thousand tokens) and saved; the report labels them "Written by Claude" and says it is a replay. The page does not call a model while you look at it, so it costs nothing and cannot fail because of an API outage.
 

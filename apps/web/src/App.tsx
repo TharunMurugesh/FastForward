@@ -209,7 +209,7 @@ export function App() {
             <FastForward size={22} strokeWidth={2.4} />
           </span>
           <div>
-            <h1>Test Clock</h1>
+            <h1>Fastforward</h1>
             <p className="muted small">A proposal for PayPal's developer dashboard. Not a PayPal product.</p>
           </div>
         </header>

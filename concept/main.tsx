@@ -29,7 +29,7 @@ const GROUPS: { id: string; title: string; icon: LucideIcon; divider?: true; ite
       { id: 'accounts', title: 'Sandbox Accounts' },
       { id: 'notifications', title: 'Sandbox Notifications' },
       { id: 'simulator', title: 'Webhook Simulator' },
-      { id: 'clock', title: 'Test Clock' },
+      { id: 'clock', title: 'Fastforward' },
     ],
   },
   {
@@ -109,7 +109,7 @@ function Sidebar({ route, go, say, open }: { route: string; go: Go; say: Say; op
         <button type="button" className="on">
           Sandbox
         </button>
-        <button type="button" onClick={() => say('This concept only runs on the sandbox. Test Clock never touches live PayPal.')}>
+        <button type="button" onClick={() => say('This concept only runs on the sandbox. Fastforward never touches live PayPal.')}>
           Live
         </button>
       </div>
@@ -215,7 +215,7 @@ function Banner({ go }: { go: Go }) {
     <div className="banner">
       <Info size={16} aria-hidden="true" />
       <span>
-        Test Clock is now in Testing Tools.{' '}
+        Fastforward is now in Testing Tools.{' '}
         <button type="button" className="strong" onClick={() => go('clock')}>
           Get Started
         </button>
@@ -247,12 +247,12 @@ const SHORTCUTS: [string, string, LucideIcon][] = [
   ['API calls', 'api-calls', Activity],
   ['Webhooks events', 'webhook-events', MessageSquare],
   ['Webhooks simulator', 'simulator', Send],
-  ['Test Clock', 'clock', CalendarClock],
+  ['Fastforward', 'clock', CalendarClock],
   ['Test credit cards', 'cards', CreditCard],
   ['Dev docs', 'docs-start', FileText],
 ];
 
-const STAMP = 'From a recorded Test Clock run on the real sandbox';
+const STAMP = 'From a recorded Fastforward run on the real sandbox';
 
 function HomePage({ go }: { go: Go }) {
   const [app, setApp] = useState('Coffee Club');
@@ -445,7 +445,7 @@ function AccountsPage({ say }: { say: Say }) {
 
 function NotificationsPage() {
   const items = [
-    ['Test Clock finished', 'Coffee Club: 3 of 6 checks failed over 75 simulated days.'],
+    ['Fastforward finished', 'Coffee Club: 3 of 6 checks failed over 75 simulated days.'],
     ['Subscription reactivated', 'Sam updated the card on the real sandbox.'],
     ['Webhook delivered twice', "PayPal's own resend sent a payment notice again."],
   ];
@@ -514,7 +514,7 @@ function SimulatorPage({ go }: { go: Go }) {
           <span>
             One mock event, no real signature, and no next month. In this concept nothing was sent.{' '}
             <button type="button" className="link" onClick={() => go('clock')}>
-              Test a whole month with Test Clock
+              Test a whole month with Fastforward
             </button>
           </span>
         </div>
@@ -628,9 +628,9 @@ function InfoPage({ route, go }: { route: Route; go: Go }) {
       <section className="box">
         <span className="new">Concept</span>
         <h2>This page stands in for PayPal's own {route.title} page</h2>
-        <p>The mock-up only builds what the Test Clock needs. To see what we built, open the tool itself.</p>
+        <p>The mock-up only builds what Fastforward needs. To see what we built, open the tool itself.</p>
         <button type="button" className="pill" onClick={() => go('clock')}>
-          <ExternalLink size={15} aria-hidden="true" /> Open Test Clock
+          <ExternalLink size={15} aria-hidden="true" /> Open Fastforward
         </button>
       </section>
     </>
@@ -640,7 +640,7 @@ function InfoPage({ route, go }: { route: Route; go: Go }) {
 function ClockPage() {
   return (
     <div className="running">
-      <iframe title="Test Clock" src={DASHBOARD_URL} />
+      <iframe title="Fastforward" src={DASHBOARD_URL} />
     </div>
   );
 }
@@ -724,7 +724,7 @@ function App() {
           </button>
           <AvatarMenu />
         </header>
-        <div className="strip">You're in sandbox mode. Concept, not PayPal: a Test Clock mock-up, not a PayPal product.</div>
+        <div className="strip">You're in sandbox mode. Concept, not PayPal: a Fastforward mock-up, not a PayPal product.</div>
         <Banner go={go} />
         {route === 'clock' ? (
           <ClockPage />

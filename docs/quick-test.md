@@ -1,6 +1,6 @@
-# Try Test Clock on your app (about 15 minutes)
+# Try Fastforward on your app (about 15 minutes)
 
-Thank you for trying this. Test Clock is a hackathon project: it plays PayPal for your app, skips months of renewals
+Thank you for trying this. Fastforward is a hackathon project: it plays PayPal for your app, skips months of renewals
 in seconds, and tells you which billing messages your app mishandled. It never touches real PayPal or real money.
 
 **You need:** Node 24 or newer, and a Node app that uses PayPal Subscriptions on the sandbox. No PayPal login or keys.
@@ -12,8 +12,6 @@ In your app's folder:
 ```
 npm install --save-dev fastforward-register fastforward-cli
 ```
-
-(The npm packages are named Fastforward, the project's working name.)
 
 ## 2. Start your app in test mode
 
@@ -28,7 +26,7 @@ Mac or Linux:
 FASTFORWARD=1 PAYPAL_WEBHOOK_ID=WH-FF-LOCAL node --import fastforward-register your-start-file.js
 ```
 
-`PAYPAL_WEBHOOK_ID=WH-FF-LOCAL` is the id Test Clock signs its messages with. If your app reads its webhook id from a
+`PAYPAL_WEBHOOK_ID=WH-FF-LOCAL` is the id Fastforward signs its messages with. If your app reads its webhook id from a
 different setting, point that setting at `WH-FF-LOCAL` for the test.
 
 ## 3. Tell it where your webhook is
