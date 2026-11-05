@@ -12,7 +12,7 @@ One line: *A month of customers, renewals and disputes plays out against your ap
 - **Who pays:** software teams that charge customers through PayPal's own APIs, subscriptions first; agencies that build PayPal integrations for clients.
 - **Why they pay:** billing-handling bugs cost revenue. Vendors report failed payments drive 20–40% of subscription churn and ~9% of MRR (vendor data, treat as indicative). An app that mishandles "payment failed" either serves people who stopped paying or cuts off people who would have paid.
 - **Price:** open-source core free. Team plan **$49 per developer per month**: hosted runs, AI customers, CI checks on every release. Comparables: LocalStack $39–89/dev/month (raised ~$25M), Postman $19–49/user/month, Hookdeck $39–499/month.
-- **Why now:** AI assistants write payment code nobody fully reads; PayPal is pushing developers (this hackathon); PayPal has no way to move time in testing (Stripe has test clocks, Chargebee has a beta Time Machine for its own billing, Vercel's `emulate` covers 11 services but not PayPal).
+- **Why now:** AI assistants write payment code nobody fully reads; PayPal is pushing developers (this hackathon); PayPal has no way to move time in testing (Stripe can skip time for its own billing, Chargebee has a beta Time Machine for its own billing, Vercel's `emulate` covers 11 services but not PayPal).
 - **First users:** the 1,175+ entrants of this hackathon, all building on PayPal (release to them is Vinay's decision).
 - **Scale path:** PayPal → Braintree → other processors. End state: the flight simulator for any payment integration.
 - **Weak point, stated openly:** no public count of teams that integrate PayPal APIs directly; market size is an assumption.

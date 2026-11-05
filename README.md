@@ -1,7 +1,7 @@
 # Fastforward
 
 **The testing tool PayPal's sandbox is missing.** Test months of renewals, failed cards and disputes in seconds,
-with AI customers, and find your billing bugs before real money does. Built as a proposal for a test clock in PayPal's
+with AI customers, and find your billing bugs before real money does. Built as a proposal for a time-skipping test tool in PayPal's
 developer dashboard. It is not a PayPal product, and PayPal has not reviewed or endorsed it.
 
 **Live demo:** https://fastforward-production.up.railway.app/ (a recorded bad month, no login needed)
@@ -14,7 +14,7 @@ developer dashboard. It is not a PayPal product, and PayPal has not reviewed or 
 - **The problem:** the code that handles a failed payment, a duplicate webhook, a suspended subscription or a dispute
   meets its first test with real money, because PayPal's sandbox has no clock and no misbehaving customers. Get one
   wrong and you keep serving people who stopped paying, or cut off people who would have paid.
-- **Why it does not exist yet:** PayPal has no test clock. Stripe's test clocks cover Stripe billing only and have no AI
+- **Why it does not exist yet:** PayPal's sandbox has no way to skip time. Stripe can skip time, but only for Stripe billing, and has no AI
   customers. We found nothing that gives PayPal Subscriptions this.
 
 - **Who pays:** PayPal, as a free feature in its developer dashboard: every merchant whose subscription billing

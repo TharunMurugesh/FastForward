@@ -42,7 +42,7 @@ export type AllowedDiffs = Record<string, { field: string; reason: string }[]>;
  * `METHOD template [step name]` for one step when the same endpoint is called more than once.
  */
 const TX_REASON =
-  'Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026).';
+  'Timing only: the sandbox lists a new card payment a little later; Fastforward lists it at once (seen 23 Oct and 4 Nov 2026).';
 
 export const ALLOWED_DIFFS: AllowedDiffs = {
   'GET /v1/billing/subscriptions/{id}/transactions [list transactions]': [

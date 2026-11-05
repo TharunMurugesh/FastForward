@@ -5,7 +5,7 @@ before submitting (see the checklist at the bottom).
 
 ## Tagline (one line)
 
-The test clock PayPal's sandbox is missing: run a real sandbox subscription, skip months ahead, let AI customers misbehave, and find your billing bugs before real money does.
+The testing tool PayPal's sandbox is missing: run a real sandbox subscription, skip months ahead, let AI customers misbehave, and find your billing bugs before real money does.
 
 ## The problem, and who it is for
 
@@ -13,7 +13,7 @@ The test clock PayPal's sandbox is missing: run a real sandbox subscription, ski
 
 **The problem.** The code that handles a failed payment, a duplicate webhook, a suspended subscription or a dispute is first run with real money, because PayPal's sandbox cannot test it. It has no clock, so you cannot skip to next month's renewal, and it has no misbehaving customers. Get one of these wrong and you either keep serving people who stopped paying, or cut off people who would have paid.
 
-**Why it does not exist yet.** PayPal has no test clock. Stripe has test clocks, but only for Stripe billing and with no AI customers. Chargebee has a "Time Machine" only for its own billing. We found nothing that gives PayPal Subscriptions this.
+**Why it does not exist yet.** PayPal's sandbox has no way to skip time. Stripe can skip time, but only for Stripe billing and with no AI customers. Chargebee has a "Time Machine" only for its own billing. We found nothing that gives PayPal Subscriptions this.
 
 **Who pays.** PayPal, as a free feature in its developer dashboard: every merchant whose subscription billing works keeps its subscribers paying through PayPal.
 

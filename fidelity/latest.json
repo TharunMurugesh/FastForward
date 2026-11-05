@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-04T15:37:15.374Z",
+  "ranAt": "2026-11-05T14:05:37.386Z",
   "sandboxBase": "https://api-m.sandbox.paypal.com",
   "checks": [
     {
@@ -83,19 +83,19 @@
       "allowedDiffs": [
         {
           "field": "links",
-          "reason": "Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026)."
+          "reason": "Timing only: the sandbox lists a new card payment a little later; Fastforward lists it at once (seen 23 Oct and 4 Nov 2026)."
         },
         {
           "field": "total_items",
-          "reason": "Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026)."
+          "reason": "Timing only: the sandbox lists a new card payment a little later; Fastforward lists it at once (seen 23 Oct and 4 Nov 2026)."
         },
         {
           "field": "total_pages",
-          "reason": "Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026)."
+          "reason": "Timing only: the sandbox lists a new card payment a little later; Fastforward lists it at once (seen 23 Oct and 4 Nov 2026)."
         },
         {
           "field": "transactions",
-          "reason": "Timing only: the sandbox lists a new card payment a little later; Test Clock lists it at once (seen 23 Oct and 4 Nov 2026)."
+          "reason": "Timing only: the sandbox lists a new card payment a little later; Fastforward lists it at once (seen 23 Oct and 4 Nov 2026)."
         }
       ]
     },

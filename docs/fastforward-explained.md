@@ -41,7 +41,7 @@ steps match.
   payment costs them real money.
 - **Built for PayPal:** a proposal for PayPal's developer dashboard. PayPal has not
   reviewed or endorsed it, and any charging would be PayPal's decision.
-- **Why now:** PayPal has no test clock. Stripe has one but only for billing,
+- **Why now:** PayPal's sandbox cannot skip time. Stripe can, but only for its own billing,
   with no AI customers. Chargebee has a "Time Machine" only for its own
   billing. Nobody offers this for PayPal.
 - **Path to scale:** PayPal first, then other processors. The same idea works
@@ -53,7 +53,7 @@ steps match.
 |---|---|---|
 | PayPal webhook simulator | single fake events | no time, not signed properly, no customers |
 | brandon-makes/paypal-webhook-simulator | offline fake events | no AI, no time |
-| Stripe test clocks | skips time for Stripe billing | not PayPal, no AI customers |
+| Stripe's time skipping | skips time for Stripe billing | not PayPal, no AI customers |
 | LocalStack, emulate.dev | simulate other clouds and services | no PayPal, no clock |
 
 ## 5. The honest weak points (say them before a judge does)

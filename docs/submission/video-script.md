@@ -47,7 +47,7 @@ message arrives twice, when a customer disputes a charge. It's the code you test
 
 **Say (cut):** "Fastforward is for developers and small teams who take recurring payments through PayPal. We built it as a proposal for PayPal's developer dashboard."
 
-**Say (tour, add):** "Why now? PayPal has no test clock at all. Stripe has test clocks, but only for Stripe, and with
+**Say (tour, add):** "Why now? PayPal's sandbox cannot skip time at all. Stripe can, but only for Stripe, and with
 no customers who behave like people. We found nothing that does this for PayPal Subscriptions. We start with PayPal,
 and the same engine can cover other payment processors later."
 

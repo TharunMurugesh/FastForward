@@ -1,7 +1,7 @@
 # Fastforward: voice-over for the Devpost video
 
 The video on the form. Must stay under 3 minutes. Generate this voice first in Vinay's ElevenLabs voice, then record
-the screen to it. Only the **Say** lines are sent to ElevenLabs. Film the Test Clock inside the concept frame
+the screen to it. Only the **Say** lines are sent to ElevenLabs. Film the Fastforward inside the concept frame
 (`npm run demo`, then `npm run concept`, then <http://127.0.0.1:5180/#clock>).
 
 Never say PayPal owns, paid for or endorsed this: it is a proposal.
@@ -10,7 +10,7 @@ Never say PayPal owns, paid for or endorsed this: it is a proposal.
 
 **Show:** title card.
 
-**Say:** Test Clock is the testing tool PayPal's sandbox is missing. It lets developers who bill through PayPal
+**Say:** Fastforward is the testing tool PayPal's sandbox is missing. It lets developers who bill through PayPal
 Subscriptions test months of renewals, failed cards and disputes in seconds. We built it as a proposal for PayPal's
 developer dashboard.
 
@@ -24,7 +24,7 @@ a failed payment first runs with real money.
 
 ## 3. Step one: choose [0:35 to 0:50]
 
-**Show:** the concept frame, Test Clock under Testing Tools, on the Choose step. "Concept, not PayPal" stays visible.
+**Show:** the concept frame, Fastforward under Testing Tools, on the Choose step. "Concept, not PayPal" stays visible.
 
 **Say:** This is how it could look inside PayPal's dashboard. It's a concept, not a PayPal product. Step one: choose the
 app and the test. This is a demo shop with bugs we planted on purpose, facing a bad month. And before anything plays, the
@@ -74,4 +74,4 @@ exactly that bug. A coding assistant can run the month, read why it failed, fix 
 
 **Show:** title card with the live demo and GitHub addresses.
 
-**Say:** Test Clock. The testing tool PayPal's sandbox is missing, ready for PayPal to adopt.
+**Say:** Fastforward. The testing tool PayPal's sandbox is missing, ready for PayPal to adopt.
