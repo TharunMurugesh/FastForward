@@ -6,6 +6,7 @@ COPY . .
 RUN npm ci --no-audit --no-fund \
  && npm run build \
  && npm run build -w @fastforward/web \
+ && npm run build:concept \
  && chown -R node:node /app
 ENV NODE_ENV=production
 # The demo does not need root.

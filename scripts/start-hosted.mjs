@@ -24,6 +24,8 @@ const PORT = Number(process.env.PORT ?? 8080);
 const SCENARIO = process.env.FF_SCENARIO ?? 'examples/coffee-club/scenarios/bad-month.yaml';
 const DEFAULT_BUGS = 'no-verify,no-dedupe,ignores-suspend,ignores-disputes,trusts-event-order';
 const webDir = join(root, 'apps/web/dist/app');
+// The dashboard mock-up from the demo video, served at /frame/ as the front page (built by `npm run build:concept`).
+const frameDir = join(root, 'concept/dist');
 const evidence = { '/fidelity/latest.json': join(root, 'fidelity/latest.json'), '/fidelity/real-report.json': join(root, 'fidelity/real-report.json') };
 
 const children = [];
@@ -157,7 +159,26 @@ const server = createServer((req, res) => {
     return res.end(readFileSync(evidence[path]));
   }
 
-  // The front page opens on the demo run, so a visitor with no run id still sees something real.
+  // The front page is the mock-up from the video, with the dashboard inside it. Only a bare visit to / goes there:
+  // the frame's own iframe asks for /?embed=1, and links with a run id still open that run.
+  if (path === '/' && !url.searchParams.has('run') && !url.searchParams.has('embed') && existsSync(join(frameDir, 'index.html'))) {
+    res.writeHead(302, { location: '/frame/#clock' });
+    return res.end();
+  }
+  if (path === '/frame' || path.startsWith('/frame/')) {
+    const rel = decodeURIComponent(path.slice('/frame'.length)) || '/';
+    const file = normalize(join(frameDir, rel === '/' ? 'index.html' : rel));
+    const ok = file.startsWith(frameDir + sep) && existsSync(file) && statSync(file).isFile();
+    const served = ok ? file : join(frameDir, 'index.html');
+    if (!existsSync(served)) {
+      res.writeHead(404, { 'content-type': 'text/plain' });
+      return res.end('the frame is not built: run npm run build:concept');
+    }
+    res.writeHead(200, { 'content-type': TYPES[extname(served)] ?? 'application/octet-stream' });
+    return res.end(readFileSync(served));
+  }
+
+  // The dashboard opens on the demo run, so a visitor with no run id still sees something real.
   if (path === '/' && demoRunId && !url.searchParams.has('run')) {
     res.writeHead(302, { location: `/?run=${demoRunId}${url.searchParams.has('embed') ? '&embed=1' : ''}` });
     return res.end();

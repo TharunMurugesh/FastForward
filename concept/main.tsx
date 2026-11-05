@@ -4,7 +4,8 @@ import { createRoot } from 'react-dom/client';
 import report from '../fidelity/real-report.json';
 import './concept.css';
 
-const DASHBOARD_URL = 'http://localhost:8080/?embed=1';
+// On your machine the frame is served by Vite on 5180 and the dashboard runs on 8080. Hosted, both come from one site.
+const DASHBOARD_URL = import.meta.env.DEV ? 'http://localhost:8080/?embed=1' : '/?embed=1';
 
 interface Route {
   id: string;
