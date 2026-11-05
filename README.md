@@ -1,10 +1,14 @@
-# Fastforward
+# Test Clock
+
+*The repository and its npm packages carry the project's working name, Fastforward.*
 
 **The testing tool PayPal's sandbox is missing.** Test months of renewals, failed cards and disputes in seconds,
 with AI customers, and find your billing bugs before real money does. Built as a proposal for a Test Clock in PayPal's
 developer dashboard. It is not a PayPal product, and PayPal has not reviewed or endorsed it.
 
 **Live demo:** https://fastforward-production.up.railway.app/ (a recorded bad month, no login needed)
+
+**Try it on your own app in 15 minutes:** [docs/quick-test.md](docs/quick-test.md)
 
 ## The problem, and who it is for
 
@@ -96,7 +100,7 @@ Plain checks, not the AI, decide pass or fail, so the AI cannot talk a bug into 
 
 Full guide, with the scenario reference, the six checks and troubleshooting: [docs/guide.md](docs/guide.md). Short version:
 
-Fastforward is on npm (nothing to clone): `fastforward-cli` (the `fastforward` command), `fastforward-register` (the add-on
+Test Clock is on npm (nothing to clone): `fastforward-cli` (the `fastforward` command), `fastforward-register` (the add-on
 your app preloads) and `fastforward-mcp` (for coding assistants). Add the add-on to your app, start your app with it, then
 write and run a scenario:
 
@@ -149,7 +153,7 @@ it again. `ff_write_scenario` needs an Anthropic key; the other two do not.
 
 ## Contributing and security
 
-To try the live demo and a local install step by step, see [docs/testing-guide.md](docs/testing-guide.md); to try Fastforward on your own app (new or already built), see [docs/try-it-on-your-app.md](docs/try-it-on-your-app.md). See [CONTRIBUTING.md](CONTRIBUTING.md) to set up and run the tests, and [SECURITY.md](SECURITY.md) to report a
+To try the live demo and a local install step by step, see [docs/testing-guide.md](docs/testing-guide.md); to try Test Clock on your own app (new or already built), see [docs/try-it-on-your-app.md](docs/try-it-on-your-app.md). See [CONTRIBUTING.md](CONTRIBUTING.md) to set up and run the tests, and [SECURITY.md](SECURITY.md) to report a
 vulnerability privately. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence

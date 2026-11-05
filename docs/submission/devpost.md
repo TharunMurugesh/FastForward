@@ -1,4 +1,4 @@
-# Fastforward: Devpost submission text
+# Test Clock: Devpost submission text
 
 Paste each section below into the matching Devpost field. Items in [square brackets] are filled in by Vinay
 before submitting (see the checklist at the bottom).
@@ -66,7 +66,7 @@ Claude Opus 5.5 does three jobs:
 2. **Plays the customers.** At each decision point, a customer with a persona picks an action, in the twin and on the real sandbox. Decisions are saved so a rerun is identical.
 3. **Explains failures.** For each failed check, it reads the trace and writes what went wrong and how to fix it.
 
-Without an API key, Fastforward still runs: customers follow a scripted default and failures use template explanations. The deterministic checks, not the AI, decide pass or fail, so the AI cannot talk a bug into passing.
+Without an API key, Test Clock still runs: customers follow a scripted default and failures use template explanations. The deterministic checks, not the AI, decide pass or fail, so the AI cannot talk a bug into passing.
 
 **The hosted demo replays one real recorded run.** The customer decisions and the failure explanations on the page were written once by Claude Opus 5.5 (a recording of 10 model calls, about 16 thousand tokens) and saved; the report labels them "Written by Claude" and says it is a replay. The page does not call a model while you look at it, so it costs nothing and cannot fail because of an API outage.
 
